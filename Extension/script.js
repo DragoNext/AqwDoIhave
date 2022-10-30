@@ -5,7 +5,13 @@ var isChromium = window.chrome;
 
 
 if (document.URL == "https://account.aq.com/AQW/Inventory") {
+	// Add some visual to show that extension is trying to read inventory
 	
+	//
+	
+	
+	// *Change this timeout approach to:
+	// Detect when table is loaded [ table id="listinvFull" ]
 	window.addEventListener('load', function () {
 	  setTimeout(() => {  console.log("World!"); 
   
@@ -39,6 +45,12 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	})
 }
 else {
+	// Add some visual to represent that extension is working 
+	
+	
+	//
+	
+	
 	function findNodeByInnerHTML(nodelist, innerHTML){
     for(let ii = 0; ii < nodelist.length; ii++){
         if(nodelist[ii].innerHTML === innerHTML)
@@ -51,10 +63,18 @@ else {
 				Items = result.aqwitems;
 	
 				// Preety if nesting <3 
+				// Change nesting to just replacing tags in > ( ) to nothing and then comparing 
+				// or 
+				// retrive more information from account, [Category, Buy, Type] still wouldn't be able to diffrenaite (FREE) (AC) with (MERGE) (AC) :/ shucks
 				for (k in Items) {
 					let span = findNodeByInnerHTML(document.querySelectorAll('a'), Items[k])
 					if (span != undefined) {
+						
+						
+						// Add customization in extension setting 
 						span.style ="font-weight: bold;color:green;";
+						
+						
 					}
 					else {
 						let span = findNodeByInnerHTML(document.querySelectorAll('a'), Items[k]+" (0 AC)")
