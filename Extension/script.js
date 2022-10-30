@@ -1,22 +1,30 @@
 
 
 var Items = [];
-var test = 2;
+var isChromium = window.chrome;
+
+
 if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 	window.addEventListener('load', function () {
 	  setTimeout(() => {  console.log("World!"); 
-		var className = "sorting_1"
+  
 		var matchingItems = [];
 		var allElements = document.getElementsByTagName("*");
-
-		for(var i=0; i < allElements.length; i++)
-		{
-			if(allElements [i].className == className)
-			{
-				matchingItems.push(allElements[i]);
+		var inventoryElement = document.getElementsByTagName("td");
+		var l = 0 
+		for (x in inventoryElement) {
+			var l = l + 1 
+			if (l == 1) {
+				matchingItems.push(inventoryElement[x]);
+			}
+			else {
+				if (l == 6) {
+					var l = 0 
+				}
 			}
 		}
+		
 		matchingItems.forEach(function (item, index) {
 		  Items.push(item.innerHTML);
 		});
