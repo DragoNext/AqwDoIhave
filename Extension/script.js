@@ -25,7 +25,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		});
 		chrome.storage.local.set({"aqwitems": Items}, function() {
 		});
-		
+		alert(Items);
 	  }, 5000);
 
 	})
