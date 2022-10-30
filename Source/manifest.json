@@ -1,0 +1,21 @@
+{
+	"manifest_version":3,
+	"name":"AqwDoIhave",
+	"description":"Compares items to items that you imported for aqwiki page",
+	"version":"1.0",
+	"icons": {
+		"16":"/images/16.png",
+		"48":"/images/48.png",
+		"128":"/images/128.png"
+	},
+	"content_scripts": [{
+		"matches": ["http://aqwwiki.wikidot.com/*","https://account.aq.com/AQW/Inventory"],
+		
+		"js": ["script.js"]
+	}],
+	
+	"permissions": [
+        "storage"
+    ]
+	
+}
