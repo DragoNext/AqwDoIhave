@@ -10,7 +10,7 @@ How to install?
 
 How to use?
 
-1. You need to load https://account.aq.com/AQW/Inventory wait for items to be loaded alert will pop up with items list, then you can use aqwiki.
+1. You need to load https://account.aq.com/AQW/Inventory wait for items to be loaded alert will pop up (In total about 5 seconds) with items list, then you can use aqwiki.
 2. Just go to any wiki page it will higlight Bold Green any item that you have in bank/inventory.
 3. Farm Mobs :) 
 
