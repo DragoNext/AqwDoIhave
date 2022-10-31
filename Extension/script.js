@@ -1,50 +1,79 @@
 
 
 var Items = [];
+var Where = [];
+var Type = []; 
+var Buy = []; 
+var Category = []; 
+
 var isChromium = window.chrome;
 
 
 if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	// Add some visual to show that extension is trying to read inventory
 	
+	
 	//
 	
 	
 	// *Change this timeout approach to:
 	// Detect when table is loaded [ table id="listinvFull" ]
-	window.addEventListener('load', function () {
-	  setTimeout(() => {  console.log("World!"); 
-  
-		var matchingItems = [];
-		var allElements = document.getElementsByTagName("*");
+	waitForElement()
+	
+	function inv_init(){
+		var indicator = document.createElement("div")
+		indicator.innerHTML = "<h>Loaded 0 Items</h>"
+		indicator.style = "display: block;width: auto;text-align: right;position:relative;"
+		indicator.classList.add("tblHeader")
+		
+		document.getElementById("listinvFull_filter").appendChild(indicator)
+		
 		var inventoryElement = document.getElementsByTagName("td");
 		var l = 0 
-		for (x in inventoryElement) {
-			var l = l + 1 
+		for (var x = 0; x < inventoryElement.length; x++) {
+			l = l + 1 
 			if (l == 1) {
-				matchingItems.push(inventoryElement[x]);
-			}
-			else {
+				Items.push(inventoryElement[x].innerHTML);
+			} else if (l == 2) {
+				Type.push(inventoryElement[x].innerHTML);
+			} else if (l == 3) {
+				Where.push(inventoryElement[x].innerHTML);
+			} else if (l == 4) {
+				Buy.push(inventoryElement[x].innerHTML);
+			} else if (l == 5) {
+				Category.push(inventoryElement[x].innerHTML);
+			} else {
 				if (l == 6) {
-					var l = 0 
+					l = 0 
 				}
 			}
 		}
+		indicator.innerHTML = "<h>Loaded "+Items.length+" Items</h>"
 		
-		matchingItems.forEach(function (item, index) {
-		  Items.push(item.innerHTML);
-		});
+		chrome.storage.sync.set({ "aqwitems": Items }, function(){});
+		chrome.storage.local.set({"aqwitems": Items}, function() {});
 		
-		chrome.storage.sync.set({ "aqwitems": Items }, function(){
-		});
-		chrome.storage.local.set({"aqwitems": Items}, function() {
-		});
-		alert(Items);
-	  }, 5000);
+	  };
 
-	})
-}
-else {
+
+	function waitForElement(){
+		if(typeof document.getElementById("listinvFull").innerHTML.length !== "undefined"){
+			//variable exists, do what you want
+			if(document.getElementById("listinvFull").innerHTML.length >= 2000){
+				inv_init();	
+			}
+			else {
+				setTimeout(waitForElement, 250);
+			}	
+		}
+		else{
+			setTimeout(waitForElement, 250);
+		}
+	}
+	
+	
+
+} else {
 	// Add some visual to represent that extension is working 
 	
 	
