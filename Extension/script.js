@@ -28,35 +28,33 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			if (l == 1) {
 				Items.push(iterated);
 			} else if (l == 2) {
-				Type.push(iterated);
+				if (iterated == "Item" || iterated == "Resource" || iterated == "Quest Item") {
+					let itemname = Items.pop(); 
+					if (itemname.includes(" x")) {
+						Type.push([iterated,itemname.split(" x")[1]]); // Correct amount of items 
+						Items.push(itemname.split(" x")[0]); // Correct rescource name 
+					}
+					else {
+						Type.push([iterated, 1]); // Only 1 item avaliable
+						Items.push(itemname);
+					}
+				} else {
+					Type.push(inventoryElement[x].innerHTML);
+				}	
 			} else if (l == 3) {
 				Where.push(iterated);
 			} else if (l == 4) {
 				Buy.push(iterated);
+				
 			} else if (l == 5) {
+				Category.push(inventoryElement[x].innerHTML);
 				
-				if (Category == "Item" || Category == "Resource" || Category == "Quest Item") {
-					let itemname = Items.pop(); 
-					if (itemname.includes(" x")) {
-						Category.push([iterated,itemname.split(" x")[1]]); // Correct amount of items 
-						Items.push(itemname.split(" x")[0]); // Correct rescource name 
-					
-					}
-					else {
-						Category.push([iterated, 1]); // Only 1 item avaliable
-						Items.push(itemname);
-					}
-				
-				}
-				else {
-					Category.push(inventoryElement[x].innerHTML);
-				}
-				
-			} else {
+			}	else {
 				if (l == 6) {
 					l = 0 
 				}
 			}
+			
 		}
 		indicator.innerHTML = "<h>Loaded "+Items.length+" Items</h>"
 		
@@ -119,10 +117,44 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				let nodeText = nodeList[arrayOffset+x].innerHTML.split("(")[0] // Removes any (Legend) (Non Ac) Etc if you have one you have one 
 				let nodeLink = nodeList[arrayOffset+x].href
 				let isRep = nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
+				let isMerge = document.URL.includes("merge")
 				isRep = !isRep
 				if (isRep) { 
 					if (Items.includes(nodeText)) {
 						nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
+						if (Type[Items.indexOf(nodeText)].length == 2) {
+							let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
+							
+							if ( isMerge ) { 
+								var count_node = nodeList[arrayOffset+x].nextSibling
+							
+							} else {
+								var count_node = nodeList[arrayOffset+x].parentNode.lastChild
+							}
+							
+							let needed_amount = parseInt(count_node.data.slice(2).replace(",",""))
+							
+							
+							let node_2 = document.createElement("a")
+						
+							count_node.data = "x"+needed_amount+" /"
+							node_2.innerHTML = String(amount)
+							if (needed_amount <= amount) {
+								node_2.style = "font-weight: bold;color:green;"
+							}
+							else {
+								node_2.style = "font-weight: bold;color:red;"
+							}
+							if (isMerge) {
+								nodeList[arrayOffset+x].parentNode.insertBefore(node_2, nodeList[arrayOffset+x].nextSibling.nextSibling)
+								
+							}
+							else {
+								nodeList[arrayOffset+x].parentNode.appendChild(node_2) 
+							}
+						
+	
+						}
 						if (Where[Items.indexOf(nodeText)] == "Bank") {
 							nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
 						}
