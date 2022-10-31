@@ -124,6 +124,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 						nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 						if (Type[Items.indexOf(nodeText)].length == 2) {
 							let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
+							let req = true  
 							
 							if ( isMerge ) { 
 								var count_node = nodeList[arrayOffset+x].nextSibling
@@ -131,20 +132,40 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 							} else {
 								var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 							}
+							if (count_node.data == undefined ) {
+								var count_node = nodeList[arrayOffset+x].nextSibling
+							}
 							
-							let needed_amount = parseInt(count_node.data.slice(2).replace(",",""))
+							if (count_node.data.includes("-")) {
+								var needed_amount = count_node.data.slice(2)
+								req = false 
+								amount = " | "+amount
+								
+							}
+							else {
+								var needed_amount = parseInt(count_node.data.slice(2).replace(",",""))
 							
+							}
 							
 							let node_2 = document.createElement("a")
-						
-							count_node.data = "x"+needed_amount+" /"
+							
+							if (req) {
+								count_node.data = "x"+needed_amount+" /"
+							}
+							else {
+								count_node.data = "x"+needed_amount
+							}
 							node_2.innerHTML = String(amount)
-							if (needed_amount <= amount) {
+							
+							
+							if (needed_amount <= amount || !req) {
 								node_2.style = "font-weight: bold;color:green;"
 							}
 							else {
 								node_2.style = "font-weight: bold;color:red;"
 							}
+						
+							
 							if (isMerge) {
 								nodeList[arrayOffset+x].parentNode.insertBefore(node_2, nodeList[arrayOffset+x].nextSibling.nextSibling)
 								
