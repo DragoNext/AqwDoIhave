@@ -78,9 +78,15 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				
 				for (var x = 0; x < arrayList.length; x++) {
 					let nodeText = nodeList[arrayOffset+x].innerHTML.split("(")[0] // Removes any (Legend) (Non Ac) Etc if you have one you have one 
-					if (Items.includes(nodeText)) {
-						nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
-						found += 1 
+					let nodeLink = nodeList[arrayOffset+x].href
+					let isRep = nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
+					isRep = !isRep
+					if (isRep) { 
+						if (Items.includes(nodeText)) {
+							nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
+							found += 1 
+							
+						}
 					}
 				}
 				found_info.innerHTML = "- Found "+found+" Items"
@@ -90,16 +96,5 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		
 			
 	}, 0);});
-	
-	
-	
-	
-		
-		
-	
-
-
-		
-
 	
 }
