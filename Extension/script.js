@@ -114,7 +114,10 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			
 			
 			for (var x = 0; x < arrayList.length; x++) {
-				let nodeText = nodeList[arrayOffset+x].innerHTML.split(" (")[0] // Removes any (Legend) (Non Ac) Etc if you have one you have one 
+				let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","")
+				
+
+				
 				let nodeLink = nodeList[arrayOffset+x].href
 				let isRep = nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
 				let isMerge = document.URL.includes("merge")
