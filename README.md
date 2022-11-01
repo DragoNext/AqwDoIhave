@@ -15,8 +15,7 @@ How to use?
 
 
 Things:
-1. There is no proper Merge/Ac/Non Ac Detection. (so use it for farming bosses not for checking if you have all classes/ items etc at least i recomend it for that)
-2. YOU NEED to go again to https://account.aq.com/AQW/Inventory for your inventory to be updated
+- YOU NEED to go again to https://account.aq.com/AQW/Inventory for your inventory to be updated
 
 
 Some Screenshots:
