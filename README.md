@@ -1,11 +1,12 @@
 # Aqw Do i Have? #
-Chrome Extension that shows if you have item on aqwiki
+Chrome Extension that shows if you have item from your account on aqwiki.
+
 How to install?
-0. Download "Extension" folder.
-1. Go to extensions chrome://extensions.
-2. Click "Developer mode" on top right.
-3. Click "Load Unpacked".
-4. Find "Extension" folder and select it.
+  0. Download "Extension" folder.
+  1. Go to extensions chrome://extensions.
+  2. Click "Developer mode" on top right.
+  3. Click "Load Unpacked".
+  4. Find "Extension" folder and select it.
 
 
 How to use?
