@@ -2,6 +2,7 @@
 Chrome Extension that shows if you have item from your account on aqwiki.
 
 How to install?
+
   0. Download "Extension" folder.
   1. Go to extensions chrome://extensions.
   2. Click "Developer mode" on top right.
