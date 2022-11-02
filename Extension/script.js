@@ -14,6 +14,7 @@ const inv_icon = "https://i.imgur.com/dicssH5.png"
 
 if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	waitForElement()
+	// Basically parsing inventory.. (Finished)
 	function inv_init(){
 		var indicator = document.createElement("div")
 		indicator.innerHTML = "<h>Loaded 0 Items</h>"
@@ -58,6 +59,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		}
 		indicator.innerHTML = "<h>Loaded "+Items.length+" Items</h>"
 		
+		// save data
 		chrome.storage.local.set({"aqwitems": Items}, function() {});
 		chrome.storage.local.set({"aqwwhere": Where}, function() {});
 		chrome.storage.local.set({"aqwtype": Type}, function() {});
@@ -88,9 +90,9 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	var nodeList = document.querySelectorAll("a")
 	const arrayOffset = 200 
 	let arrayList = Array.from(nodeList).slice(arrayOffset) // About 200 is alright
-	
 	var found = 0 
 
+	// get stored data 
 	chrome.storage.local.get({aqwbuy: []}, function(result){
 		Buy = result.aqwbuy;
 	});
@@ -114,24 +116,34 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			
 			
 			for (var x = 0; x < arrayList.length; x++) {
+				// getting text of item + removing not needed text (dosen't compare to inv) 
 				let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","")
 				
-
 				
+				// New Needed_Amount / Amount_you_have elements 
+				let node_1 = document.createElement("a");
+				let node_2 = document.createElement("a");
+				
+				// link of item /item-name 
 				let nodeLink = nodeList[arrayOffset+x].href
-				let isRep = nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
+				
+				// is rep if the link is just a link to /X-faction 
+				let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
+				
+				// if shop is a merge shop 
 				let isMerge = document.URL.includes("merge")
-				isRep = !isRep
+			
+				
 				if (isRep) { 
 					if (Items.includes(nodeText)) {
 						nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 						if (Type[Items.indexOf(nodeText)].length == 2) {
+							// gets amount from inventory 
 							let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
-							let req = true  
 							
+							// Geting location of item drop count or location next to item found
 							if ( isMerge ) { 
 								var count_node = nodeList[arrayOffset+x].nextSibling
-							
 							} else {
 								var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 							}
@@ -139,58 +151,62 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 								var count_node = nodeList[arrayOffset+x].nextSibling
 							}
 							
+							// detection for monster drop that has range 
 							if (count_node.data.includes("-")) {
-								var needed_amount = count_node.data.slice(2)
-								req = false 
-								amount = " | "+amount
-								
-							}
-							else {
-								var needed_amount = parseInt(count_node.data.slice(2).replace(",",""))
-							
+								var needed_amount = count_node.data.slice(2).replace(" ","");
+							} else {
+								var needed_amount = parseInt(count_node.data.slice(2).replace(",",""));
 							}
 							
-							let node_2 = document.createElement("a")
+							// formating original amount / needed amount to final result.
+							if (isNaN(needed_amount)) {
+								var needed_amount=1;
+							};
+							node_1.innerHTML = String(" x"+needed_amount+"/")	
+					
 							
-							if (req) {
-								count_node.data = "x"+needed_amount+" /"
-							}
-							else {
-								count_node.data = "x"+needed_amount
-							}
+						
+							// Stylizer for amount of items
 							node_2.innerHTML = String(amount)
-							
-							
-							if (needed_amount <= amount || !req) {
+							if (needed_amount <= amount) {
+								node_1.style = "color:black;"
 								node_2.style = "font-weight: bold;color:green;"
 							}
 							else {
+								node_1.style = "color:black;"
 								node_2.style = "font-weight: bold;color:red;"
 							}
-						
 							
 							if (isMerge) {
+								// Dosen't require adding new element (Just replace , with / )
+								count_node.data = count_node.data.replace(",","")+"/"
+								// Ads new element 
 								nodeList[arrayOffset+x].parentNode.insertBefore(node_2, nodeList[arrayOffset+x].nextSibling.nextSibling)
 								
 							}
 							else {
+								// erases previous data 
+								count_node.data = ""
+								
+								// Adds new element 
+								nodeList[arrayOffset+x].parentNode.appendChild(node_1) 
 								nodeList[arrayOffset+x].parentNode.appendChild(node_2) 
+							
 							}
-						
-	
 						}
+						
+						// Adds icons of where is located 
 						if (Where[Items.indexOf(nodeText)] == "Bank") {
 							nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
 						}
 						else {
 							nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
 						}
-						found += 1 
-						
+						found += 1 //Count items found 
 					}
 				}
 			}
-			found_info.innerHTML = "- Found "+found+" Items"
+			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			});
 
 }
