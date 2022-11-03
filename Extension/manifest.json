@@ -8,16 +8,18 @@
 		"16":"/images/16.png",
 		"48":"/images/48.png",
 		"128":"/images/128.png"
-	},
+	}, 
+	  "web_accessible_resources": [ {
+      "resources": [ "js/ProcessAcountItems.js", "js/ProcessWikiItem.js" ] ,
+      "matches": ["<all_urls>"] }
+	],
 	"content_scripts": [{
 		"matches": ["http://aqwwiki.wikidot.com/*","https://account.aq.com/AQW/Inventory"],
-		
-		"js": ["script.js"]
+		"js": ["js/ProcessAcountItems.js","js/ProcessWikiItem.js","js/main.js"]
 	}],
 	
 	"permissions": [
         "storage",
 		 "contextMenus"
     ]
-	
 }
