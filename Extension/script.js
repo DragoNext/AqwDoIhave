@@ -7,26 +7,66 @@ var Buy = [];
 var Category = []; 
 
 var isChromium = window.chrome;
+const _UndArray_0 = ["Unidentified 1","Unidentified 2","Unidentified 3","Unidentified 4","Unidentified 5","Unidentified 6","Unidentified 7","Unidentified 8","Unidentified 9","Unidentified 12","Unidentified 14","Unidentified 15","Unidentified 16","Unidentified 17","Unidentified 18","Unidentified 19","Unidentified 13","Unidentified 20","Unidentified 21","Unidentified 24","Unidentified 26","Unidentified 28","Unidentified 29","Unidentified 30","Unidentified 31","Unidentified 32","Unidentified 33"]
+const _UndArray_1 = ["Trig Buster","Sharkbait's True Head","Dragon Bone Hammer","Small Hammer","Rounded Stone Hammer",
+"Parasitic Hacker","Star Dagger","Bee Sting Dagger", "Ordinary Iron Wing Helm","Bone Walking Cane","Worn Axe","Dark Cyclops Face","Emblem Mace","Iron Plate Hammer","Duck on a Stick","Koi Fish in a Sphere","The Contract of Nulgath","Dragonbone Blade","Dragonbone Axe","Essence of the Void Fiend","Ordinary Cape","Spinal Tap","Mysterious Walking Cane","Platinum Twin Blade","Platinum Battle Shank","Cruel Dagger Of Nulgath","Primal Dagger Tooth"
+]
+
 
 const bank_icon = "https://i.imgur.com/3jDQEc0.png"
 const inv_icon = "https://i.imgur.com/dicssH5.png"
+const sellback_icon = "https://i.imgur.com/j2D4Pfx.png"
 
-async function httpGet(theUrl)
+function translateUnidentified(itemname) {
+	if (itemname.includes("Unidentified")) {
+		for (var x = 0; x < _UndArray_0.length; x++) {
+			if (itemname == _UndArray_0[x]) {
+				return _UndArray_1[x]  
+			}
+		}
+	}
+	return itemname 
+} 
+
+
+function httpGet(theUrl, nodeList, arrayOffset, x)
 {
+	function checkData() {
+			if (xmlHttp.readyState == 4) {
+				if (xmlHttp.responseText.includes("Sellback:")) {
+					sellback_price = xmlHttp.responseText.split("Sellback:")[1].split("strong>")[1].split("<br")[0]
+					if (sellback_price !== undefined) { 
+						nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='"+sellback_price+"' style='width:42px' src='"+sellback_icon+"'></img>"
+					}
+				}
+				
+			}  
+		}
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
+    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+	xmlHttp.onreadystatechange = checkData;
+	xmlHttp.send( null );
+    return true
 }
 
+
+
+
+
 async function item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x) { 
+	
+	let nodeText = nodeList[arrayOffset+x].innerHTML // No need for highlight 
+	
+	let nodeLink = nodeList[arrayOffset+x].href
+	
+	
 	isHashtag = !nodeLink.includes("#")
 	isSorting = !nodeLink.includes("sort-by-")
 	
-	let nodeLink = nodeList[arrayOffset+x].href
+	
 	if (isHashtag && isSorting) {
 		if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
-			httpGet(nodeLink);
+			httpGet(nodeLink, nodeList, arrayOffset, x);
 		}
 	}
 	
@@ -141,17 +181,21 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			l = l + 1 
 			let iterated = inventoryElement[x].innerHTML
 			if (l == 1) {
-				Items.push(iterated);
+				if (iterated.includes(" x")) {
+					Items.push(iterated);
+				} else {
+					Items.push(translateUnidentified(iterated));
+				}
 			} else if (l == 2) {
 				if (iterated == "Item" || iterated == "Resource" || iterated == "Quest Item") {
 					let itemname = Items.pop(); 
 					if (itemname.includes(" x")) {
 						Type.push([iterated,itemname.split(" x")[1]]); // Correct amount of items 
-						Items.push(itemname.split(" x")[0]); // Correct rescource name 
+						Items.push(translateUnidentified(itemname.split(" x")[0])); // Correct rescource name 
 					}
 					else {
 						Type.push([iterated, 1]); // Only 1 item avaliable
-						Items.push(itemname);
+						Items.push(translateUnidentified(itemname));
 					}
 				} else {
 					Type.push(inventoryElement[x].innerHTML);
@@ -233,8 +277,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			
 			for (var x = 0; x < arrayList.length; x++) {
 				tag_item(nodeList, arrayOffset, Buy, Category, Where, Type, x) 
-				// item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x)
-				// New function 
+				//item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x)
 			}
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			});
