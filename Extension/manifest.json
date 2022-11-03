@@ -3,6 +3,7 @@
 	"name":"AqwDoIhave",
 	"description":"Compares items to items that you imported for aqwiki page",
 	"version":"1.0",
+	"options_page": "options.html",
 	"icons": {
 		"16":"/images/16.png",
 		"48":"/images/48.png",

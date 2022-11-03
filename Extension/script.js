@@ -15,7 +15,7 @@ const _UndArray_1 = ["Trig Buster","Sharkbait's True Head","Dragon Bone Hammer",
 
 const bank_icon = "https://i.imgur.com/3jDQEc0.png"
 const inv_icon = "https://i.imgur.com/dicssH5.png"
-const sellback_icon = "https://i.imgur.com/j2D4Pfx.png"
+const price_icon = "https://i.imgur.com/nVHL0Rz.png"
 
 function translateUnidentified(itemname) {
 	if (itemname.includes("Unidentified")) {
@@ -36,7 +36,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 				if (xmlHttp.responseText.includes("Sellback:")) {
 					sellback_price = xmlHttp.responseText.split("Sellback:")[1].split("strong>")[1].split("<br")[0]
 					if (sellback_price !== undefined) { 
-						nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='"+sellback_price+"' style='width:42px' src='"+sellback_icon+"'></img>"
+						nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='"+sellback_price+"' style='width:32px' src='"+price_icon+"'></img>"
 					}
 				}
 				
@@ -251,6 +251,10 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	var found = 0 
 
 	// get stored data 
+	chrome.storage.local.get({wipprice: 0}, function(result){
+		WIP_price = result.wipprice;
+	})
+	
 	chrome.storage.local.get({aqwbuy: []}, function(result){
 		Buy = result.aqwbuy;
 	});
@@ -277,7 +281,9 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			
 			for (var x = 0; x < arrayList.length; x++) {
 				tag_item(nodeList, arrayOffset, Buy, Category, Where, Type, x) 
-				//item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x)
+				if (WIP_price) {
+					item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x)
+				}
 			}
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			});
