@@ -74,7 +74,7 @@ async function item_from(nodeList, arrayOffset, Buy, Category, Where, Type, x) {
 
 async function tag_item(nodeList, arrayOffset, Buy, Category, Where, Type, x) {
 	// getting text of item + removing not needed text (dosen't compare to inv) 
-	let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","")
+	let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","").trim()
 	
 	// New Needed_Amount / Amount_you_have elements 
 	let node_1 = document.createElement("a");
@@ -90,9 +90,11 @@ async function tag_item(nodeList, arrayOffset, Buy, Category, Where, Type, x) {
 	// if shop is a merge shop 
 	let isMerge = document.URL.includes("merge")
 
+
 	if (isRep) { 
 		if (Items.includes(nodeText)) {
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
+			
 			if (Type[Items.indexOf(nodeText)].length == 2) {
 				// gets amount from inventory 
 				let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
@@ -175,11 +177,13 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		indicator.style = "display: block;width: auto;text-align: right;position:relative;"
 		indicator.classList.add("tblHeader")
 		document.getElementById("listinvFull_filter").appendChild(indicator)
+		
 		var inventoryElement = document.getElementsByTagName("td");
 		var l = 0 
 		for (var x = 0; x < inventoryElement.length; x++) {
 			l = l + 1 
-			let iterated = inventoryElement[x].innerHTML
+			
+			let iterated = inventoryElement[x].innerHTML.trim().replace("’","'");;
 			if (l == 1) {
 				if (iterated.includes(" x")) {
 					Items.push(iterated);
@@ -198,7 +202,8 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 						Items.push(translateUnidentified(itemname));
 					}
 				} else {
-					Type.push(inventoryElement[x].innerHTML);
+					let psh = inventoryElement[x].innerHTML.trim();
+					Type.push(psh);
 				}	
 			} else if (l == 3) {
 				Where.push(iterated);
@@ -206,7 +211,8 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				Buy.push(iterated);
 				
 			} else if (l == 5) {
-				Category.push(inventoryElement[x].innerHTML);
+				let psh = inventoryElement[x].innerHTML.trim();
+				Category.push(psh);
 				
 			}	else {
 				if (l == 6) {
@@ -239,7 +245,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		}
 	}
 } else {
-	let Title = document.getElementById("page-title")
+	var Title = document.getElementById("page-title")
 	var found_info = document.createElement("a") 
 	found_info.innerHTML = "- Found 0 Items"
 	found_info.style = "font-weight: bold;color:green;"
