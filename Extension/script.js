@@ -191,7 +191,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 					Items.push(translateUnidentified(iterated));
 				}
 			} else if (l == 2) {
-				if (iterated == "Item" || iterated == "Resource" || iterated == "Quest Item") {
+				if (iterated == "Item" || iterated == "Resource" || iterated == "Quest Item" || iterated == "Wall Item" || iterated == "Floor Item") {
 					let itemname = Items.pop(); 
 					if (itemname.includes(" x")) {
 						Type.push([iterated,itemname.split(" x")[1]]); // Correct amount of items 
