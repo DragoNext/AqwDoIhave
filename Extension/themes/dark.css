@@ -1,8 +1,13 @@
+:root {
+  --color_1: #0f0f0f;
+  --color_2: #f0f0f0;
+}
+
 #main-content {
-	background-color:#0f0f0f; }
+	background-color:var(--color_1); }
 
 #container-wrap-wrap {
-	background-color:#0f0f0f; }
+	background-color:var(--color_1); }
 
 div#container-wrap { 
     background-color:transparent ;
@@ -11,20 +16,75 @@ div#container-wrap {
 p { color:#fefefe; }
 
 li { color:#f0f0f0;
-	background-color:#0f0f0f; }
+	background-color:var(--color_1); }
 
-a { color:#f0f0f0;
-	background-color:#0f0f0f; }
-a:hover { background-color:#0f0f0f; }
+a { 
+	color:#eaea0f;
+	background-color:var(--color_1); }
+a:hover { background-color:var(--color_1); }
 
 p {
-	background-color:#0f0f0f; }
+	background-color:var(--color_1); }
 
 main-content {
-	background-color:#0f0f0f;
-	background:#0f0f0f; }
+	background-color:var(--color_1);
+	background:var(--color_1); }
 	
 .yui-navset .yui-content{
-	background-color: #0f0f0f; }
+	background-color: var(--color_1); }
 	
 td { color:#f0f0f0; }
+
+blockquote {
+	background-color: var(--color_1); 
+}
+
+
+
+
+.collapsible-btn.collapsible-btn-default .collapsible-block-link{
+    background-color: #0f0f0f;
+    border-color: #3D3D3D;
+    color: #f0f0f0;
+}
+
+.collapsible-btn.collapsible-btn-default .collapsible-block-link:hover,
+.collapsible-btn.collapsible-btn-default .collapsible-block-link:focus{
+    background-color: #000000;
+    border-color: #0D0D0D;
+    color: red;
+}
+
+#top-bar a {
+	color: #fff;
+	border-radius:2px;
+	padding:10px;
+	background-color: #0f0f0f;
+}
+
+#top-bar ul li.sfhover a,
+#top-bar ul li:hover a {
+	background: #0f0f0f;
+	color: #f0f0f0;
+}
+#top-bar ul li.sfhover a:hover,
+#top-bar ul li:hover a:hover {
+	background: #000;
+	color: #afafaf;
+	text-decoration: none;
+}
+
+.yui-navset .yui-nav .selected a,
+.yui-navset .yui-nav .selected a:focus, /* no focus effect for selected */
+.yui-navset .yui-nav .selected a:hover { /* no hover effect for selected */
+	background:#a00 url(../images/yuitabs.png) repeat-x left -1400px; /* selected tab background */
+	color:#fff;
+}
+
+.yui-navset .yui-nav a,
+.yui-navset .yui-navset-top .yui-nav a {
+	background-color:#afafaf;
+	background-image: url(../images/yuitabs.png);
+}
+
+
