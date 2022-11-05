@@ -1,8 +1,8 @@
 /* Main.js */ 
 
-const bank_icon = "https://i.imgur.com/3jDQEc0.png";
-const inv_icon = "https://i.imgur.com/dicssH5.png";
-const price_icon = "https://i.imgur.com/nVHL0Rz.png";
+const bank_icon = chrome.runtime.getURL("images/in_bank.png")
+const inv_icon = chrome.runtime.getURL("images/in_inventory.png")
+const price_icon = chrome.runtime.getURL("images/price_icon.png");
 
 
 
@@ -49,6 +49,16 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 // Wiki Page Handling 
 } else {
+	// Adds theme if enabled 
+	chrome.storage.local.get({darkmode: 0}, function(result){
+		if(result.darkmode) {
+			addCss(chrome.runtime.getURL("themes/dark.css"));
+		}
+	});
+	
+
+	
+	
 	// Preload the arrays and vars from chrome local storage  
 	var WIP_price = 0
 	

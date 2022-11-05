@@ -10,12 +10,12 @@
 		"128":"/images/128.png"
 	}, 
 	  "web_accessible_resources": [ {
-      "resources": [ "js/ProcessAcountItems.js", "js/ProcessWikiItem.js" ] ,
+      "resources": [ "js/ProcessAcountItems.js", "js/ProcessWikiItem.js", "themes/aqw.css","themes/dark.css","images/BannerMain.png","images/in_bank.png","images/in_inventory.png","images/price_icon.png"] ,
       "matches": ["<all_urls>"] }
 	],
 	"content_scripts": [{
 		"matches": ["http://aqwwiki.wikidot.com/*","https://account.aq.com/AQW/Inventory"],
-		"js": ["js/ProcessAcountItems.js","js/ProcessWikiItem.js","js/main.js"]
+		"js": ["js/Themes.js","js/ProcessAcountItems.js","js/ProcessWikiItem.js","js/main.js"]
 	}],
 	
 	"permissions": [

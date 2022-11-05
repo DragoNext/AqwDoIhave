@@ -96,11 +96,11 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				// Stylizer for amount of items
 				stack_account.innerHTML = String(amount)
 				if (needed_amount <= amount) {
-					stack_original.style = "color:black;"
+					//stack_original.style = "color:black;"
 					stack_account.style = "font-weight: bold;color:green;"
 				}
 				else {
-					stack_original.style = "color:black;"
+					//stack_original.style = "color:black;"
 					stack_account.style = "font-weight: bold;color:red;"
 				}
 				

@@ -1,0 +1,30 @@
+#main-content {
+	background-color:#0f0f0f; }
+
+#container-wrap-wrap {
+	background-color:#0f0f0f; }
+
+div#container-wrap { 
+    background-color:transparent ;
+	background-image: url("chrome-extension://__MSG_@@extension_id__/images/BannerMain.png") }
+	
+p { color:#fefefe; }
+
+li { color:#f0f0f0;
+	background-color:#0f0f0f; }
+
+a { color:#f0f0f0;
+	background-color:#0f0f0f; }
+a:hover { background-color:#0f0f0f; }
+
+p {
+	background-color:#0f0f0f; }
+
+main-content {
+	background-color:#0f0f0f;
+	background:#0f0f0f; }
+	
+.yui-navset .yui-content{
+	background-color: #0f0f0f; }
+	
+td { color:#f0f0f0; }
