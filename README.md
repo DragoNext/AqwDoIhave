@@ -27,4 +27,6 @@ Some Screenshots:
 ![testme](https://user-images.githubusercontent.com/49029552/199015906-450ab325-81da-4a95-b066-80b15264327b.png)
 
 [WIP Stuff]
+
+Dark Mode:
 ![image](https://user-images.githubusercontent.com/49029552/200137334-d19a31d5-90c6-4b97-afb0-40138f524437.png)
