@@ -41,9 +41,14 @@ function processAcount() {
 
 // Account Page Handling 
 if (document.URL == "https://account.aq.com/AQW/Inventory") {
-	
+	// page load 
+	document.addEventListener('DOMContentLoaded', function(event) {
+		
+		
 	// Wait function for table load 
 	waitForTableToLoad()
+	
+	})
 	
 	
 	
