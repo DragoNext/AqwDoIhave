@@ -1,6 +1,7 @@
 {
 	"manifest_version":3,
 	"name":"AqwDoIhave",
+	
 	"description":"Compares items to items that you imported for aqwiki page",
 	"version":"1.0",
 	"options_page": "options.html",
@@ -15,6 +16,7 @@
 	],
 	"content_scripts": [{
 		"matches": ["http://aqwwiki.wikidot.com/*","https://account.aq.com/AQW/Inventory"],
+		"run_at": "document_start",
 		"js": ["js/Themes.js","js/ProcessAcountItems.js","js/ProcessWikiItem.js","js/main.js"]
 	}],
 	

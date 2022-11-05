@@ -5,7 +5,7 @@ const inv_icon = chrome.runtime.getURL("images/in_inventory.png")
 const price_icon = chrome.runtime.getURL("images/price_icon.png");
 
 
-
+var found = 0 
 
 
 
@@ -56,6 +56,9 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		}
 	});
 	
+	// page load 
+	document.addEventListener('DOMContentLoaded', function(event) {
+	
 
 	
 	
@@ -80,7 +83,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	const arrayOffset = 190
 	
 	let arrayList = Array.from(nodeList).slice(arrayOffset) // About 200 is alright
-	var found = 0 
+	
 
 
 	// get stored data
@@ -112,5 +115,6 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			// Displays found amount 
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			
+	})
 	})
 }
