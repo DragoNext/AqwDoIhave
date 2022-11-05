@@ -28,7 +28,7 @@ Some Screenshots:
 
 [WIP Features]
 How to activite WIP features:
-![image](https://user-images.githubusercontent.com/49029552/200137673-7383b5b6-a03d-4da4-9a29-36c706f9bacd.png)
+![image](https://user-images.githubusercontent.com/49029552/200137680-e5977280-d3a0-47cc-9000-5a3bceedc70f.png)
 
 Dark Mode:
 ![image](https://user-images.githubusercontent.com/49029552/200137334-d19a31d5-90c6-4b97-afb0-40138f524437.png)
