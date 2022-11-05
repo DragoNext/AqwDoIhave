@@ -42,7 +42,8 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 
 async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x) {
 	// getting text of item + removing not needed text (dosen't compare to inv) 
-	let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","").trim()
+	let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","").replace("’","'").replace(" (Dagger)","").replace(" (Sword)","").trim();
+	
 	
 	// elements for Stackable Items 
 	let stack_original = document.createElement("a");
@@ -56,6 +57,8 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	
 	// if shop is a merge shop 
 	let isMerge = document.URL.includes("merge")
+	//
+
 
 	if (isRep) { 
 		if (Items.includes(nodeText)) {

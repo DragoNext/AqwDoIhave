@@ -27,10 +27,8 @@ function waitForTableToLoad(){
 function processAcount() {
 	
 	var data = ProcessAccountItems();
+	
 	// Save Items to local Storage 
-
-
-	// save data
 	chrome.storage.local.set({"aqwitems": data[0]}, function() {});
 	chrome.storage.local.set({"aqwwhere": data[1]}, function() {});
 	chrome.storage.local.set({"aqwtype": data[2]}, function() {});
@@ -69,7 +67,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	var nodeList = document.querySelectorAll("a")
 	
 	// How much <a> elements to skip 
-	const arrayOffset = 200 
+	const arrayOffset = 190
 	
 	let arrayList = Array.from(nodeList).slice(arrayOffset) // About 200 is alright
 	var found = 0 
