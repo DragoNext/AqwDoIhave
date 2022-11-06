@@ -1,6 +1,9 @@
 // ProcessWikiItem.js
 
-		
+// Get Json of Wiki Exclusion Suffixes 
+var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
+
+
 // WIP stuff 
 
 function httpGet(theUrl, nodeList, arrayOffset, x)
@@ -30,6 +33,7 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 	isSorting = !nodeLink.includes("sort-by-");
 	
 	
+	
 	if (isHashtag && isSorting) {
 		if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
 			httpGet(nodeLink, nodeList, arrayOffset, x);
@@ -42,7 +46,13 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 
 async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x) {
 	// getting text of item + removing not needed text (dosen't compare to inv) 
-	let nodeText = nodeList[arrayOffset+x].innerHTML.replace(" (0 AC)","").replace(" (AC)","").replace(" (Armor)","").replace(" (Legend)","").replace(" (temp)","").replace(" (Temp)","").replace(" (Special)","").replace(" (Misc)","").replace("’","'").replace(" (Dagger)","").replace(" (Sword)","").trim();
+	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("’","'").trim();
+	
+	
+	// Use Wiki Excluded Suffixes json to remove unused suffixes 
+	for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
+		nodeText = nodeText.replace(wiki_exclude_suffixes["Excluded"][i],"")
+	}
 	
 	
 	// elements for Stackable Items 
@@ -58,7 +68,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	// if shop is a merge shop 
 	let isMerge = document.URL.includes("merge")
 	//
-
+	
 
 	if (isRep) { 
 		if (Items.includes(nodeText)) {

@@ -44,7 +44,6 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	// page load 
 	document.addEventListener('DOMContentLoaded', function(event) {
 		
-		
 	// Wait function for table load 
 	waitForTableToLoad()
 	
@@ -118,6 +117,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				}
 			}
 			// Displays found amount 
+			found_info.href = "https://account.aq.com/AQW/Inventory"
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			
 	})

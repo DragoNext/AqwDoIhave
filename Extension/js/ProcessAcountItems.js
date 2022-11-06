@@ -1,11 +1,23 @@
 // ProcessAccountItems.js
 
-// Will move that later .-. to file 
-const _UndArray_0 = ["Unidentified 1","Unidentified 2","Unidentified 3","Unidentified 4","Unidentified 5","Unidentified 6","Unidentified 7","Unidentified 8","Unidentified 9","Unidentified 12","Unidentified 14","Unidentified 15","Unidentified 16","Unidentified 17","Unidentified 18","Unidentified 19","Unidentified 13","Unidentified 20","Unidentified 21","Unidentified 24","Unidentified 26","Unidentified 28","Unidentified 29","Unidentified 30","Unidentified 31","Unidentified 32","Unidentified 33"]
-const _UndArray_1 = ["Trig Buster","Sharkbait's True Head","Dragon Bone Hammer","Small Hammer","Rounded Stone Hammer",
-"Parasitic Hacker","Star Dagger","Bee Sting Dagger", "Ordinary Iron Wing Helm","Bone Walking Cane","Worn Axe","Dark Cyclops Face","Emblem Mace","Iron Plate Hammer","Duck on a Stick","Koi Fish in a Sphere","The Contract of Nulgath","Dragonbone Blade","Dragonbone Axe","Essence of the Void Fiend","Ordinary Cape","Spinal Tap","Mysterious Walking Cane","Platinum Twin Blade","Platinum Battle Shank","Cruel Dagger Of Nulgath","Primal Dagger Tooth"
-]
-//
+
+function getJson(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); 
+	xmlHttp.send(null);
+    return JSON.parse(xmlHttp.responseText)
+}
+
+var json_data = getJson(chrome.runtime.getURL("data/Unidentified_Translation.json"))
+
+
+
+var _UndArray_0 = json_data["Names"]
+var _UndArray_1 = json_data["Translation"]
+  
+
+
 
 // Translates unidentified items 
 function translateUnidentified(itemname) {
