@@ -5,6 +5,10 @@
 	"description":"Compares items to items that you imported for aqwiki page",
 	"version":"1.0",
 	"options_page": "options.html",
+	
+	"action":{
+		"default_popup": "popup.html" 
+	},
 	"icons": {
 		"16":"/images/16.png",
 		"48":"/images/48.png",
@@ -24,4 +28,6 @@
         "storage",
 		 "contextMenus"
     ]
+	
+	
 }
