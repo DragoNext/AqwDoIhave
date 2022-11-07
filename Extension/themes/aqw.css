@@ -1,0 +1,109 @@
+a {
+	color:#e0dee1;
+	border-radius: 25px;
+	background: #3b0c30;
+	padding:2px;
+	
+}
+
+a:hover {
+	color:#e0dee1;
+	border-radius: 25px;
+	background: #2f0826;
+	padding:3px;
+}
+
+#main-content {
+	background-color:#efe0be;
+}
+
+body {
+	background-color:#efe0be;
+}
+
+th {
+	background-color:#2f0826;
+}
+
+.wiki-content-table {
+	background-color:#2f0826;
+}
+#wiki-tab-0-0{
+	background-color:#efe0be;
+}
+
+table {
+	background-color:#2f0826;
+}
+
+td {
+	background-color:#2f0826;
+	border-radius: 0px;
+}
+
+tbody {
+	background-color:#efe0be;	
+}
+
+
+
+tr {
+	background: #2f0826;
+}
+th {
+	background: #2f0826;
+}
+
+em {
+	border-radius: 45px;
+	background: #3b0c30;
+	padding:5px;
+	color:#ffffff;
+}
+
+li {
+	font-size:15px;
+}
+
+#side-bar {
+	background: #3b0c30;
+	border-radius: 45px;
+	padding:25px;
+}
+
+span {
+	color:red;
+}
+
+#breadcrumbs {
+	padding-bottom:10px;
+}
+
+strong {
+	color:#ffffff;
+	font-size:20px;
+}
+
+#wiki-tab-0-1 {
+	background: #3b0c30;
+}
+#wiki-tab-0-0 {
+	background: #3b0c30;
+}
+
+.yui-content {
+	background: #3b0c30;
+	background-color: #3b0c30;
+}
+.yui-navset-top {
+	background: #3b0c30;
+	background-color: #3b0c30;
+}
+
+p {
+	color:#ffffff;
+}
+li {
+	color:#ffffff;
+}
+
