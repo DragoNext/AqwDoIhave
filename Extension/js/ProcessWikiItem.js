@@ -11,14 +11,44 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, true ); 
 	xmlHttp.onreadystatechange = checkData;
+	
+	let priceElement = document.createElement("a")
+	
 	function checkData() {
 	if (xmlHttp.readyState == 4) {
-		if (xmlHttp.responseText.includes("Sellback:")) {
-			sellback_price = xmlHttp.responseText.split("Sellback:")[1].split("strong>")[1].split("<br")[0]
-			if (sellback_price !== undefined) { 
-				nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='"+sellback_price+"' style='width:32px' src='"+price_icon+"'></img>"
+		var Text = xmlHttp.responseText
+		if (Text.includes('Price:</strong>')) {
+			if (Text.includes("Dropped by")) {
+				price =  Text.split("Price:")[1].split("strong>")[1].split("<br>")[0].replaceAll('"','')
+				
+				if (price !== undefined) {
+					title = "Dropped by "+price.split("</a>")[0].split("N/A (")[1].split(">")[1]
+					href = price 
+					
+					priceElement.href = href.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
+					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+drop_icon+'"></img>'
+					
+					
+					
+					nodeList[arrayOffset+x].appendChild(priceElement)
+					
 				}
 			}
+			if (Text.includes("Collection Chest")) {
+				price = Text.split("Locations:")[1].split("</a>")[0].replaceAll('"','')
+				if (price !== undefined){
+				
+					title = price.replace("</strong></p>","").replace("<ul>","").replace("<li>","")
+					href = price.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
+
+					priceElement.href = href
+					priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
+					nodeList[arrayOffset+x].appendChild(priceElement)
+				}
+			}
+		}
+
+		delete xmlHttp
 		}  
 	}
 	xmlHttp.send( null );
@@ -32,9 +62,12 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 	isHashtag = !nodeLink.includes("#");
 	isSorting = !nodeLink.includes("sort-by-");
 	
+	let isMonster = true 
+	try {
+		let isMonster = Document.innerHTML.includes("Monsters")
+	} catch(err){}
 	
-	
-	if (isHashtag && isSorting) {
+	if (isHashtag && isSorting && !isMonster) {
 		if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
 			httpGet(nodeLink, nodeList, arrayOffset, x);
 		}
@@ -59,6 +92,11 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	let stack_original = document.createElement("a");
 	let stack_account = document.createElement("a");
 	
+	
+	// where_icon 
+	let where_icon = document.createElement("a");
+
+	
 	// link of item /item-name 
 	let nodeLink = nodeList[arrayOffset+x].href
 	
@@ -67,14 +105,15 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	
 	// if shop is a merge shop 
 	let isMerge = document.URL.includes("merge")
-	//
 	
-
+	
+	
+	
 	if (isRep) { 
 		if (Items.includes(nodeText)) {
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 			
-			if (Type[Items.indexOf(nodeText)].length == 2) {
+			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory 
 				let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
 				
@@ -84,16 +123,20 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				} else {
 					var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 				}
-				if (count_node.data == undefined ) {
+				if (count_node.data == undefined || count_node.data == null ) {
 					var count_node = nodeList[arrayOffset+x].nextSibling
 				}
+
 				
 				// detection for monster drop that has range 
-				if (count_node.data.includes("-")) {
-					var needed_amount = count_node.data.slice(2).replace(" ","");
-				} else {
-					var needed_amount = parseInt(count_node.data.slice(2).replace(",",""));
+				if (count_node !== null && count_node !== undefined){
+					if (count_node.data.includes("-")) {
+						var needed_amount = count_node.data.slice(2).replace(" ","");
+					} else {
+						var needed_amount = parseInt(count_node.data.slice(2).replace(",",""));
+					}
 				}
+				
 				
 				// formating original amount / needed amount to final result.
 				if (isNaN(needed_amount)) {
@@ -134,11 +177,16 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 			
 			// Adds icons of where is located 
 			if (Where[Items.indexOf(nodeText)] == "Bank") {
-				nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
+				where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
+				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
+				
 			}
 			else {
-				nodeList[arrayOffset+x].innerHTML = nodeList[arrayOffset+x].innerHTML  + "</a> <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+				where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
 			}
+			
+			
 			found += 1 //Count items found 
 		}
 	}

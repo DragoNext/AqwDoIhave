@@ -3,8 +3,8 @@
 const bank_icon = chrome.runtime.getURL("images/in_bank.png")
 const inv_icon = chrome.runtime.getURL("images/in_inventory.png")
 const price_icon = chrome.runtime.getURL("images/price_icon.png");
-
-
+const drop_icon = chrome.runtime.getURL("images/monster_drop.png")
+const collectionchest_icon = chrome.runtime.getURL("images/collectionchest_icon.png")
 var found = 0 
 
 
@@ -67,7 +67,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 	
 	// Preload the arrays and vars from chrome local storage  
-	var WIP_price = 0
+	var WIP_moreinfo = 0
 	
 	// Get title of Wiki page (Name of category basically) 
 	const Title = document.getElementById("page-title")
@@ -92,7 +92,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 
 	// get stored data
 	// If WIP in options is enabled.
-	chrome.storage.local.get({wipprice: 0}, function(result){WIP_price = result.wipprice;})
+	chrome.storage.local.get({wipmoreinfo: 1}, function(result){WIP_moreinfo = result.wipmoreinfo;})
 
 	// Get account data (Just not items) 
 	chrome.storage.local.get({aqwbuy: []}, function(result){Buy = result.aqwbuy;});
@@ -105,6 +105,9 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	chrome.storage.local.get({aqwitems: []}, function(result){
 			var Items = result.aqwitems;
 			
+			
+	
+			
 			// Iterate over nodelist with array offset applied 
 			for (var x = 0; x < arrayList.length; x++) {
 				
@@ -112,7 +115,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				
 				
 				// Wip process (Can be enabled in options of Extension.
-				if (WIP_price) {
+				if (WIP_moreinfo) {
 					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x)
 				}
 			}
