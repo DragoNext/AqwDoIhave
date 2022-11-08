@@ -14,7 +14,7 @@ function save_options() {
 }
 
 function restore_options() {
-  chrome.storage.local.get({wipmoreinfo: 0}, function(result){
+  chrome.storage.local.get({wipmoreinfo: 1}, function(result){
 	document.getElementById('like').checked = result.wipmoreinfo 
    })
 
