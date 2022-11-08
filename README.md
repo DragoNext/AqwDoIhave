@@ -26,9 +26,14 @@ Some Screenshots:
 ![testme](https://user-images.githubusercontent.com/49029552/199015685-18bf1494-98f7-4519-9fb7-7a269e02785a.png)
 ![testme](https://user-images.githubusercontent.com/49029552/199015906-450ab325-81da-4a95-b066-80b15264327b.png)
 
-[WIP Features]
-How to activite WIP features:
-![image](https://user-images.githubusercontent.com/49029552/200137680-e5977280-d3a0-47cc-9000-5a3bceedc70f.png)
+[Options]
+
+![image](https://user-images.githubusercontent.com/49029552/200665910-b1cb747f-a7cb-492f-83cf-7c418c447d2a.png)![image](https://user-images.githubusercontent.com/49029552/200666222-930a7ba8-4139-4c1b-9354-7b5db2efcaa1.png)
+
+
+More Details (Default On):
+
+![image](https://user-images.githubusercontent.com/49029552/200665841-9b3adc33-5052-4244-9eb9-afa0f2afeab3.png)
 
 Dark Mode:
 ![image](https://user-images.githubusercontent.com/49029552/200137334-d19a31d5-90c6-4b97-afb0-40138f524437.png)
