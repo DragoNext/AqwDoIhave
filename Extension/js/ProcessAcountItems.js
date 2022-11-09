@@ -64,6 +64,7 @@ function ProcessAccountItems() {
 			
 			//  Count 1 == Item Name 
 			if (count == 1) {
+				iterated = iterated.toLowerCase()
 				if (iterated.includes(" x")) { // Checks if item has count (Just for Unidentified Translation)
 					Items.push(iterated);
 				} else {

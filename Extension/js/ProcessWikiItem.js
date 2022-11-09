@@ -89,6 +89,8 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	}
 	
 	
+	
+	
 	// elements for Stackable Items 
 	let stack_original = document.createElement("a");
 	let stack_account = document.createElement("a");
@@ -111,7 +113,8 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	
 	
 	if (isRep) { 
-		if (Items.includes(nodeText)) {
+		if (Items.includes(nodeText.toLowerCase())) {
+			nodeText = nodeText.toLowerCase()
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 			
 			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
