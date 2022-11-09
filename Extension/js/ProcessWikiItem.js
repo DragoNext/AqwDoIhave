@@ -10,64 +10,65 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, true ); 
-	xmlHttp.onreadystatechange = checkData;
-	
 	let priceElement = document.createElement("a")
 	
-	function checkData() {
-	if (xmlHttp.readyState == 4) {
-		var Text = xmlHttp.responseText
-		if (Text.includes('Price:</strong>')) {
-			if (Text.includes("Dropped by")) {
-				price =  Text.split("Price:")[1].split("strong>")[1].split("<br>")[0].replaceAll('"','')
-				
-				if (price !== undefined) {
-					title = "Dropped by "+price.split("</a>")[0].split("N/A (")[1].split(">")[1]
-					href = price 
-					
-					priceElement.href = href.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
-					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+drop_icon+'"></img>'
-					
-					
-					
-					nodeList[arrayOffset+x].appendChild(priceElement)
-					
-				}
-			}
-			if (Text.includes("Collection Chest")) {
-				price = Text.split("Locations:")[1].split("</a>")[0].replaceAll('"','')
-				if (price !== undefined){
-				
-					title = price.replace("</strong></p>","").replace("<ul>","").replace("<li>","")
-					href = price.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
-
-					priceElement.href = href
-					priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
-					nodeList[arrayOffset+x].appendChild(priceElement)
-				}
-			}
-		}
-
-		delete xmlHttp
-		}  
-	}
+	xmlHttp.onreadystatechange = checkData;
 	xmlHttp.send( null );
-    return true
+	
+	function checkData() {
+		
+		if (xmlHttp.readyState == 4) {
+			try{
+			var Text = xmlHttp.responseText
+			
+			if (Text.includes('Price:</strong>')) {
+				if (Text.includes("Dropped by")) {
+					
+					price =  Text.split("Price:")[1].split("strong>")[1].split("<br>")[0].replaceAll('"','')
+					
+					if (price !== undefined) {
+						title = "Dropped by "+price.split("</a>")[0].split("N/A (")[1].split(">")[1]
+						href = price 
+						
+						priceElement.href = href.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
+						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+drop_icon+'"></img>'
+						
+						
+						
+						nodeList[arrayOffset+x].appendChild(priceElement)
+						
+					}
+				}
+				if (Text.includes("Collection Chest")) {
+					price = Text.split("Locations:")[1].split("</a>")[0].replaceAll('"','')
+					if (price !== undefined){
+					
+						title = price.replace("</strong></p>","").replace("<ul>","").replace("<li>","")
+						href = price.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
+
+						priceElement.href = href
+						priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
+						nodeList[arrayOffset+x].appendChild(priceElement)
+						}
+					}
+			}
+
+			delete xmlHttp
+
+			return true
+			
+			}catch(err){return true}
+		}
+	}
 }
-async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x) { 
+	
+async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isShop) { 
 
 	let nodeText = nodeList[arrayOffset+x].innerHTML; // No need for highlight 
 	let nodeLink = nodeList[arrayOffset+x].href;
 	
-	isHashtag = !nodeLink.includes("#");
-	isSorting = !nodeLink.includes("sort-by-");
-	
-	let isMonster = true 
-	try {
-		let isMonster = Document.innerHTML.includes("Monsters")
-	} catch(err){}
-	
-	if (isHashtag && isSorting && !isMonster) {
+
+	if (!isMonster && !isShop) {
 		if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
 			httpGet(nodeLink, nodeList, arrayOffset, x);
 		}

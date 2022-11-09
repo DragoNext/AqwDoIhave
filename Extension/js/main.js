@@ -64,11 +64,6 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	document.addEventListener('DOMContentLoaded', function(event) {
 	
 
-	
-	
-	// Preload the arrays and vars from chrome local storage  
-	var WIP_moreinfo = 0
-	
 	// Get title of Wiki page (Name of category basically) 
 	const Title = document.getElementById("page-title")
 	
@@ -88,8 +83,18 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 	let arrayList = Array.from(nodeList).slice(arrayOffset) // About 200 is alright
 	
-
-
+	// Site detect vars 
+	
+	try{
+		var isMonster = document.body.parentElement.innerHTML.includes("Difficulty");
+	} 
+	catch(err){var isMonster = false}
+	try{
+		var isShop =    document.body.parentElement.innerHTML.includes("(Shop)");
+	} 
+	catch(err){var isShop = false}
+	
+	
 	// get stored data
 	// If WIP in options is enabled.
 	chrome.storage.local.get({wipmoreinfo: 1}, function(result){WIP_moreinfo = result.wipmoreinfo;})
@@ -116,7 +121,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				
 				// Wip process (Can be enabled in options of Extension.
 				if (WIP_moreinfo) {
-					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x)
+					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isShop)
 				}
 			}
 			// Displays found amount 
