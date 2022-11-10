@@ -107,9 +107,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
 	
 	// if shop is a merge shop 
-	let isMerge = document.URL.includes("merge")
-	
-	
+	let isMerge = document.body.parentElement.innerHTML.includes("Merge Shops"); 
 	
 	
 	if (isRep) { 
