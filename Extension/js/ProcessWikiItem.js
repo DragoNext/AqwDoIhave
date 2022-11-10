@@ -62,23 +62,23 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 	}
 }
 	
-async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isShop) { 
+async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x) { 
 
 	let nodeText = nodeList[arrayOffset+x].innerHTML; // No need for highlight 
 	let nodeLink = nodeList[arrayOffset+x].href;
 	
 
-	if (!isMonster && !isShop) {
-		if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
-			httpGet(nodeLink, nodeList, arrayOffset, x);
-		}
+	
+	if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
+		httpGet(nodeLink, nodeList, arrayOffset, x);
 	}
+	
 }
 //
 
 
 
-async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x) {
+async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList) {
 	// getting text of item + removing not needed text (dosen't compare to inv) 
 	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("’","'").trim();
 	
@@ -87,6 +87,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
 		nodeText = nodeText.replace(wiki_exclude_suffixes["Excluded"][i],"")
 	}
+	nodeText = nodeText.toLowerCase()
 	
 	
 	
@@ -103,17 +104,35 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	// link of item /item-name 
 	let nodeLink = nodeList[arrayOffset+x].href
 	
-	// [Edge Case] is rep if the link is just a link to /X-faction 
+	// [Edge Case] is rep if the link is just a link to /X-faction not a item 
 	let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
-	
-	// if shop is a merge shop 
-	let isMerge = document.body.parentElement.innerHTML.includes("Merge Shops"); 
 	
 	
 	if (isRep) { 
-		if (Items.includes(nodeText.toLowerCase())) {
-			nodeText = nodeText.toLowerCase()
+		if (Items.includes(nodeText)) {
+			nodeText = nodeText
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
+			
+			
+			// Adds icons of where is located 	
+			if (Where[Items.indexOf(nodeText)] == "Bank") {
+				where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
+				if (isList) {
+					nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
+	
+				} else if (isMerge){
+						nodeList[arrayOffset+x].appendChild(where_icon)
+				} 
+				else {
+					nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
+				}
+				
+				
+			} else {
+				where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+				nodeList[arrayOffset+x].appendChild(where_icon)
+			}	
+			
 			
 			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory 
@@ -136,16 +155,16 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 						var needed_amount = count_node.data.slice(2).replace(" ","");
 					} else {
 						var needed_amount = parseInt(count_node.data.slice(2).replace(",",""));
+						
 					}
 				}
 				
 				
 				// formating original amount / needed amount to final result.
 				if (isNaN(needed_amount)) {
-					var needed_amount=1;
-				};
-				stack_original.innerHTML = String(" x"+needed_amount+"/")	
-		
+					needed_amount=1;
+				}; 
+				stack_original.innerHTML = " x"+needed_amount+"/"
 				
 			
 				// Stylizer for amount of items
@@ -158,40 +177,33 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 					//stack_original.style = "color:black;"
 					stack_account.style = "font-weight: bold;color:red;"
 				}
-				// Adds icons of where is located 
 				
 			
 					
-				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
+				
+				
+				
 				if (isMerge) {
+
 					// Dosen't require adding new element (Just replace , with / )
 					count_node.data = count_node.data.replace(",","")+"/"
 					// Ads new element 
-					nodeList[arrayOffset+x].parentNode.insertBefore(stack_account, nodeList[arrayOffset+x].nextSibling.nextSibling)
-					
-				}
-				else {
+					nodeList[arrayOffset+x].parentNode.insertBefore(stack_account, nodeList[arrayOffset+x].nextSibling.nextSibling)	
+				} else {
 					// erases previous data 
-					count_node.data = ""
+					
 					
 					// Adds new element 
 					nodeList[arrayOffset+x].parentNode.appendChild(stack_original) 
 					nodeList[arrayOffset+x].parentNode.appendChild(stack_account) 
 				
+					
+
+	
 				}
 				
-			if (Where[Items.indexOf(nodeText)] == "Bank") {
-					where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
-					if (isMerge){
-						nodeList[arrayOffset+x].appendChild(where_icon)
-					}
-					else {
-						nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
-					}
-				}
-				else {
-					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
-			}
+				
+				
 			
 			}
 			

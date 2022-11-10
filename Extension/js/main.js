@@ -129,6 +129,23 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	} 
 	catch(err){var isShop = false}
 	
+
+	// if shop is a merge shop 
+	try{
+		var isMerge = document.body.parentElement.innerHTML.includes('class="yui-nav"'); 
+	} 
+	catch(err){var isMerge = false}
+	
+	
+	// Item lists 
+	try{
+		var isList = document.body.parentElement.innerHTML.includes("Go to"); 
+	} 
+	catch(err){var isList = false}
+	
+	
+	
+	
 	
 	// get stored data
 	// If WIP in options is enabled.
@@ -145,18 +162,19 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	chrome.storage.local.get({aqwitems: []}, function(result){
 			var Items = result.aqwitems;
 			
-			
 	
-			
+			alert(isMerge)
 			// Iterate over nodelist with array offset applied 
 			for (var x = 0; x < arrayList.length; x++) {
 				
-				ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x) 
+				ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList) 
 				
 				
 				// Wip process (Can be enabled in options of Extension.
 				if (WIP_moreinfo) {
-					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isShop)
+					if (!isMonster && !isShop) {
+						ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x)
+					}
 				}
 			}
 			// Displays found amount 
