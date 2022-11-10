@@ -160,7 +160,11 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 					//stack_original.style = "color:black;"
 					stack_account.style = "font-weight: bold;color:red;"
 				}
+				// Adds icons of where is located 
 				
+			
+					
+				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
 				if (isMerge) {
 					// Dosen't require adding new element (Just replace , with / )
 					count_node.data = count_node.data.replace(",","")+"/"
@@ -177,18 +181,23 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 					nodeList[arrayOffset+x].parentNode.appendChild(stack_account) 
 				
 				}
+				
+			if (Where[Items.indexOf(nodeText)] == "Bank") {
+					where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
+					if (isMerge){
+						nodeList[arrayOffset+x].appendChild(where_icon)
+					}
+					else {
+						nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
+					}
+				}
+				else {
+					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
 			}
 			
-			// Adds icons of where is located 
-			if (Where[Items.indexOf(nodeText)] == "Bank") {
-				where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
-				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
-				
 			}
-			else {
-				where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
-				nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
-			}
+			
+			
 			
 			
 			found += 1 //Count items found 
