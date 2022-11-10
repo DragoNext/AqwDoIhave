@@ -160,7 +160,6 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				}
 			}
 			// Displays found amount 
-			found_info.href = "https://account.aq.com/AQW/Inventory"
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			
 	})
