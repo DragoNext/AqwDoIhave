@@ -21,7 +21,7 @@ var _UndArray_1 = json_data["Translation"]
 
 // Translates unidentified items 
 function translateUnidentified(itemname) {
-	if (itemname.includes("Unidentified")) {
+	if (itemname.includes("unidentified")) {
 		for (var x = 0; x < _UndArray_0.length; x++) {
 			if (itemname == _UndArray_0[x]) {
 				return _UndArray_1[x];
