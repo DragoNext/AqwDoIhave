@@ -163,7 +163,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			var Items = result.aqwitems;
 			
 	
-			alert(isMerge)
+			
 			// Iterate over nodelist with array offset applied 
 			for (var x = 0; x < arrayList.length; x++) {
 				
