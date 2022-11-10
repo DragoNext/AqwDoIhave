@@ -15,7 +15,7 @@
 		"128":"/images/128.png"
 	}, 
 	  "web_accessible_resources": [ {
-      "resources": [ "js/ProcessAcountItems.js", "js/ProcessWikiItem.js", "themes/aqw.css","themes/dark.css","images/BannerMain.png","images/in_bank.png","images/in_inventory.png","images/price_icon.png","images/monster_drop.png","images/collectionchest_icon.png","data/Unidentified_Translation.json","data/wiki_exclude_suffixes.json"] ,
+      "resources": [ "js/ProcessAcountItems.js", "js/ProcessWikiItem.js", "themes/aqw.css","themes/dark.css","images/BannerMain.png","images/in_bank.png","images/in_inventory.png","images/price_icon.png","images/monster_drop.png","images/collectionchest_icon.png","data/Unidentified_Translation.json","data/wiki_exclude_suffixes.json","images/update_inventory.png"] ,
       "matches": ["<all_urls>"] }
 	],
 	"content_scripts": [{

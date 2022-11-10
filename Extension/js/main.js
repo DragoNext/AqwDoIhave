@@ -5,6 +5,7 @@ const inv_icon = chrome.runtime.getURL("images/in_inventory.png")
 const price_icon = chrome.runtime.getURL("images/price_icon.png");
 const drop_icon = chrome.runtime.getURL("images/monster_drop.png")
 const collectionchest_icon = chrome.runtime.getURL("images/collectionchest_icon.png")
+const inventory_update_icon = chrome.runtime.getURL("images/update_inventory.png")
 var found = 0 
 
 
@@ -24,6 +25,15 @@ function waitForTableToLoad(){
 	}
 }
 
+function processAcountBackground() {
+	var prevurl = document.location.href 
+	chrome.storage.local.set({"background": prevurl}, function() {});
+	document.location.href = "https://account.aq.com/AQW/Inventory"
+
+	
+}
+
+
 function processAcount() {
 	
 	var data = ProcessAccountItems();
@@ -34,6 +44,15 @@ function processAcount() {
 	chrome.storage.local.set({"aqwtype": data[2]}, function() {});
 	chrome.storage.local.set({"aqwbuy": data[3]}, function() {});
 	chrome.storage.local.set({"aqwcategory": data[4]}, function() {});
+	
+	chrome.storage.local.get({background: false}, function(result){
+		if (result.background !== false) {
+			document.location.href = result.background
+			chrome.storage.local.set({"background": false}, function() {});
+		} 
+		
+	});
+	
 }
 
 
@@ -73,6 +92,22 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	found_info.style = "font-weight: bold;color:green;"
 	Title.appendChild(found_info)
 	
+	
+	
+	var styles = `
+    #UpdateInventory:hover {
+		filter: contrast(120%) brightness(1.25);; 
+	}`
+	var styleSheet = document.createElement("style")
+	styleSheet.innerText = styles
+	document.head.appendChild(styleSheet)
+	
+	var update_inventory = document.createElement("button") 
+	update_inventory.onclick = function() { processAcountBackground(); return false; }
+	update_inventory.style = "background-color: Transparent;border: none;" 
+	update_inventory.innerHTML = " <img id='UpdateInventory' style='height:35px;' src="+inventory_update_icon+"></img>"
+	Title.appendChild(update_inventory)
+
 	
 	// Selects all <a> elements 
 	// [It is best method, as it is compatible with other browsers]
