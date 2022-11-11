@@ -55,7 +55,7 @@ function processAcount() {
 	chrome.storage.local.set({"aqwcategory": data[4]}, function() {});
 	
 	chrome.storage.local.get({background: false}, function(result){
-		if (result.background !== false && document.Location.href == "https://account.aq.com/AQW/Inventory") {
+		if (result.background !== false && document.location.href == "https://account.aq.com/AQW/Inventory") {
 			document.location.href = result.background
 			chrome.storage.local.set({"background": false}, function() {});
 		} 
