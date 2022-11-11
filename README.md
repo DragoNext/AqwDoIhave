@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49029552/201134795-1fb59aad-2f6d-4e22-8364-516c230cde48.png">
 </p>
+<a href="https://www.paypal.com/donate/?hosted_button_id=4K6AFGLC66YMG" rel="nofollow"><img src="https://camo.githubusercontent.com/2bfa6102e99ff9a137185897b0a566aa0977a4790348c462e6951829e787af8f/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f446f6e6174652d50617950616c2d677265656e2e737667" alt="Donate" data-canonical-src="https://img.shields.io/badge/Donate-PayPal-green.svg" style="max-width: 100%;"></a>
 
 Table of contents
 =================
