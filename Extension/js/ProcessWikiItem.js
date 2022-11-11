@@ -2,9 +2,22 @@
 
 // Get Json of Wiki Exclusion Suffixes 
 var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
+var collection_chests = getJson(chrome.runtime.getURL("data/collection_chests.json"))["chests"]
+
 
 
 // WIP stuff 
+
+function isCollection(text) {
+	let value = false 
+	for (var x = 0; x < collection_chests.length; x++) {
+		if (text.includes(collection_chests[x])) {
+			let value = collection_chests[x]
+			return value 
+		}
+	}
+	return value 
+}
 
 function httpGet(theUrl, nodeList, arrayOffset, x)
 {
@@ -20,8 +33,81 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 		if (xmlHttp.readyState == 4) {
 			try{
 			var Text = xmlHttp.responseText
-			
+			if (Text.includes(" Gold") || Text.includes(" AC")) {
+				let cchest = isCollection(Text)
+				
+				if (cchest !== false) {
+					price =  Text.split("Location:</strong>")[1].split("</a>")[0]
+					title = "From Collection Chest: "+cchest 
+					href = price.split(">")[0].split('"')[1]
+					
+					priceElement.href = href
+					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img>'
+					
+					nodeList[arrayOffset+x].appendChild(priceElement)
+				}
+				else{
+					var nm = "Location:</strong>"
+					if (Text.includes("Locations:</strong>")) {
+						var nm = "Locations:</strong>"
+					}
+					else{
+						var nm = "Location:</strong>"
+					}
+					price =  Text.split(nm)[1].split("</a>")[0]
+					title = "From Shop: "+price.split(">")[1]
+					href = price.split(">")[0].split('"')[1]
+					priceElement.href = href
+					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+shop_icon+'"></img>'
+					nodeList[arrayOffset+x].appendChild(priceElement)
+					
+				}
+				
+			}
 			if (Text.includes('Price:</strong>')) {
+				if (Text.includes("N/A (Reward from the")){
+					if (Text.includes("Open Treasure Chests")) {
+						title = "From Treasure Chest"
+						href = "http://aqwwiki.wikidot.com/twilly-s-quests#2"
+						
+						priceElement.href = href
+						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+treasurechest_icon+'"></img>'
+						
+						nodeList[arrayOffset+x].appendChild(priceElement)
+					}
+					else{
+						price =  Text.split("N/A (Reward from the")[1]
+						title = "From Quest: "+ price.split('>')[1].split('<')[0]
+						href = price.split('href="')[1].split('"')[0]
+						
+						priceElement.href = href
+						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+quest_icon+'"></img>'
+						
+						nodeList[arrayOffset+x].appendChild(priceElement)
+					}
+				} 
+				if (Text.includes("Reward from the:")){
+					if (Text.includes("Wheel of Doom")){
+						price =  "http://aqwwiki.wikidot.com/wheel-of-doom"
+						title = "Dropped by Wheel of Doom"
+						href = price 
+						
+						priceElement.href = href
+						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+whellofdoom_icon+'"></img>'
+						
+						nodeList[arrayOffset+x].appendChild(priceElement)
+					}
+				}
+				if (Text.includes("Merge the following:")) {
+					price =  Text.split("Location:</strong>")[1].split("</a>")[0]
+					title = "From Merge Shop: "+price.split(">")[1]
+					href = price.split(">")[0].split('"')[1]
+					
+					priceElement.href = href
+					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+mergeshop_icon+'"></img>'
+					
+					nodeList[arrayOffset+x].appendChild(priceElement)
+				}
 				if (Text.includes("Dropped by")) {
 					
 					price =  Text.split("Price:")[1].split("strong>")[1].split("<br>")[0].replaceAll('"','')
@@ -39,20 +125,21 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 						
 					}
 				}
-				if (Text.includes("Collection Chest")) {
-					price = Text.split("Locations:")[1].split("</a>")[0].replaceAll('"','')
-					if (price !== undefined){
-					
-						title = price.replace("</strong></p>","").replace("<ul>","").replace("<li>","")
-						href = price.split("href")[1].split(">")[0].replace("=","http://aqwwiki.wikidot.com")
-
-						priceElement.href = href
-						priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
-						nodeList[arrayOffset+x].appendChild(priceElement)
-						}
-					}
+				
 			}
+			if (Text.includes("Collection Chest")) {
+				price = Text.split("Locations:")[1].split("</a>")[0].replaceAll('"','')
+				if (price !== undefined){
+				
+					title = ""
+					href = ""
 
+					priceElement.href = href
+					priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
+					nodeList[arrayOffset+x].appendChild(priceElement)
+				}
+			}
+			
 			delete xmlHttp
 
 			return true
@@ -129,8 +216,14 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				
 				
 			} else {
-				where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
-				nodeList[arrayOffset+x].appendChild(where_icon)
+				if (isList) {
+					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+					nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
+	
+				} else {
+					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+					nodeList[arrayOffset+x].appendChild(where_icon)
+				}
 			}	
 			
 			

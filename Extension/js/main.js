@@ -6,6 +6,15 @@ const price_icon = chrome.runtime.getURL("images/price_icon.png");
 const drop_icon = chrome.runtime.getURL("images/monster_drop.png")
 const collectionchest_icon = chrome.runtime.getURL("images/collectionchest_icon.png")
 const inventory_update_icon = chrome.runtime.getURL("images/update_inventory.png")
+
+const mergeshop_icon = chrome.runtime.getURL("images/mergeshop_icon.png")
+const quest_icon = chrome.runtime.getURL("images/quest_icon.png")
+const shop_icon = chrome.runtime.getURL("images/shop_icon.png")
+const treasurechest_icon = chrome.runtime.getURL("images/treasurechest_icon.png")
+const whellofdoom_icon = chrome.runtime.getURL("images/whellofdoom_icon.png")
+
+
+
 var found = 0 
 
 
