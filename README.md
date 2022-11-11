@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49029552/201134795-1fb59aad-2f6d-4e22-8364-516c230cde48.png">
 </p>
+<a href="https://www.paypal.com/donate/?hosted_button_id=4K6AFGLC66YMG" rel="nofollow"><img src="https://camo.githubusercontent.com/2bfa6102e99ff9a137185897b0a566aa0977a4790348c462e6951829e787af8f/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f446f6e6174652d50617950616c2d677265656e2e737667" alt="Donate" data-canonical-src="https://img.shields.io/badge/Donate-PayPal-green.svg" style="max-width: 100%;"></a>
 
 Table of contents
 =================
@@ -50,18 +51,18 @@ On Aqw Wiki:
 <li>Highlighting owned items  <br><img src="https://user-images.githubusercontent.com/49029552/201154840-3335a319-f75c-4df4-9df9-2d9c197af7f7.png"></li>
 <li>Displaying amount of Rescource items you have<br>  <img src="https://user-images.githubusercontent.com/49029552/201155338-df38dc37-ed5b-4bd7-8f9c-b46ff13c2880.png"></li>
 <li>Display where is located in bank/inventory<br>  <img src="https://user-images.githubusercontent.com/49029552/201156221-5c5ea680-7e30-4c8e-aa84-c54c40c2d9aa.png"></li>
-<li>In items lists /armors etc. display where item comes from<pre><li>Monster Drop (On Click it will redirect to monster)<br>
-  <img height=32 src="https://user-images.githubusercontent.com/49029552/201157446-9db442cc-bcc9-498c-9c4e-01632b9345c6.png">
-  <li>Collection Chest (On Click it will redirect to Collection Chest pet location)<br>
-  <img height=32 src="https://user-images.githubusercontent.com/49029552/201157719-e8b66ff7-ad4c-4b46-822c-808491eebd24.png">
-  <li>Wheel of fortune [TO BE ADDED]
-  <li>Shop [TO BE ADDED]
-  <li>Merge Shop [TO BE ADDED]
-  <li>Quest [TO BE ADDED] 
-
-  <li>Treasure Chest [TO BE ADDED]
+<li>In items lists /armors etc. display where item comes from (Clickable will redirect to the Shop/Quest Npc etc) <pre><li>Monster Drop <img height=16 src="https://user-images.githubusercontent.com/49029552/201157446-9db442cc-bcc9-498c-9c4e-01632b9345c6.png">
+  <li>Collection Ches <img height=16 src="https://user-images.githubusercontent.com/49029552/201368034-c9de9985-2f39-43b4-acff-cecec23e84c7.png">
+  <li>Wheel of fortune <img height=16 src="https://user-images.githubusercontent.com/49029552/201368161-cb58f5ff-955b-4583-ad5b-36c95e0b0742.png">
+  <li>Shop <img height=16 src="https://user-images.githubusercontent.com/49029552/201368364-c58c29aa-76a1-4619-b5b2-852472e45f76.png">
+  <li>Merge Shop <img height=16 src="https://user-images.githubusercontent.com/49029552/201368105-82598ec8-7b8a-4cd2-9eb9-58e8ffaf0d77.png">
+  <li>Quest <img height=16 src="https://user-images.githubusercontent.com/49029552/201368293-ad081605-402e-4e0f-8e26-5e9e9ef2a198.png">
+  <li>Treasure Chest <img height=16 src="https://user-images.githubusercontent.com/49029552/201368322-9eb3666a-e9bb-4133-8ffa-7a8898b6e672.png">
   </pre>
+
   </li>
+
+
 
 
 
