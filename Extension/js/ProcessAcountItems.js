@@ -64,11 +64,14 @@ function ProcessAccountItems() {
 			
 			//  Count 1 == Item Name 
 			if (count == 1) {
-				iterated = iterated.toLowerCase()
+				iterated = iterated
+				let type = inventoryElement[x+1].innerHTML.trim().replace("’","'")
 				if (iterated.includes(" x")) { // Checks if item has count (Just for Unidentified Translation)
+					Items.push(iterated.toLowerCase());
+				} else if (type == "Item" || type == "Resource" || type == "Quest Item" || type == "Wall Item" || type == "Floor Item")  {
 					Items.push(iterated);
 				} else {
-					Items.push(translateUnidentified(iterated));
+					Items.push(translateUnidentified(iterated.toLowerCase()));
 				}
 			} 
 			
@@ -77,8 +80,9 @@ function ProcessAccountItems() {
 				
 				// Checks type of item if its one of stackable.
 				if (iterated == "Item" || iterated == "Resource" || iterated == "Quest Item" || iterated == "Wall Item" || iterated == "Floor Item") {
-					
-					// Gets item name 
+
+					// Gets item 
+					name 
 					let itemname = Items.pop(); 
 					
 					// If it has xAmount it will process the amount 
@@ -93,7 +97,7 @@ function ProcessAccountItems() {
 					// If it has no amount give it 1 as amount
 					else {
 						Type.push([iterated, 1]);
-						Items.push(translateUnidentified(itemname));
+						Items.push(translateUnidentified(itemname.toLowerCase()));
 					}
 				} else {
 					// Normall process of types just push value.
