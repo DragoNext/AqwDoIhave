@@ -56,7 +56,9 @@ function processAcount() {
 	
 	chrome.storage.local.get({background: false}, function(result){
 		if (result.background !== false && document.location.href == "https://account.aq.com/AQW/Inventory") {
-			document.location.href = result.background
+			if (result.background.includes("http://aqwwiki.wikidot.com/")) { // Redirect Only Aqw Wiki Pages  
+				document.location.href = result.background
+			}
 			chrome.storage.local.set({"background": false}, function() {});
 		} 
 		
@@ -152,9 +154,12 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	} 
 	catch(err){var isList = false}
 	
+	try{
+		var isLocation = document.body.parentElement.innerHTML.includes("/join"); 
+	} 
+	catch(err){var isLocation = false}
 	
-	
-	
+
 	
 	// get stored data
 	// If WIP in options is enabled.
@@ -181,7 +186,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				
 				// Wip process (Can be enabled in options of Extension.
 				if (WIP_moreinfo) {
-					if (!isMonster && !isShop) {
+					if (!isMonster && !isShop && !isLocation) {
 						ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x)
 					}
 				}
