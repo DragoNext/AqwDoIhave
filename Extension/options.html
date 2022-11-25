@@ -10,10 +10,12 @@ body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida 
 .topinfo a {
   float: center;
   color: #f2f2f2;
+  font-weight:800;
   text-align: center;
   padding: 14px 30px;
   display:block;
   text-decoration: none;
+  box-shadow: 0px 5px 15px #0f0f0f;
   font-size: 32px;
 }
 
@@ -25,7 +27,7 @@ body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida 
 	width:20%;
 	vertical-align: middle;
 	align-self: center;
-	
+	border:none;
 	float: center; 
 	color: #f2f2f2;
 	padding: 14px 30px;
@@ -68,12 +70,24 @@ body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida 
 .bottom {
     position:fixed;
 	left:0px;
-	bottom:0px;
-	height:20px;
+	font-weight:700;
+	color:white;
+	bottom:20px;
+	height:30px;
 	width:100%;
-	background:#eddfbc;
+	background-color:#3b0b2e;
+	box-shadow: 2px -4px 15px #0f0f0f;
 }
 
+.bottom-text {
+    position:fixed;
+	left:0px;
+	bottom:0px;
+	height:30px;
+	width:100%;
+	
+	background-color:#3b0b2e;
+}
 #like {
   margin:0 20px;
   height: 22px;
@@ -90,6 +104,14 @@ body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida 
   vertical-align:middle;
 }
 
+#link {
+	background-color:#0d1117;
+	border: 1px solid #0d1117;
+	border-width:10px;
+
+	border-radius:8px;
+	
+}
 </style>
 
 
@@ -118,6 +140,10 @@ body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida 
 
 <script src="js/option.js"></script>
 
-<div class="bottom">Created by Drago <a href="https://github.com/DragoNext/AqwDoIhave">Github</a></div>
+<div class="bottom"><div class="bottom-text">Created by Drago <a id="link" style="color:#4ca7fd;" href="https://github.com/DragoNext/AqwDoIhave">Github</a>
+<a id="link" style="color:#f0f0f0;background-color:#002f83;border-color:#002f83;" href="https://www.paypal.com/donate/?hosted_button_id=4K6AFGLC66YMG">PayPal</a>
+</div></div>
+
+
 </body>
 </html>

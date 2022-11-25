@@ -4,124 +4,76 @@
 html {
 	width:200px;
 	height:100px;
-	background-color:#eedfbf;
+
+
+	background-color:#3d0b2d;
+	
+
 }
 body {
-	border-color:#eedfbf;
-	border:14px;
-	margin: 0;
-    height: 100%;
-	border-style: ridge;
+	background-color:#eedfbf;
+	border-radius: 15px;
 }
 
-a {
-	color:#e0dee1;
-	border-radius: 39px;
-	background: #afafaf;
-	padding:2px;
-	font-weight:bold;
-	margin: 0 auto; 
-	gap: calc(20px + 10%);
-	padding-bottom: 2px;
-	padding-top: 2px;
-	text-align: center;
-	display:block; 
-	font-size:13px;
-	border-style: ridge;
-}
-a:hover {
-	color:#afafaf;
-	border-radius: 19px;
-	background: #2b0c20;
-	padding:0px;
-	font-weight:bold;
-	margin: 0 auto; 
-	padding-top: 0px;
-	text-align: center;
-	display:block; 
-	font-size:13px;	
-}
-dark_moded {
-	display: block;
-	font-size: 22px;
-	margin: 0px 0px;
-	padding:0px;
-	text-align:right;
-	width:20px;
-	height:20px;
-	top: 0;
-	left: 0;
-}
-dark_moded {
-	width:120px;
-	text-align:center;
-	margin: 1 0; 
-	top:10;
-	
-}
-
-div {
-	margin: -20px 20px;
-	text-align:right;
-}
-input#dark_mode {
-	position:absolute;
-	font-size: 22px;
-	text-align:right;
-	width:22px;
-	height:22px;
-	top: 12;
-	left: 75%;
-	border-style: ridge;
+.button {
+	font-size:16px;
+	font-weight:700;
+	background-color:#3d0b2d;
+	color:#ffffff;
+	border: none;
+	opacity: 0.9;
 	border-radius: 5px;
-	background:#ff0000;
 }
 
 .button:hover {
-  background-color: #4CAF50; /* Green */
-  color: white;
+	font-size:16px;
+	font-weight:700;
+	background-color:#4CAF50;
+	color:#ffffff;
+	border: none;
+	opacity: 1.0;
+	border-radius: 0px;
 }
-.button {
-	width:100%;
-	height:25px;
-	border-style: ridge;
-	border-radius: 5px;
-	background:#afafaf;
-	color: #f2f2f2;
-	font-size: 13px;
-	color:#e0dee1;
-	border-radius: 39px;
-	background: #afafaf;
-	padding:2px;
-	font-weight:bold;
-	margin: 0 auto; 
-	gap: calc(20px + 10%);
-	padding-bottom: 2px;
-	padding-top: 2px;
-	text-align: center;
-	display:block; 
-	font-size:13px;
-	border-style: ridge;
+
+
+#options {
+	position:absolute;
+	text-align:center;
+	width:180px;
+	height:2px;
+	left:5%;
+	
+	top: 55%;
+
+	padding-bottom: 22px;
 }
-.button:active {
-		background-color:#000000;
-		
-		color: #a2f2f2;
 
-	}
+#dark_moded {
+    position:absolute;
+	text-align:center;
+	width:180px;
+	height:2px;
+	left:5%;
+	
+	top: 20%;
 
+	padding-bottom: 22px;
+}
 
 </style>
+<div class="border">
 <body>
+
+
 <button class="button" id="dark_moded" href="">Dark Mode (ON)</button><div></div><br>
 
-<a class="button" target="_blank" style="position:absolute;width:80%;top:80;" href="options.html">Options</a>
+<a class="button" id="options" target="_blank" href="options.html">Options</a>
 
 
 </body>
-<script src="js/popup.js">
 
-  
+</div>
 
-</script>
+
+<script src="js/popup.js"></script>
 </html>

@@ -36,6 +36,8 @@ function waitForTableToLoad(){
 
 function processAcountBackground() {
 	var prevurl = document.location.href 
+	
+	
 	chrome.storage.local.set({"background": prevurl}, function() {});
 	document.location.href = "https://account.aq.com/AQW/Inventory"
 
@@ -90,9 +92,14 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		}
 	});
 	
+	
 	// page load 
 	document.addEventListener('DOMContentLoaded', function(event) {
 	
+	// Removes width bar [Not even usefull]
+	var Body = document.getElementsByTagName('body')[0]
+	Body.style = Body.style +";overflow-x: hidden;";
+
 
 	// Get title of Wiki page (Name of category basically) 
 	const Title = document.getElementById("page-title")
