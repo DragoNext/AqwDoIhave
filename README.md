@@ -52,7 +52,7 @@ On Aqw Wiki:
 <li>Displaying amount of Rescource items you have<br>  <img src="https://user-images.githubusercontent.com/49029552/201155338-df38dc37-ed5b-4bd7-8f9c-b46ff13c2880.png"></li>
 <li>Display where is located in bank/inventory<br>  <img src="https://user-images.githubusercontent.com/49029552/201156221-5c5ea680-7e30-4c8e-aa84-c54c40c2d9aa.png"></li>
 <li>In items lists /armors etc. display where item comes from (Clickable will redirect to the Shop/Quest Npc etc) <pre><li>Monster Drop <img height=16 src="https://user-images.githubusercontent.com/49029552/201157446-9db442cc-bcc9-498c-9c4e-01632b9345c6.png">
-  <li>Collection Ches <img height=16 src="https://user-images.githubusercontent.com/49029552/201368034-c9de9985-2f39-43b4-acff-cecec23e84c7.png">
+  <li>Collection Chest <img height=16 src="https://user-images.githubusercontent.com/49029552/201368034-c9de9985-2f39-43b4-acff-cecec23e84c7.png">
   <li>Wheel of fortune <img height=16 src="https://user-images.githubusercontent.com/49029552/201368161-cb58f5ff-955b-4583-ad5b-36c95e0b0742.png">
   <li>Shop <img height=16 src="https://user-images.githubusercontent.com/49029552/201368364-c58c29aa-76a1-4619-b5b2-852472e45f76.png">
   <li>Merge Shop <img height=16 src="https://user-images.githubusercontent.com/49029552/201368105-82598ec8-7b8a-4cd2-9eb9-58e8ffaf0d77.png">
