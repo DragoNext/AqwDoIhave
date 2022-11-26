@@ -16,6 +16,45 @@ const whellofdoom_icon = chrome.runtime.getURL("images/whellofdoom_icon.png")
 
 
 var found = 0 
+var filterMergeAc = false 
+
+
+// WIP stuff 
+function filterMerge(itm) {
+	var elementList = document.querySelectorAll("tr")
+	if (filterMergeAc) {
+		filterMergeAc = false 
+		itm.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Hide Non Ac Items </b>"
+		
+		for (var x = 0; x < elementList.length; x++) {
+			if (!elementList[x].childNodes[3].innerHTML.includes("Name")){
+				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
+					elementList[x].hidden = false 
+				}
+			
+				
+			}
+		}
+		
+		
+	}
+	else {
+		filterMergeAc = true 
+		itm.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Show Non Ac Items </b>"
+		
+		for (var x = 0; x < elementList.length; x++) {
+			if (!elementList[x].childNodes[3].innerHTML.includes("Name")){
+				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
+					elementList[x].hidden = true 
+				}
+			
+				
+			}
+		}
+	
+	}
+}
+
 
 
 
@@ -125,7 +164,9 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	update_inventory.style = "background-color: Transparent;border: none;" 
 	update_inventory.innerHTML = " <img id='UpdateInventory' style='height:35px;' src="+inventory_update_icon+"></img>"
 	Title.appendChild(update_inventory)
-
+	
+	
+	
 	
 	// Selects all <a> elements 
 	// [It is best method, as it is compatible with other browsers]
@@ -150,11 +191,19 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 
 	// if shop is a merge shop 
 	try{
-		var isMerge = document.body.parentElement.innerHTML.includes('class="yui-nav"'); 
+		var isMerge = document.body.innerHTML.includes('/system:page-tags/tag/mergeshop'); 
 	} 
 	catch(err){var isMerge = false}
 	
-	
+	if (isMerge) {
+		var filterAc = document.createElement("button") 
+		filterAc.onclick = function() { filterMerge(filterAc); return false; }
+		filterAc.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Hide Non Ac Items </b>"
+		filterAc.style = "background-color: red;border: red;border-radius:10px;padding: 3px;font-size:20px;;vertical-align:50%; text-align: center;" 
+		Title.appendChild(filterAc)
+	}
+			
+			
 	// Item lists 
 	try{
 		var isList = document.body.parentElement.innerHTML.includes("Go to"); 
@@ -166,6 +215,8 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	} 
 	catch(err){var isLocation = false}
 	
+	
+
 
 	
 	// get stored data
