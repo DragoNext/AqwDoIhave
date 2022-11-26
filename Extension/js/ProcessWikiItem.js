@@ -5,8 +5,8 @@ var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suf
 var collection_chests = getJson(chrome.runtime.getURL("data/collection_chests.json"))["chests"]
 
 
-
 // WIP stuff 
+
 
 function isCollection(text) {
 	let value = false 
@@ -207,7 +207,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				if (isList) {
 					nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
 	
-				} else if (isMerge){
+				} else if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases'){
 						nodeList[arrayOffset+x].appendChild(where_icon)
 				} 
 				else {
@@ -232,7 +232,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
 				
 				// Geting location of item drop count or location next to item found
-				if ( isMerge ) { 
+				if ( isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases' ) { 
 					var count_node = nodeList[arrayOffset+x].nextSibling
 				} else {
 					var count_node = nodeList[arrayOffset+x].parentNode.lastChild
@@ -276,7 +276,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				
 				
 				
-				if (isMerge) {
+				if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases') {
 
 					// Dosen't require adding new element (Just replace , with / )
 					count_node.data = count_node.data.replace(",","")+"/"
