@@ -9,7 +9,11 @@ function getJson(theUrl)
     return JSON.parse(xmlHttp.responseText)
 }
 
+
+
+
 var json_data = getJson(chrome.runtime.getURL("data/Unidentified_Translation.json"))
+
 
 
 
@@ -133,3 +137,4 @@ function ProcessAccountItems() {
 	var data = [Items, Where, Type, Buy, Category]
 	return data;
 }
+

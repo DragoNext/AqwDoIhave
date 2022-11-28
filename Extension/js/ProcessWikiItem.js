@@ -7,7 +7,6 @@ var collection_chests = getJson(chrome.runtime.getURL("data/collection_chests.js
 
 // WIP stuff 
 
-
 function isCollection(text) {
 	let value = false 
 	for (var x = 0; x < collection_chests.length; x++) {

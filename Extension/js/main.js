@@ -6,6 +6,7 @@ const price_icon = chrome.runtime.getURL("images/price_icon.png");
 const drop_icon = chrome.runtime.getURL("images/monster_drop.png")
 const collectionchest_icon = chrome.runtime.getURL("images/collectionchest_icon.png")
 const inventory_update_icon = chrome.runtime.getURL("images/update_inventory.png")
+const tofarm_icon = chrome.runtime.getURL("images/WICF_button.png")
 
 const mergeshop_icon = chrome.runtime.getURL("images/mergeshop_icon.png")
 const quest_icon = chrome.runtime.getURL("images/quest_icon.png")
@@ -31,7 +32,6 @@ function filterMerge(itm) {
 				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
 					elementList[x].hidden = false 
 				}
-			
 				
 			}
 		}
@@ -73,13 +73,43 @@ function waitForTableToLoad(){
 	}
 }
 
+function goto_ToFarm() {
+	document.location.href = chrome.runtime.getURL("tofarm.html")
+}
+
+
 function processAcountBackground() {
 	var prevurl = document.location.href 
 	
 	
 	chrome.storage.local.set({"background": prevurl}, function() {});
 	document.location.href = "https://account.aq.com/AQW/Inventory"
+}
 
+function addToFarm_button() {
+	const header = document.getElementById("side-bar")
+	var ToFarm = document.createElement("button") 
+	ToFarm.onclick = function() { goto_ToFarm(); return false; }
+	ToFarm.style = "background-color: Transparent;border: none;" 
+	ToFarm.innerHTML = " <img style='height:35px;' src="+tofarm_icon+"></img>"
+	header.prepend(ToFarm)
+	
+}
+
+function addUpdateInventory_button() {
+	const Title = document.getElementById("page-title")
+	var styles = `
+    #UpdateInventory:hover {
+		filter: contrast(120%) brightness(1.25);; 
+	}`
+	var styleSheet = document.createElement("style")
+	styleSheet.innerText = styles
+	document.head.appendChild(styleSheet)
+	var update_inventory = document.createElement("button") 
+	update_inventory.onclick = function() { processAcountBackground(); return false; }
+	update_inventory.style = "background-color: Transparent;border: none;" 
+	update_inventory.innerHTML = " <img id='UpdateInventory' style='height:35px;' src="+inventory_update_icon+"></img>"
+	Title.appendChild(update_inventory)
 	
 }
 
@@ -151,21 +181,11 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 	
 	
-	var styles = `
-    #UpdateInventory:hover {
-		filter: contrast(120%) brightness(1.25);; 
-	}`
-	var styleSheet = document.createElement("style")
-	styleSheet.innerText = styles
-	document.head.appendChild(styleSheet)
-	
-	var update_inventory = document.createElement("button") 
-	update_inventory.onclick = function() { processAcountBackground(); return false; }
-	update_inventory.style = "background-color: Transparent;border: none;" 
-	update_inventory.innerHTML = " <img id='UpdateInventory' style='height:35px;' src="+inventory_update_icon+"></img>"
-	Title.appendChild(update_inventory)
 	
 	
+	
+	addUpdateInventory_button()
+	addToFarm_button()
 	
 	
 	// Selects all <a> elements 
