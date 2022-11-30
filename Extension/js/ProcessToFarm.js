@@ -43,37 +43,34 @@ async function add_to_table(table,item_name,item_details, av_item_count, avaliab
 		} else {
 			td_2.innerHTML = item_details[1][1][1][0]
 		}
-	}
-	else {
+	} else {
 		td_2.innerHTML = "N/A"
 	}
 	
-	
+	// Monster Drop Icon
 	if (item_details[1][1][0] == "Drop") {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+drop_icon+"'></img>"
 	}
+	// Quest Icon
 	if (item_details[1][1][0] == "Quest") {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+quest_icon+"'></img>"
 	}
+	// Merge Icon
 	if (item_details[1][1][0] == "Merge") {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+mergeshop_icon+"'></img>"
 	}
-	
-	// Ac 
+	// Ac Icon
 	if (item_details[6][1] == true) {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+ac_large+"'></img>"
 	}
-	// Legend 
+	// Legend Icon
 	if (item_details[7][1] == true) {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+legend_large+"'></img>"
 	}
-	// Seasonal 
+	// Seasonal Icon
 	if (item_details[8][1] == true) {
 		td_3.innerHTML = td_3.innerHTML + "<img style='height:20px' src='"+seasonal_large+"'></img>"
 	}
-
-	
-	
 	
 	tr.appendChild(td_1)
 	tr.appendChild(td_2)
@@ -95,25 +92,31 @@ function reProcess_ToFarm_Page() {
 	process_ToFarm_Page()
 }
 
+
+
+
+
+
 function filterItem(item_name, item_data, account_items) {
 		// Filters check boxes True/False On/Off
 		var Filter_AcItem = document.getElementById("Filter_AcItem").checked 
 		var Filter_LegendItem = document.getElementById("Filter_LegendItem").checked 
-		
 		var Filter_NormalItem = document.getElementById("Filter_NormalItem").checked 
 		var Filter_SeasonalItem = document.getElementById("Filter_SeasonalItem").checked 
-		
 		var Filter_MonsterDrop = document.getElementById("Filter_MonsterDrop").checked 
 		var Filter_MergeDrop = document.getElementById("Filter_MergeDrop").checked 
 		var Filter_QuestDrop = document.getElementById("Filter_QuestDrop").checked 
 		
 		
-		// Tag exclusion from wiki_exclude_suffixes.json 
+		// Gets Tag exclusion from wiki_exclude_suffixes.json and make it smaller to compare with account_items 
 		let cq = item_name.toLowerCase()
 		for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
 			cq = cq.replace(wiki_exclude_suffixes["Excluded"][i].toLowerCase(), "")
 		} 
 		
+		
+		
+		// Filter Drop Type on if any is TRUE and ITEM is of type it will return False (Skip Item) 
 		if (item_data[1][1][0] == "Drop" && Filter_MonsterDrop == false) {
 			return false 
 		}
@@ -124,45 +127,50 @@ function filterItem(item_name, item_data, account_items) {
 			return false 
 		}
 		
-		// Logic for filtering false > not pass details, true > passes data 
+		
 		if (item_data[5] != undefined) {
+			// item_data[5] if undefined, the object isn't presentable (Item dosen't have data if its AC)
 			if (account_items.includes(cq)) {
 				
 				return false 
 				
 			} 
 			else if (item_data[14] == "necklaces" || item_data[14] == "misc-items") {
+				// Exclude Misc Items and Necklaces 
 				return false 
-			}
-			// Seasonal 
-			else if (item_data[8][1] && Filter_SeasonalItem == false) {
-				
-			}
-			// Ac 
-			else if (item_data[6][1] == false && Filter_NormalItem == false) { 
+			} else if (item_data[8][1] && Filter_SeasonalItem == false) {
+				// Seasonal Filter 
+				return false 
+			} else if (item_data[6][1] == false && Filter_NormalItem == false) { 
+					// Ac Filter 
 					return false 			
 			} 
 			
-			// Ignore rare items 
 			else if (item_data[5][1] == true) { 
+				// Excludes Rare Tag  
 					return false 			
 			} 
 			
 			else if (item_data[1][1][0] == "Drop" || item_data[1][1][0] == "Quest" || item_data[1][1][0] == "Merge") {
 				if (item_data[1][1][0] == "Merge") {
 					if (item_data[1][1][1].includes("Doom Merge")) {
-						return false // Ignore Doom Merge 
+						// Ignore Doom Merge 
+						return false 
 					} else {
+						// Normal Merge Drop Item 
 						return true 
 					}
 				} else if (item_data[1][1][0] == "Quest") {
 					if (item_data[1][1][1] == "Open Treasure Chests" || item_data[1][1][1] == "Wheel of Doom") {
-						return false // Ignore Open Chest 
+						// Ignore Open Chest 
+						return false 
 					}
 					else{
+						// Normal Quest Drop Item
 						return true 
 					}
 				} else {
+					// Normal Monster Drop Item 
 					return true
 				}
 			}
@@ -177,8 +185,11 @@ function filterItem(item_name, item_data, account_items) {
 }
 
 async function process_ToFarm_Page() {
+	
+	// Count of ac - account, and av - avaliable items
 	var av_item_count = 0 
 	var ac_item_count = 0 
+	
 	
 	
 	const item_keys = Object.keys(items_json)
@@ -226,8 +237,8 @@ if (document.URL.includes("tofarm.html")) {
 		var dropFilter = document.getElementById("questdrop")
 		dropFilter.src = quest_icon
 		
-		process_ToFarm_Page()
 		
+		process_ToFarm_Page()
 		
 		document.getElementById('Filter_AcItem').addEventListener('click',
 			reProcess_ToFarm_Page);
