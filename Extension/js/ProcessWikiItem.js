@@ -18,7 +18,7 @@ function isCollection(text) {
 	return value 
 }
 
-function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest)
+function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest, isMerge)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, true ); 
@@ -27,7 +27,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest)
 	xmlHttp.onreadystatechange = checkData;
 	xmlHttp.send( null );
 	function addElement() {
-		if (isQuest || isMonster) {
+		if (isQuest || isMonster || isMerge) {
 			nodeList[arrayOffset+x].prepend(priceElement)
 		} else{
 			nodeList[arrayOffset+x].appendChild(priceElement)
@@ -157,7 +157,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest)
 	}
 }
 	
-async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest) { 
+async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest, isMerge) { 
 
 	let nodeText = nodeList[arrayOffset+x].innerHTML; // No need for highlight 
 	let nodeLink = nodeList[arrayOffset+x].href;
@@ -165,7 +165,7 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 
 	
 	if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
-		httpGet(nodeLink, nodeList, arrayOffset, x, isMonster, isQuest);
+		httpGet(nodeLink, nodeList, arrayOffset, x, isMonster, isQuest, isMerge);
 	}
 	
 }
@@ -182,21 +182,21 @@ function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge
 	} else if (isQuest) {
 		var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 	} 
-	var originaAmount = count_node.data
+	var originaAmount = count_node.data.replace(",","")
 	
 	if (originaAmount !== null && originaAmount !== undefined){ 
 	
 		originalAmountCount.innerHTML = originaAmount 
 		accountAmountCount.innerHTML = accountAmount 
-		
+
 		if (isMonster == false) {
 			if (parseInt(originaAmount.replace("x","")) <= accountAmount) {
 				//stack_original.style = "color:black;"
-				accountAmountCount.style = "font-weight: bold;color:green;"
+				accountAmountCount.style = "font-weight: bold;color:green;text-decoration:none;"
 			}
 			else {
 				//stack_original.style = "color:black;"
-				accountAmountCount.style = "font-weight: bold;color:red;"
+				accountAmountCount.style = "font-weight: bold;color:red;text-decoration:none;"
 			}
 		} else {
 			accountAmountCount.style = "font-weight: bold;color:green;"
@@ -289,9 +289,17 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				if (RescourceCount[0].innerHTML == " "){
 					RescourceCount[0].innerHTML = " x1"
 				}
-				nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[0])
-				nodeList[arrayOffset+x].parentNode.appendChild(Separator)
-				nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[1])
+				
+				if (isMerge) {
+					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[1], nodeList[arrayOffset+x].nextSibling)
+					nodeList[arrayOffset+x].parentNode.insertBefore(Separator, nodeList[arrayOffset+x].nextSibling)
+					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[0], nodeList[arrayOffset+x].nextSibling)
+				} 
+				else{
+					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[0])
+					nodeList[arrayOffset+x].parentNode.appendChild(Separator)
+					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[1])
+				}
 			}
 			
 			

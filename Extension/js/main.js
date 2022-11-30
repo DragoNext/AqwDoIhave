@@ -274,7 +274,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 				// Wip process (Can be enabled in options of Extension.
 				if (WIP_moreinfo) {
 			
-					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest)
+					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest, isMerge)
 					
 				}
 			}
