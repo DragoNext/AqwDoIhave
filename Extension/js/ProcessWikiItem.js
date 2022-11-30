@@ -18,7 +18,7 @@ function isCollection(text) {
 	return value 
 }
 
-function httpGet(theUrl, nodeList, arrayOffset, x)
+function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, true ); 
@@ -26,6 +26,15 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 	
 	xmlHttp.onreadystatechange = checkData;
 	xmlHttp.send( null );
+	function addElement() {
+		if (isQuest || isMonster) {
+			nodeList[arrayOffset+x].prepend(priceElement)
+		} else{
+			nodeList[arrayOffset+x].appendChild(priceElement)
+		}
+	}
+
+	
 	
 	function checkData() {
 		
@@ -43,7 +52,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 					priceElement.href = href
 					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img>'
 					
-					nodeList[arrayOffset+x].appendChild(priceElement)
+					addElement()
 				}
 				else{
 					var nm = "Location:</strong>"
@@ -58,7 +67,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 					href = price.split(">")[0].split('"')[1]
 					priceElement.href = href
 					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+shop_icon+'"></img>'
-					nodeList[arrayOffset+x].appendChild(priceElement)
+					addElement()
 					
 				}
 				
@@ -72,7 +81,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 						priceElement.href = href
 						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+treasurechest_icon+'"></img>'
 						
-						nodeList[arrayOffset+x].appendChild(priceElement)
+						addElement()
 					}
 					else{
 						price =  Text.split("N/A (Reward from the")[1]
@@ -82,7 +91,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 						priceElement.href = href
 						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+quest_icon+'"></img>'
 						
-						nodeList[arrayOffset+x].appendChild(priceElement)
+						addElement()
 					}
 				} 
 				if (Text.includes("Reward from the:")){
@@ -94,7 +103,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 						priceElement.href = href
 						priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+whellofdoom_icon+'"></img>'
 						
-						nodeList[arrayOffset+x].appendChild(priceElement)
+						addElement()
 					}
 				}
 				if (Text.includes("Merge the following:")) {
@@ -105,7 +114,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 					priceElement.href = href
 					priceElement.innerHTML = '<img title="'+title+'" style="width:22px" src="'+mergeshop_icon+'"></img>'
 					
-					nodeList[arrayOffset+x].appendChild(priceElement)
+					addElement()
 				}
 				if (Text.includes("Dropped by")) {
 					
@@ -120,7 +129,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 						
 						
 						
-						nodeList[arrayOffset+x].appendChild(priceElement)
+						addElement()
 						
 					}
 				}
@@ -135,7 +144,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 
 					priceElement.href = href
 					priceElement.innerHTML = '<img  title="'+title+'" style="width:22px" src="'+collectionchest_icon+'"></img></div>'
-					nodeList[arrayOffset+x].appendChild(priceElement)
+					addElement()
 				}
 			}
 			
@@ -148,7 +157,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x)
 	}
 }
 	
-async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x) { 
+async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest) { 
 
 	let nodeText = nodeList[arrayOffset+x].innerHTML; // No need for highlight 
 	let nodeLink = nodeList[arrayOffset+x].href;
@@ -156,15 +165,87 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 
 	
 	if (nodeLink.includes("http://aqwwiki.wikidot.com/")){
-		httpGet(nodeLink, nodeList, arrayOffset, x);
+		httpGet(nodeLink, nodeList, arrayOffset, x, isMonster, isQuest);
 	}
 	
 }
 //
 
 
+function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster) {
+	var accountAmount = parseInt(Type[Items.indexOf(nodeText)][1] )
+	var originalAmountCount = document.createElement("span") 
+	var accountAmountCount = document.createElement("span") 
+	
+	if (isMerge || isMonster) {
+		var count_node = nodeList[arrayOffset+x].nextSibling
+	} else if (isQuest) {
+		var count_node = nodeList[arrayOffset+x].parentNode.lastChild
+	} 
+	var originaAmount = count_node.data
+	
+	if (originaAmount !== null && originaAmount !== undefined){ 
+	
+		originalAmountCount.innerHTML = originaAmount 
+		accountAmountCount.innerHTML = accountAmount 
+		
+		if (isMonster == false) {
+			if (parseInt(originaAmount.replace("x","")) <= accountAmount) {
+				//stack_original.style = "color:black;"
+				accountAmountCount.style = "font-weight: bold;color:green;"
+			}
+			else {
+				//stack_original.style = "color:black;"
+				accountAmountCount.style = "font-weight: bold;color:red;"
+			}
+		} else {
+			accountAmountCount.style = "font-weight: bold;color:green;"
+		}
+		
+		
 
-async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList) {
+		
+		count_node.data = " "
+		return [originalAmountCount,accountAmountCount]
+	}
+	
+}
+
+async function addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList, isMerge) {
+	// where_icon 
+	let where_icon = document.createElement("a");
+	
+	// Adds icons of where is located 	
+	if (Where[Items.indexOf(nodeText)] == "Bank") {
+		where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
+		if (isList) {
+			nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
+
+		} else if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases'){
+				nodeList[arrayOffset+x].appendChild(where_icon)
+		} 
+		else {
+			nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
+		}
+		
+		
+	} else {
+		if (isList) {
+			where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+			nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
+
+		} else {
+			where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
+			nodeList[arrayOffset+x].appendChild(where_icon)
+		}
+	}	
+	
+}
+
+
+
+
+async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) {
 	// getting text of item + removing not needed text (dosen't compare to inv) 
 	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("’","'").trim();
 	
@@ -178,15 +259,6 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 	
 	
 	
-	// elements for Stackable Items 
-	let stack_original = document.createElement("a");
-	let stack_account = document.createElement("a");
-	
-	
-	// where_icon 
-	let where_icon = document.createElement("a");
-
-	
 	// link of item /item-name 
 	let nodeLink = nodeList[arrayOffset+x].href
 	
@@ -199,107 +271,28 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 			nodeText = nodeText
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 			
-			
-			// Adds icons of where is located 	
-			if (Where[Items.indexOf(nodeText)] == "Bank") {
-				where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
-				if (isList) {
-					nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
-	
-				} else if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases'){
-						nodeList[arrayOffset+x].appendChild(where_icon)
-				} 
-				else {
-					nodeList[arrayOffset+x].parentNode.appendChild(where_icon)
-				}
-				
-				
-			} else {
-				if (isList) {
-					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
-					nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
-	
-				} else {
-					where_icon.innerHTML = " <img title='In inventory' style='height:20px' src='"+inv_icon+"'></img>"
-					nodeList[arrayOffset+x].appendChild(where_icon)
-				}
-			}	
-			
-			
 			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory 
-				let amount = parseInt(Type[Items.indexOf(nodeText)][1] )
-				
-				// Geting location of item drop count or location next to item found
-				if ( isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases' ) { 
-					var count_node = nodeList[arrayOffset+x].nextSibling
-				} else {
-					var count_node = nodeList[arrayOffset+x].parentNode.lastChild
-				}
-				if (count_node.data == undefined || count_node.data == null ) {
-					var count_node = nodeList[arrayOffset+x].nextSibling
-				}
-
-				
-				// detection for monster drop that has range 
-				if (count_node !== null && count_node !== undefined){
-					if (count_node.data.includes("-")) {
-						var needed_amount = count_node.data.slice(2).replace(" ","");
-					} else {
-						var needed_amount = parseInt(count_node.data.slice(2).replace(",",""));
-						
-					}
-				}
-				
-				
-				// formating original amount / needed amount to final result.
-				if (isNaN(needed_amount)) {
-					needed_amount=1;
-				}; 
-				stack_original.innerHTML = " x"+needed_amount+"/"
-				
-			
-				// Stylizer for amount of items
-				stack_account.innerHTML = String(amount)
-				if (needed_amount <= amount) {
-					//stack_original.style = "color:black;"
-					stack_account.style = "font-weight: bold;color:green;"
-				}
-				else {
-					//stack_original.style = "color:black;"
-					stack_account.style = "font-weight: bold;color:red;"
-				}
-				
-			
-					
-				
-				
-				
-				if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases') {
-
-					// Dosen't require adding new element (Just replace , with / )
-					count_node.data = count_node.data.replace(",","")+"/"
-					// Ads new element 
-					nodeList[arrayOffset+x].parentNode.insertBefore(stack_account, nodeList[arrayOffset+x].nextSibling.nextSibling)	
-				} else {
-					// erases previous data 
-					
-					
-					// Adds new element 
-					nodeList[arrayOffset+x].parentNode.appendChild(stack_original) 
-					nodeList[arrayOffset+x].parentNode.appendChild(stack_account) 
-				
-					
-
-	
-				}
-				
-				
-				
-			
+				var RescourceCount = processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
+			} else {
+				var RescourceCount = false 
 			}
 			
+			// Adds icons of where is located 	
+			addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList, isMerge)
 			
+			
+			
+			if (RescourceCount !== false){
+				var Separator = document.createElement("b") 
+				Separator.innerHTML = "/"
+				if (RescourceCount[0].innerHTML == " "){
+					RescourceCount[0].innerHTML = " x1"
+				}
+				nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[0])
+				nodeList[arrayOffset+x].parentNode.appendChild(Separator)
+				nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[1])
+			}
 			
 			
 			found += 1 //Count items found 

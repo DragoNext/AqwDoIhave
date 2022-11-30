@@ -200,9 +200,10 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	// Site detect vars 
 	
 	try{
-		var isMonster = document.body.parentElement.innerHTML.includes("Difficulty");
+		var isMonster = document.body.parentElement.innerHTML.includes("/system:page-tags/tag/monster");
 	} 
 	catch(err){var isMonster = false}
+	
 	try{
 		var isShop =    document.body.parentElement.innerHTML.includes("(Shop)");
 	} 
@@ -214,6 +215,14 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		var isMerge = document.body.innerHTML.includes('/system:page-tags/tag/mergeshop'); 
 	} 
 	catch(err){var isMerge = false}
+	
+	// Is Quest Page 
+	try{
+		var isQuest = document.body.innerHTML.includes('/system:page-tags/tag/quest'); 
+	} 
+	catch(err){var isQuest = false}
+	
+	
 	
 	if (isMerge) {
 		var filterAc = document.createElement("button") 
@@ -259,14 +268,14 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			// Iterate over nodelist with array offset applied 
 			for (var x = 0; x < arrayList.length; x++) {
 				
-				ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList) 
+				ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) 
 				
 				
 				// Wip process (Can be enabled in options of Extension.
 				if (WIP_moreinfo) {
-					if (!isMonster && !isShop && !isLocation) {
-						ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x)
-					}
+			
+					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest)
+					
 				}
 			}
 			// Displays found amount 
