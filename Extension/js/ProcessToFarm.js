@@ -27,6 +27,7 @@ var items_json = getJson(chrome.runtime.getURL("data/WikiItems.json"))
 var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
 
 
+
 async function add_to_table(table,item_name,item_details, av_item_count, avaliableItemsElement){
 	let tr = document.createElement("tr") 
 	let td_1 = document.createElement("td")

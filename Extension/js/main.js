@@ -15,25 +15,27 @@ const treasurechest_icon = chrome.runtime.getURL("images/treasurechest_icon.png"
 const whellofdoom_icon = chrome.runtime.getURL("images/whellofdoom_icon.png")
 
 
-
 var found = 0 
 var filterMergeAc = false 
 
 
 // WIP stuff 
 function filterMerge(itm) {
+	try {
 	var elementList = document.querySelectorAll("tr")
 	if (filterMergeAc) {
 		filterMergeAc = false 
 		itm.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Hide Non Ac Items </b>"
 		
 		for (var x = 0; x < elementList.length; x++) {
+			
 			if (!elementList[x].childNodes[3].innerHTML.includes("Name")){
 				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
 					elementList[x].hidden = false 
 				}
 				
 			}
+			
 		}
 		
 		
@@ -53,6 +55,7 @@ function filterMerge(itm) {
 		}
 	
 	}
+	} catch(err){alert(err)}
 }
 
 
@@ -105,14 +108,26 @@ function addUpdateInventory_button() {
 	var styleSheet = document.createElement("style")
 	styleSheet.innerText = styles
 	document.head.appendChild(styleSheet)
-	var update_inventory = document.createElement("button") 
-	update_inventory.onclick = function() { processAcountBackground(); return false; }
-	update_inventory.style = "background-color: Transparent;border: none;" 
-	update_inventory.innerHTML = " <img id='UpdateInventory' style='height:35px;' src="+inventory_update_icon+"></img>"
-	Title.appendChild(update_inventory)
+	
+	const updateInventory = document.createElement("button") 
+	const updateInventoryImg = document.createElement("img");
+	updateInventory.onclick = () => processAcountBackground();
+	updateInventory.style.backgroundColor = "Transparent";
+	updateInventory.style.border = "none";
+	updateInventoryImg.id = "UpdateInventory";
+	updateInventoryImg.style.height = "35px";
+	updateInventoryImg.src = inventory_update_icon;
+	
+	updateInventory.appendChild(updateInventoryImg);
+	Title.appendChild(updateInventory)
 	
 }
-
+function setFilterAc() {
+	chrome.storage.local.get({mergeFilterAc: false}, function(result){
+		chrome.storage.local.set({"mergeFilterAc": !result.mergeFilterAc}, function() {});
+		document.getElementById("filterAc").checked = !result.mergeFilterAc
+	})
+}
 
 function processAcount() {
 	
@@ -161,7 +176,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		}
 	});
 	
-	
+	addCss(chrome.runtime.getURL("themes/progressbar.css"));
 	// page load 
 	document.addEventListener('DOMContentLoaded', function(event) {
 	
@@ -172,6 +187,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 
 	// Get title of Wiki page (Name of category basically) 
 	const Title = document.getElementById("page-title")
+	const Content = document.getElementById("page-content")
 	
 	// Creates Found amount element near title. 
 	var found_info = document.createElement("a") 
@@ -225,11 +241,27 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	
 	
 	if (isMerge) {
-		var filterAc = document.createElement("button") 
-		filterAc.onclick = function() { filterMerge(filterAc); return false; }
-		filterAc.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Hide Non Ac Items </b>"
-		filterAc.style = "background-color: red;border: red;border-radius:10px;padding: 3px;font-size:20px;;vertical-align:50%; text-align: center;" 
-		Title.appendChild(filterAc)
+		var filterAc = document.createElement("p") 
+		var filterAcText = document.createElement("strong")
+		var filterAcInput = document.createElement("input")
+		filterAcInput.id = "filterAc" 
+		filterAcInput.type = "checkbox"
+		filterAcText.innerHTML = "Merge Shop Filters: "
+		filterAc.style = "margin-top:10px;" 
+
+		filterAc.prepend(filterAcInput)
+		filterAc.innerHTML = "<br>"+ filterAc.innerHTML + " - Include Only AC Tag items"
+		filterAc.prepend(filterAcText)
+		Content.prepend(filterAc)
+		
+		var filterAcInpute = document.getElementById("filterAc")
+		
+		filterAcInpute.onclick = function(){setFilterAc();return false; }
+		
+		chrome.storage.local.get({mergeFilterAc: false}, function(result){
+			filterAcInpute.checked = result.mergeFilterAc
+		})
+
 	}
 			
 			
@@ -259,10 +291,17 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	chrome.storage.local.get({aqwtype: []}, function(result){Type = result.aqwtype;});
 	
 	
+	
+	
+	
+	
 	// Get items and process it 
 	chrome.storage.local.get({aqwitems: []}, function(result){
 			var Items = result.aqwitems;
 			
+			if (isMerge) {
+				DisplayCostMergeShop(Items)
+			}
 	
 			
 			// Iterate over nodelist with array offset applied 
@@ -277,10 +316,15 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest, isMerge)
 					
 				}
+			
+			
 			}
+			
+			
 			// Displays found amount 
 			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
 			
 	})
+	
 	})
 }

@@ -3,7 +3,7 @@
 // Get Json of Wiki Exclusion Suffixes 
 var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
 var collection_chests = getJson(chrome.runtime.getURL("data/collection_chests.json"))["chests"]
-
+var items_json = getJson(chrome.runtime.getURL("data/WikiItems.json"))
 
 // WIP stuff 
 
@@ -27,7 +27,7 @@ function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest, isMerge)
 	xmlHttp.onreadystatechange = checkData;
 	xmlHttp.send( null );
 	function addElement() {
-		if (isQuest || isMonster || isMerge) {
+		if (isQuest || isMonster || isMerge || (document.location.href == "http://aqwwiki.wikidot.com/new-releases")) {
 			nodeList[arrayOffset+x].prepend(priceElement)
 		} else{
 			nodeList[arrayOffset+x].appendChild(priceElement)
@@ -156,6 +156,18 @@ function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest, isMerge)
 		}
 	}
 }
+
+function getWikiItemDetails(itemName) {
+	let moreDetailIcon = document.createElement("a")
+	
+	items_json[itemName] 
+}
+
+function addItemDetailsIcon(details) {
+	
+}
+
+
 	
 async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest, isMerge) { 
 
@@ -179,6 +191,7 @@ function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge
 	
 	if (isMerge || isMonster) {
 		var count_node = nodeList[arrayOffset+x].nextSibling
+		accountAmountCount.classList.add("RescourceAcquired")
 	} else if (isQuest) {
 		var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 	} 
@@ -191,7 +204,7 @@ function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge
 
 		if (isMonster == false) {
 			if (parseInt(originaAmount.replace("x","")) <= accountAmount) {
-				//stack_original.style = "color:black;"
+				//stack_original.style = "color:black;
 				accountAmountCount.style = "font-weight: bold;color:green;text-decoration:none;"
 			}
 			else {
@@ -270,7 +283,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 		if (Items.includes(nodeText)) {
 			nodeText = nodeText
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
-			
+			nodeList[arrayOffset+x].classList.add("Acquired")
 			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory 
 				var RescourceCount = processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
@@ -291,6 +304,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 				}
 				
 				if (isMerge) {
+					
 					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[1], nodeList[arrayOffset+x].nextSibling)
 					nodeList[arrayOffset+x].parentNode.insertBefore(Separator, nodeList[arrayOffset+x].nextSibling)
 					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[0], nodeList[arrayOffset+x].nextSibling)
