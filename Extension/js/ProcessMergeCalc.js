@@ -176,6 +176,7 @@ function DisplayCost(needDict, tabAmount, frame, Items) {
 
 	Object.entries(needDict).forEach(([key, value]) => { 
 		if (value !== "") {
+			
 			if (Items.includes(translateUnidentified(key.toLowerCase()))) {
 				var accountAmount = parseInt(Type[Items.indexOf(translateUnidentified(key.toLowerCase()))][1])
 				if (isNaN(accountAmount)) {
@@ -232,15 +233,14 @@ function repairSpan() {
 
 
 
-async function DisplayCostMergeShop(Items) {
+function DisplayCostMergeShop(Items, mergeFilterAc) {
 	repairSpan()
 	let tabAmount = document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length
 	let Frame = document.createElement("div") 
 	Frame.className = "CostMerge"
 	Frame.style = "display:inline-block;position:relative;float:right;"
 	
-	const {mergeFilterAc = false} = await chrome.storage.local.get('mergeFilterAc');
-
+	
 	
 	var dc = processAllMergeShopItems(tabAmount,Items,mergeFilterAc)
 	DisplayCost(dc[1], tabAmount, Frame, Items)	

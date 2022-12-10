@@ -290,7 +290,10 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 	chrome.storage.local.get({aqwwhere: []}, function(result){Where = result.aqwwhere;});
 	chrome.storage.local.get({aqwtype: []}, function(result){Type = result.aqwtype;});
 	
+	chrome.storage.local.get({mergeFilterAc: []}, function(result){mergeFilterAc = result.mergeFilterAc;});
 	
+
+
 	
 	
 	
@@ -300,7 +303,7 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 			var Items = result.aqwitems;
 			
 			if (isMerge) {
-				DisplayCostMergeShop(Items)
+				DisplayCostMergeShop(Items, mergeFilterAc)
 			}
 	
 			
