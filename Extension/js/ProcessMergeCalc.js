@@ -61,6 +61,9 @@ function processTable(table,onlyAc,Items) {
 				if (itemHtml.includes("acsmall.png")) {
 				}  else if (onlyAc) {
 					skip = true 
+					if (Items.includes(itemElement.textContent.toLowerCase().trim())) {
+						var AlreadyExists = AlreadyExists - 1 
+					}
 				}
 			
 			
@@ -197,10 +200,10 @@ function DisplayCost(needDict, tabAmount, frame, Items) {
 			if (leftAmount <= 0) {
 				leftAmount=0
 				
-				tableBody += `<tr><td style='color:gray;text-decoration: line-through;'><a href="${itemHref}">${key}</a></td><td>${value}</td><td style="color:green;">${accountAmount}</td><td>${leftAmount}</td></tr>`
+				tableBody += `<tr><td style='text-decoration: line-through;'><a href="${itemHref}">${key}</a></td><td>${value}</td><td style="color:green;">${accountAmount}</td><td>${leftAmount}</td></tr>`
 			}
 			else {
-				tableBody += `<tr><td ><a style='color:white;' href="${itemHref}">${key}</a></td><td>${value}</td><td style='color:red;'>${accountAmount}</td><td>${leftAmount}</td></tr>`	
+				tableBody += `<tr><td ><a href="${itemHref}">${key}</a></td><td>${value}</td><td style='color:red;'>${accountAmount}</td><td>${leftAmount}</td></tr>`	
 			}
 			
 		}
