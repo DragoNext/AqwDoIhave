@@ -38,32 +38,39 @@ function processTable(table,onlyAc,Items) {
 	var AlreadyExists = 0 
 
 	for (var i = 0; i < tableTrElements.length; i++) {
-		if (i == 0) {
-			
+		if (i === 0) {
 			
 		} else { // Skip first element Table Names 
-			var elementsA = tableTrElements[i].getElementsByTagName("td")[tableOffset].querySelectorAll("a")
+			var elementsA = tableTrElements[i].getElementsByTagName("td")[tableTrElements[i].getElementsByTagName("td").length-1].querySelectorAll("a")
+			
+			var itemElement= tableTrElements[i].getElementsByTagName("td")[1]
+			var itemHtml = itemElement.innerHTML
+			var itemText = itemElement.textContent
+			
 			var skip = false 
+			var itemsFound = [] 
 		
 			
 			for (var x = 0; x < elementsA.length; x++) {
 				var proc = elementsA[x] 
 				
+				for (var ax = 0; ax < wiki_exclude_suffixes["Excluded"].length; ax++) {
+					itemText = itemText.replace(wiki_exclude_suffixes["Excluded"][ax],"")
+				}
 				
-				var itemElement= proc.parentNode.previousElementSibling
-				var itemHtml = itemElement.innerHTML
-		
-				if (Items.includes(itemElement.textContent.toLowerCase().trim())) {
-					var AlreadyExists = AlreadyExists + 1 
-					skip = true 
+				if (!itemsFound.includes(itemText.toLowerCase().trim())) {
+					if (Items.includes(itemText.toLowerCase().trim())) {
+						var AlreadyExists = AlreadyExists + 1 
+						itemsFound.push(itemText.toLowerCase().trim())
+						skip = true 
+							
+					}
 				}
 				
 				if (itemHtml.includes("acsmall.png")) {
+					
 				}  else if (onlyAc) {
 					skip = true 
-					if (Items.includes(itemElement.textContent.toLowerCase().trim())) {
-						var AlreadyExists = AlreadyExists - 1 
-					}
 				}
 			
 			
@@ -79,7 +86,7 @@ function processTable(table,onlyAc,Items) {
 					if (!skip) {
 						
 						var itemName = proc.lastChild.textContent
-						var itemAmount= elementsA[x].nextSibling.data.replace("x","")
+						var itemAmount= elementsA[x].nextSibling.data.replace("x","").replace(",","")
 						var amount = parseInt(itemAmount)
 						if (isNaN(amount)) {
 							var amount = 1  
@@ -95,7 +102,7 @@ function processTable(table,onlyAc,Items) {
 					try {
 						if (!skip) {
 							var itemName = proc.childNodes[0].textContent
-							var itemAmount= elementsA[x].nextSibling.data.replace("x","")
+							var itemAmount= elementsA[x].nextSibling.data.replace("x","").replace(",","")
 							if (itemName != "") {
 								var amount = parseInt(itemAmount)
 								if (isNaN(amount)) {
@@ -110,7 +117,6 @@ function processTable(table,onlyAc,Items) {
 							}
 						}
 					} catch(err) {
-						
 					}
 				}
 					
@@ -139,10 +145,9 @@ function translateUnidentified(itemname) {
 function processAllMergeShopItems(tabAmount,Items,onlyAc) {
 	var needDict = {} 
 	var Found = 0 
-
+	
 	for (var xr = 0; xr < tabAmount; xr++) { 
 		var table = document.getElementById("wiki-tab-0-"+xr).getElementsByClassName("wiki-content-table")[0] 
-		
 		var x = processTable(table,onlyAc,Items)
 		var Found = Found + x[0] 
 		needDict = sum2Dicts(needDict,x[1]) 
@@ -275,7 +280,7 @@ ProgressbarElement.innerHTML = `<br><div class="w3-dark-grey" style="text-align:
 	let x = Element.cloneNode(true)
 	Frame.prepend(x)
 	
-	//chrome.storage.local.get({mergeFilterAc: false}, function(result){var result = result });
+	chrome.storage.local.get({mergeFilterAc: false}, function(result){var result = result });
 	
 	
 	

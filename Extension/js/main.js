@@ -246,13 +246,15 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		var filterAcInput = document.createElement("input")
 		filterAcInput.id = "filterAc" 
 		filterAcInput.type = "checkbox"
-		filterAcText.innerHTML = "Merge Shop Filters: "
-		filterAc.style = "margin-top:10px;" 
+		filterAcText.innerHTML = "Merge Filters: "
+		filterAc.style = "margin-left:10px;font-size:14px;margin-top:10px;" 
 
 		filterAc.prepend(filterAcInput)
-		filterAc.innerHTML = "<br>"+ filterAc.innerHTML + " - Include Only AC Tag items"
+		filterAc.innerHTML = "<br>"+filterAc.innerHTML + " <b style=''> - Include Only AC Tag items</b>"
 		filterAc.prepend(filterAcText)
+		
 		Content.prepend(filterAc)
+		
 		
 		var filterAcInpute = document.getElementById("filterAc")
 		
