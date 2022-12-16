@@ -224,7 +224,7 @@ const quest_icon = chrome.runtime.getURL("images/quest_icon.png")
 const mergeshop_icon = chrome.runtime.getURL("images/mergeshop_icon.png")
 
 
-if (document.URL.includes("tofarm.html")) {
+if (window.location.href.includes("tofarm.html")) {
 	
 	document.addEventListener('DOMContentLoaded', function(event) {
 		

@@ -14,6 +14,7 @@ const shop_icon = chrome.runtime.getURL("images/shop_icon.png")
 const treasurechest_icon = chrome.runtime.getURL("images/treasurechest_icon.png")
 const whellofdoom_icon = chrome.runtime.getURL("images/whellofdoom_icon.png")
 
+const wiki_searchpage = "aqwwiki.wikidot.com/search-items"
 
 var found = 0 
 var filterMergeAc = false 
@@ -156,7 +157,7 @@ function processAcount() {
 
 
 // Account Page Handling 
-if (document.URL == "https://account.aq.com/AQW/Inventory") {
+if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	// page load 
 	document.addEventListener('DOMContentLoaded', function(event) {
 		
@@ -231,13 +232,21 @@ if (document.URL == "https://account.aq.com/AQW/Inventory") {
 		var isMerge = document.body.innerHTML.includes('/system:page-tags/tag/mergeshop'); 
 	} 
 	catch(err){var isMerge = false}
-	
+
 	// Is Quest Page 
 	try{
 		var isQuest = document.body.innerHTML.includes('/system:page-tags/tag/quest'); 
 	} 
 	catch(err){var isQuest = false}
 	
+	
+	// Exclude search pages for false positives 
+	if (window.location.href.includes(wiki_searchpage)) {
+		var isMerge = false 
+		var isQuest = false 
+		var isShop = false 
+		var isMonster = false 
+	}
 	
 	
 	if (isMerge) {

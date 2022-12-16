@@ -234,7 +234,7 @@ async function addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList
 		if (isList) {
 			nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
 
-		} else if (isMerge || document.URL == 'http://aqwwiki.wikidot.com/new-releases'){
+		} else if (isMerge || window.location.href == 'http://aqwwiki.wikidot.com/new-releases'){
 				nodeList[arrayOffset+x].appendChild(where_icon)
 		} 
 		else {
@@ -284,7 +284,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Wher
 			nodeText = nodeText
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 			nodeList[arrayOffset+x].classList.add("Acquired")
-			if (Type[Items.indexOf(nodeText)].length == 2 && document.URL !== "http://aqwwiki.wikidot.com/misc-items") {
+			if (Type[Items.indexOf(nodeText)].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory 
 				var RescourceCount = processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
 			} else {
