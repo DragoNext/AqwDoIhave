@@ -86,6 +86,11 @@ function processTable(table,onlyAc,Items) {
 					if (!skip) {
 						
 						var itemName = proc.lastChild.textContent
+						
+						for (var ax = 0; ax < wiki_exclude_suffixes["Excluded"].length; ax++) {
+							itemName = itemName.replace(wiki_exclude_suffixes["Excluded"][ax],"")
+						}
+						
 						var itemAmount= elementsA[x].nextSibling.data.replace("x","").replace(",","")
 						var amount = parseInt(itemAmount)
 						if (isNaN(amount)) {
@@ -102,6 +107,11 @@ function processTable(table,onlyAc,Items) {
 					try {
 						if (!skip) {
 							var itemName = proc.childNodes[0].textContent
+							
+							for (var ax = 0; ax < wiki_exclude_suffixes["Excluded"].length; ax++) {
+								itemName = itemName.replace(wiki_exclude_suffixes["Excluded"][ax],"")
+							}
+							
 							var itemAmount= elementsA[x].nextSibling.data.replace("x","").replace(",","")
 							if (itemName != "") {
 								var amount = parseInt(itemAmount)
