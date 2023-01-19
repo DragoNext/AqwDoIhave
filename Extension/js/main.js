@@ -155,7 +155,6 @@ function addUpdateInventory_button() {
 	updateInventory.appendChild(updateInventoryImg);
 	Title.appendChild(updateInventory)
 	
-}
 
 }
 
