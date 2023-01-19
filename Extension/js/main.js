@@ -13,50 +13,83 @@ const quest_icon = chrome.runtime.getURL("images/quest_icon.png")
 const shop_icon = chrome.runtime.getURL("images/shop_icon.png")
 const treasurechest_icon = chrome.runtime.getURL("images/treasurechest_icon.png")
 const whellofdoom_icon = chrome.runtime.getURL("images/whellofdoom_icon.png")
+const normal_icon = chrome.runtime.getURL("images/normal_icon.png")
 
 const wiki_searchpage = "aqwwiki.wikidot.com/search-items"
-
 var found = 0 
 var filterMergeAc = false 
 
 
 // WIP stuff 
-function filterMerge(itm) {
-	try {
+function resetFilterMerge() {
 	var elementList = document.querySelectorAll("tr")
-	if (filterMergeAc) {
-		filterMergeAc = false 
-		itm.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Hide Non Ac Items </b>"
-		
-		for (var x = 0; x < elementList.length; x++) {
-			
-			if (!elementList[x].childNodes[3].innerHTML.includes("Name")){
-				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
-					elementList[x].hidden = false 
-				}
-				
-			}
-			
+	
+	for (var x = 0; x < elementList.length; x++) { 
+		if (elementList[x].querySelectorAll("td").length == 3) { 
+			elementList[x].hidden = false  
 		}
-		
-		
 	}
-	else {
-		filterMergeAc = true 
-		itm.innerHTML = "<b style='background-color: red;color:white;border: red;border-'> Show Non Ac Items </b>"
-		
-		for (var x = 0; x < elementList.length; x++) {
-			if (!elementList[x].childNodes[3].innerHTML.includes("Name")){
-				if (!elementList[x].childNodes[3].innerHTML.includes('"acsmall.png"')){
+}
+
+
+function TagFilterMerge(normal,ac,legend) {
+	var hideNormal = !normal 
+	var hideAc = !ac 
+	var hideLegend = !legend 
+	
+	var elementList = document.querySelectorAll("tr")
+	
+	for (var x = 0; x < elementList.length; x++) { 
+		if (elementList[x].querySelectorAll("td").length == 3) {
+			
+			checkAc = elementList[x].innerHTML.includes("acsmall.png")
+			checkLegend = elementList[x].innerHTML.includes("legendsmall.png")
+			checkNormal = !checkAc & !checkLegend
+			
+			//alert(checkAc+"  "+checkLegend+"  "+checkNormal+"\n"+hideAc+"  "+hideLegend+"  "+hideNormal+"\n")
+			
+
+			if (hideLegend == false & hideAc == false & hideNormal == true) {
+				if (checkNormal == true) {
+					elementList[x].hidden = true 
+				} 
+				if (checkAc == true & checkLegend == false) {
+					elementList[x].hidden = true 
+				} 
+				if (checkAc == false & checkLegend == true) {
+					elementList[x].hidden = true 
+				} 
+				
+			} else if (hideLegend == false & hideAc == true & hideNormal == true) {
+				if (checkLegend == false) {
 					elementList[x].hidden = true 
 				}
-			
+			} else if (hideLegend == true & hideAc == true & hideNormal == true) {
+
+			} else if (hideLegend == true & hideAc == false & hideNormal == true) {
+				if (!checkAc == true) {
+					elementList[x].hidden = true 
+				}
+			} else if (hideLegend == false & hideAc == true & hideNormal == false) {
+				if (checkAc == true | checkNormal == true) {
+					elementList[x].hidden = true 
+				}
+			} else if (hideLegend == true & hideAc == false & hideNormal == false) {
+				if (!checkAc == true | checkLegend == true) {
+					elementList[x].hidden = true 
+				}
 				
-			}
+			} else if (hideLegend == true & hideAc == true & hideNormal == false) {
+				if (checkAc == true | checkLegend == true) {
+					elementList[x].hidden = true 
+				}
+				
+			} 
+			
+			
 		}
-	
 	}
-	} catch(err){alert(err)}
+	
 }
 
 
@@ -123,12 +156,34 @@ function addUpdateInventory_button() {
 	Title.appendChild(updateInventory)
 	
 }
+
+}
+
 function setFilterAc() {
 	chrome.storage.local.get({mergeFilterAc: false}, function(result){
 		chrome.storage.local.set({"mergeFilterAc": !result.mergeFilterAc}, function() {});
-		document.getElementById("filterAc").checked = !result.mergeFilterAc
+		document.getElementById("AcFilter").checked = !result.mergeFilterAc
 	})
+	FilterEvent()
 }
+
+function setFilterNormal() {
+	chrome.storage.local.get({mergeFilterNormal: false}, function(result){
+		chrome.storage.local.set({"mergeFilterNormal": !result.mergeFilterNormal}, function() {});
+		document.getElementById("NormalFilter").checked = !result.mergeFilterNormal
+	})
+	FilterEvent()
+}
+
+function setFilterLegend() {
+	chrome.storage.local.get({mergeFilterLegend: false}, function(result){
+		chrome.storage.local.set({"mergeFilterLegend": !result.mergeFilterLegend}, function() {});
+		document.getElementById("LegendFilter").checked = !result.mergeFilterLegend
+	})
+	FilterEvent()
+}
+
+
 
 function processAcount() {
 	
@@ -170,6 +225,7 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	
 // Wiki Page Handling 
 } else {
+
 	// Adds theme if enabled 
 	chrome.storage.local.get({darkmode: 0}, function(result){
 		if(result.darkmode) {
@@ -248,30 +304,68 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 		var isMonster = false 
 	}
 	
-	
-	if (isMerge) {
-		var filterAc = document.createElement("p") 
-		var filterAcText = document.createElement("strong")
-		var filterAcInput = document.createElement("input")
-		filterAcInput.id = "filterAc" 
-		filterAcInput.type = "checkbox"
-		filterAcText.innerHTML = "Merge Filters: "
-		filterAc.style = "margin-left:10px;font-size:14px;margin-top:10px;" 
 
-		filterAc.prepend(filterAcInput)
-		filterAc.innerHTML = "<br>"+filterAc.innerHTML + " <b style=''> - Include Only AC Tag items</b>"
-		filterAc.prepend(filterAcText)
+	if (isMerge) {
+		window.addEventListener('load', function () {
+			async function _add() {
+				var element = document.getElementsByClassName("yui-nav")[0];
+				
+				
+				var liMergeFilters = document.createElement("li")
+				liMergeFilters.id = "MergeFilter"
+				liMergeFilters.onclick = null 
+				liMergeFilters.innerHTML = `<b class="grayBox" id="pad"  >Filters ></b>
+				<input id="NormalFilter" type='checkbox' style="margin-left:5px;"> </input>
+				<img src="`+normal_icon+`" alt="normal_icon.png" class="image">
+				
+				<input id="AcFilter" type='checkbox' style="margin-left:5px;"> </input>
+				<img src="http://aqwwiki.wdfiles.com/local--files/image-tags/acsmall.png" alt="acsmall.png" class="image">
+				<input id="LegendFilter" type='checkbox' style="margin-left:5px;"> </input>
+				<img src="http://aqwwiki.wdfiles.com/local--files/image-tags/legendsmall.png" alt="legendsmall.png" class="image">
+				
+				`
+				
+				element.append(liMergeFilters)
+				
+				
+				
+				filterAcInput = document.getElementById("AcFilter")
+				filterAcInput.onclick = function(){setFilterAc();resetFilterMerge();TagFilterMerge(filterNormalInput.checked, filterAcInput.checked, filterLegendInput.checked);return false; }
 		
-		Content.prepend(filterAc)
+				filterNormalInput = document.getElementById("NormalFilter")
+				filterNormalInput.onclick = function(){setFilterNormal();resetFilterMerge();TagFilterMerge(filterNormalInput.checked, filterAcInput.checked, filterLegendInput.checked);return false; }
+				
+				filterLegendInput = document.getElementById("LegendFilter")
+				filterLegendInput.onclick = function(){setFilterLegend();resetFilterMerge();TagFilterMerge(filterNormalInput.checked, filterAcInput.checked, filterLegendInput.checked);return false; }
 		
 		
-		var filterAcInpute = document.getElementById("filterAc")
-		
-		filterAcInpute.onclick = function(){setFilterAc();return false; }
-		
-		chrome.storage.local.get({mergeFilterAc: false}, function(result){
-			filterAcInpute.checked = result.mergeFilterAc
+				chrome.storage.local.get({mergeFilterNormal: false}, function(result){
+					filterNormalInput.checked = result.mergeFilterNormal
+					chrome.storage.local.get({mergeFilterLegend: false}, function(result){
+						filterLegendInput.checked = result.mergeFilterLegend
+						chrome.storage.local.get({mergeFilterAc: false}, function(result){
+							filterAcInput.checked = result.mergeFilterAc
+							TagFilterMerge(filterNormalInput.checked, filterAcInput.checked, filterLegendInput.checked)
+						})
+						
+					})
+					
+				})
+				
+				
+				
+				
+				
+				
+			}
+			setTimeout(_add, 0); 
+			// Don't ask it just sometimes doesn't work if timeout isn't specified and then is at beginning of list 
+			// timeout fixes that edge case, no idea why it happens negative time loading?? idk.
+			// It only appeared when changing css file (Possible that in relase this bug doesn't appears)
+			
 		})
+		
+		
 
 	}
 			
@@ -302,6 +396,8 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	chrome.storage.local.get({aqwtype: []}, function(result){Type = result.aqwtype;});
 	
 	chrome.storage.local.get({mergeFilterAc: []}, function(result){mergeFilterAc = result.mergeFilterAc;});
+	chrome.storage.local.get({mergeFilterNormal: []}, function(result){mergeFilterNormal = result.mergeFilterNormal;});
+	chrome.storage.local.get({mergeFilterLegend: []}, function(result){mergeFilterLegend = result.mergeFilterLegend;});
 	
 
 
@@ -314,7 +410,10 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 			var Items = result.aqwitems;
 			
 			if (isMerge) {
-				DisplayCostMergeShop(Items, mergeFilterAc)
+				DisplayCostMergeShop(Items, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+				FilterEvent = updateCostMergeShop.bind(null, Items, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+				
+	
 			}
 	
 			
@@ -341,4 +440,6 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	})
 	
 	})
+	
+	
 }

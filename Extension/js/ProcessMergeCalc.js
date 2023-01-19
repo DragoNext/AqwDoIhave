@@ -16,6 +16,8 @@ let progressbarstyle = `<div style="width:200px" class="w3-light-grey">
   <div class="w3-container w3-green w3-center" style="width:25%">25%</div>
 </div><br>`
 
+let mergeData = {}
+
 function sum2Dicts(dict1, dict2) {
 	for (var [key, value] of Object.entries(dict2)) {
 		if (dict1[key] == undefined) {
@@ -27,9 +29,27 @@ function sum2Dicts(dict1, dict2) {
 	return dict1
 }
 
+// For debugging data (Not Important)
+function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], {type: contentType});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}
 
-function processTable(table,onlyAc,Items) {
+function mergeObjects(obj1,obj2){
+    var obj3 = {};
+    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+    return obj3;
+}
+
+function processTable(table,Items) {
 	var tabRet = {} 
+	
+	var itemTable = {} 
+	
 	var tableTrElements = table.getElementsByTagName("tr")
 	
 	var tableOffset = 2 
@@ -41,6 +61,11 @@ function processTable(table,onlyAc,Items) {
 		if (i === 0) {
 			
 		} else { // Skip first element Table Names 
+
+			var isItemAc     = false  
+			var isItemLegend = false 
+			var isItemNormal = false 
+			
 			var elementsA = tableTrElements[i].getElementsByTagName("td")[tableTrElements[i].getElementsByTagName("td").length-1].querySelectorAll("a")
 			
 			var itemElement= tableTrElements[i].getElementsByTagName("td")[1]
@@ -49,7 +74,6 @@ function processTable(table,onlyAc,Items) {
 			
 			var skip = false 
 			var itemsFound = [] 
-		
 			
 			for (var x = 0; x < elementsA.length; x++) {
 				var proc = elementsA[x] 
@@ -58,21 +82,15 @@ function processTable(table,onlyAc,Items) {
 					itemText = itemText.replace(wiki_exclude_suffixes["Excluded"][ax],"")
 				}
 				
-				if (!itemsFound.includes(itemText.toLowerCase().trim())) {
-					if (Items.includes(itemText.toLowerCase().trim())) {
-						var AlreadyExists = AlreadyExists + 1 
-						itemsFound.push(itemText.toLowerCase().trim())
-						skip = true 
-							
-					}
-				}
-				
-				if (itemHtml.includes("acsmall.png")) {
-					
-				}  else if (onlyAc) {
-					skip = true 
-				}
 			
+			
+				if (itemHtml.includes("acsmall.png")) {
+					isItemAc = true 
+				} if (itemHtml.includes("legendsmall.png")) {
+					isItemLegend = true 
+				} if (!itemHtml.includes("legendsmall.png") & !itemHtml.includes("acsmall.png")) {
+					isItemNormal = true 
+				}  
 			
 			
 				if (itemHtml.includes("raresmall.png")) {
@@ -101,6 +119,15 @@ function processTable(table,onlyAc,Items) {
 						} else {
 							tabRet[itemName] = amount
 						}
+					
+						if (itemText in itemTable) {
+							var tempCopy =  itemTable[itemText]
+							tempCopy[1].push(itemName)
+							tempCopy[1].push(amount)
+							itemTable[itemText] = tempCopy 
+						} else {
+							itemTable[itemText] = [[isItemNormal,isItemAc,isItemLegend],[itemName,amount]]
+						}
 					}
 				} 
 				catch(err){
@@ -124,6 +151,14 @@ function processTable(table,onlyAc,Items) {
 									tabRet[itemName] = amount
 								}
 								
+								if (itemText in itemTable) {
+									var tempCopy =  itemTable[itemText]
+									tempCopy[1].push(itemName)
+									tempCopy[1].push(amount)
+									itemTable[itemText] = tempCopy 
+								} else {
+									itemTable[itemText] = [[isItemNormal,isItemAc,isItemLegend],[itemName,amount]]
+								}
 							}
 						}
 					} catch(err) {
@@ -134,8 +169,8 @@ function processTable(table,onlyAc,Items) {
 			
 		}
 	}
-	
-	return [AlreadyExists, tabRet] 
+
+	return itemTable
 	
 }
 
@@ -152,51 +187,179 @@ function translateUnidentified(itemname) {
 	}
 	return itemname;
 }
-function processAllMergeShopItems(tabAmount,Items,onlyAc) {
-	var needDict = {} 
+
+
+
+
+function processAllMergeShopItems(tabAmount,Items) {
+	var itemsFound = {}
 	var Found = 0 
 	
 	for (var xr = 0; xr < tabAmount; xr++) { 
 		var table = document.getElementById("wiki-tab-0-"+xr).getElementsByClassName("wiki-content-table")[0] 
-		var x = processTable(table,onlyAc,Items)
-		var Found = Found + x[0] 
-		needDict = sum2Dicts(needDict,x[1]) 
+		var x = processTable(table,Items)
+		var Found = Found + x.length
+		itemsFound = mergeObjects(itemsFound, x)
 		
 	}
-	return [Found, needDict]
+	return [Found, itemsFound]
 		
 	
 }
 
 
-function sortBiggset(dict) {
-	newDict = {}
-	tempDict = Object.entries(dict).sort((a,b) => b[1] - a[1])
-	tempDict.forEach(([key, value]) => { 
-		newDict[key] = value 
-	})
-	delete tempDict
-	return newDict
+
+
+
+// Formats item : quantity 
+function itemFormat(obj, filters, FilterNormal, FilterAc, FilterLegend) {
+	  let x = 0 
+	  let skip = false 
+	  let newObj = {};
+	  let currentFilter = [] 
+	  let itemsCounted = 0 
+	  for (let key in obj) {
+
+	
+		let itemList = obj[key][1];
+			
+		currentFilter = filters[x] 
+		for (let i = 0; i < itemList.length; i += 2) {
+		  
+		 
+		  skip = false 
+		  if (FilterLegend == false & FilterAc == false & FilterNormal == true) {
+				if (currentFilter[0] == false) {
+					skip = true 
+				} 
+				if (currentFilter[2] == true | currentFilter[1] == true) {
+					skip = true 
+				}
+			} else if (FilterLegend == false & FilterAc == true & FilterNormal == true) {
+				if (currentFilter[1] == false | currentFilter[2] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == true & FilterNormal == true) {
+			} else if (FilterLegend == true & FilterAc == false & FilterNormal == true) {
+				if (!currentFilter[2] == true) {
+					skip = true 
+				} 
+				if (currentFilter[2] == true & currentFilter[1] == true) {
+					skip = true 
+				}
+			} else if (FilterLegend == false & FilterAc == true & FilterNormal == false) {
+				if (!currentFilter[1] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == false & FilterNormal == false) {
+				if (!currentFilter[2] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == true & FilterNormal == false) {
+				if (currentFilter[1] == true & currentFilter[2] == true) {
+			
+				} else { skip = true }
+			} 
+			
+
+			
+			let item = itemList[i];
+			let quantity = itemList[i+1];
+			if (!skip) {
+			  if (newObj[item]) {
+				newObj[item] += quantity;
+			  } else {
+				newObj[item] = quantity;						
+			  }
+			  
+			}
+	
+		  
+		  
+		   
+		}
+		if (!skip) {
+			itemsCounted = itemsCounted + 1 
+		}
+		x = x + 1
+	  } 
+
+	  return [newObj, itemsCounted];
 }
 
+function itemBooleans(obj) {
+    var result = [];
+    for (var key in obj) {
+        result.push(obj[key][0]);
+    }
+    return result;
+}
 
-function DisplayCost(needDict, tabAmount, frame, Items) {
-	let element = document.createElement("table");
-	let mergeshopAcquiredItems = document.getElementsByClassName("Acquired").length - document.getElementsByClassName("RescourceAcquired").length;
-	let mergeshopItemsAmount = document.getElementsByTagName("tr").length - document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length;
+function itemCheck(itemsObject, yourItems) {
+	var newObject = {} 
+	for (var key in Object.keys(itemsObject)) {
+		var item = Object.keys(itemsObject)[key]
+		if (yourItems.includes(translateUnidentified(item.trim().toLowerCase()))) {
+			
+		} else {
+			newObject[item] = itemsObject[item] 
+		}
+	}
 	
-	let tableHeader = `<div class='yui-content'><tbody><th>Item Needed</th><th>Amount</th><th>You Have</th><th>Left</th>`;
-	let tableBody = "";
+	return newObject
+}
+
+function DisplayCost(itemsObject, tabAmount, frame, yourItems, MFN, MFA, MFL) {
+	var update = false 
+	var element = document.getElementById("MergeTable")
+
+	if (element == null) {
+		var element = document.createElement("table");
+		element.id = "MergeTable"
+	} else {
+		update = true 
+	}
+	var mergeshopAcquiredItems = document.getElementsByClassName("Acquired").length - document.getElementsByClassName("RescourceAcquired").length;
+	
+	var mergeshopItemsAmount = document.getElementsByTagName("tr").length - document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length;
+	
+	var tableHeader = `<div class='yui-content'><tbody><th>Item Needed</th><th>Amount</th><th>You Have</th><th>Left</th>`;
+	
+	var tableBody = "";
+
 	
 	
-	needDict = sortBiggset(needDict)
+	
+	
+	itemsObject = itemCheck(itemsObject, yourItems) 
+	
+	var filters = itemBooleans(itemsObject)
+	
+	itemsObject = itemFormat(itemsObject,filters,MFN,MFA,MFL)[0]
+	
+	
+	 
+	newDict = {}
+	tempDict = Object.entries(itemsObject).sort((a,b) => b[1] - a[1])
+	
+	xI = 0 
+	tempDict.forEach(([key, value]) => { 
+		newDict[key] = value 
+	})	
+	itemsObject = newDict
+					
+
+	
 	
 
-	Object.entries(needDict).forEach(([key, value]) => { 
+	
+		
+	Object.entries(itemsObject).forEach(([key, value]) => { 
 		if (value !== "") {
 			
-			if (Items.includes(translateUnidentified(key.toLowerCase()))) {
-				var accountAmount = parseInt(Type[Items.indexOf(translateUnidentified(key.toLowerCase()))][1])
+			
+			if (yourItems.includes(translateUnidentified(key.toLowerCase()))) {
+				var accountAmount = parseInt(Type[yourItems.indexOf(translateUnidentified(key.toLowerCase()))][1])
 				if (isNaN(accountAmount)) {
 					var accountAmount = 1 //Item Is Armor Weapon etc.
 				}
@@ -222,14 +385,24 @@ function DisplayCost(needDict, tabAmount, frame, Items) {
 			}
 			
 		}
+		
+		xI = xI + 1 
 	});
 
+
+	if (!update) {
+		element.classList.add("wiki-content-table")
+		element.style = "position:relative;float:right;align:left;text-align: center;width:100%";
+	}
 	
-	element.className = "wiki-content-table";
-	element.style = "position:relative;float:right;align:left;text-align: center;width:100%";
 	element.innerHTML = tableHeader + tableBody;
 	
-	frame.appendChild(element);
+
+	if (!update) {
+		frame.appendChild(element);
+	}
+
+
 }
 
 
@@ -248,10 +421,181 @@ function repairSpan() {
 	pageTagElement.prepend(cloneDiv)
 }
 
+function countAcquiredItems(Items, Filters, FilterNormal, FilterAc, FilterLegend) {
+	var skip = false 
+	var x = 0 
+	var count = 0
+	
+	//download(JSON.stringify(mergeData[1]), "debug.txt", "plain/txt")
+	
+	Object.entries(mergeData[1]).forEach(([key, value]) => { 
+		  
+		  skip = false 
+		  var currentFilter = Filters[x] 
+		  if (FilterLegend == false & FilterAc == false & FilterNormal == true) {
+				if (currentFilter[0] == false) {
+					skip = true 
+				} 
+				if (currentFilter[2] == true | currentFilter[1] == true) {
+					skip = true 
+				}
+			} else if (FilterLegend == false & FilterAc == true & FilterNormal == true) {
+				if (currentFilter[1] == false | currentFilter[2] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == true & FilterNormal == true) {
+			} else if (FilterLegend == true & FilterAc == false & FilterNormal == true) {
+				if (!currentFilter[2] == true) {
+					skip = true 
+				} 
+				if (currentFilter[2] == true & currentFilter[1] == true) {
+					skip = true 
+				}
+			} else if (FilterLegend == false & FilterAc == true & FilterNormal == false) {
+				if (!currentFilter[1] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == false & FilterNormal == false) {
+				if (!currentFilter[2] == true) {
+					skip = true 
+				} 
+			} else if (FilterLegend == true & FilterAc == true & FilterNormal == false) {
+				if (currentFilter[1] == true & currentFilter[2] == true) {
+			
+				} else { skip = true }
+			} 
+		
+		if (!skip) {
+		
+			if (Items.includes(translateUnidentified(key.trim().toLowerCase()))) {
+				count = count + 1
+		
+			}
+		}
+		x = x + 1
+	})
+
+	return count 
+}
+
+function updateCostMergeShop(Items, MFN, MFA, MFL) {
+	
+	chrome.storage.local.get({mergeFilterAc: []}, function(result){
+		mergeFilterAc = result.mergeFilterAc;
+		chrome.storage.local.get({mergeFilterNormal: []}, function(result){
+			mergeFilterNormal = result.mergeFilterNormal;
+			chrome.storage.local.get({mergeFilterLegend: []}, function(result){
+				mergeFilterLegend = result.mergeFilterLegend;
+		
+				Frame = document.getElementsByClassName("CostMerge")[0]
+				var tabAmount = document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length
+				
+			
+				DisplayCost(mergeData[1], tabAmount, Frame, Items, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)	
+				
+				
+	
+				
+				var filters = itemBooleans(mergeData[1])
+				
+				itemsObject = itemFormat(mergeData[1],filters,mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+				let mergeshopItemsAmount = Object.values(itemsObject)[1]
+				let mergeshopAcquiredItems = countAcquiredItems(Items, filters, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+	
+				updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems)
+				
+	
+				
+			});
+		});	
+	});
+	
+	
+	
+
+}
+
+function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
+	let update = false 
+	let tabAmount = document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length
+	
+	var Element = document.getElementById("MasterMergeTable")
+	
+	if (Element == null) {
+		var Element = document.createElement("table")
+		Element.id = "MasterMergeTable"
+		Element.classList.add("MasterMergeTable");
+		Element.classList.add("wiki-content-table");
+	} else {
+		update = true 
+	}
+	if (update) {
+		var x = 0
+		for (E in document.getElementsByClassName("MasterMergeTable")) {
+			EL = document.getElementsByClassName("MasterMergeTable")[x]
+			EL.style = "position:relative;align:left;width:100%;"
+			EL.innerHTML = "<div class='yui-content'><table class=;wiki-content-table;><tbody><th>Items Available</th><th>Acquired</th><tr><td style='text-align:center'>"+mergeshopItemsAmount+"</td><td>"+mergeshopAcquiredItems+"</td></tbody></table></div>"
+			x = x + 1
+		}
+		for (P in documentElement.getElementsByClassName("progressBar")) {
+			PL = documentElement.getElementsByClassName("progressBar")[P]
+			var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
+			
+			if (progressWidth != 0) {
+				PL.innerHTML = `<br><div class="w3-dark-grey" style="text-align:center"><div class="w3-container w3-green w3-center" style="font-weight:800;width:${progressWidth}%">${progressWidth}%</div></div><br>`
+			} else {
+			PL.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
+			}
+		}
+			
+			
+		
+	} else {
+		Element.style = "position:relative;align:left;width:100%;"
+		Element.innerHTML = "<div class='yui-content'><table class=;wiki-content-table;><tbody><th>Items Available</th><th>Acquired</th><tr><td style='text-align:center'>"+mergeshopItemsAmount+"</td><td>"+mergeshopAcquiredItems+"</td></tbody></table></div>"
+		
+		if (!update) {
+			var ProgressbarElement = document.createElement("div")
+			ProgressbarElement.id = "progressBar"
+			ProgressbarElement.classList.add("progressBar");
+		} else {
+			var ProgressbarElement = document.getElementById("progressBar")
+		}
+		
+		var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
+		if (progressWidth != 0) {
+	ProgressbarElement.innerHTML = `<br><div class="w3-dark-grey" style="text-align:center"><div class="w3-container w3-green w3-center" style="font-weight:800;width:${progressWidth}%">${progressWidth}%</div></div><br>`
+		} else {
+			ProgressbarElement.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
+		}
+	}
+
+	if (!update) {
+		Frame.prepend(ProgressbarElement)
+		let x = Element.cloneNode(true)
+		Frame.prepend(x)
+		
+		var el = document.getElementsByClassName("wiki-content-table")
+		for (var xr = 0; xr < el.length; xr++) { 
+			el[xr].style += "float:left;"
+		}
+		
+		for (var xr = 0; xr < tabAmount; xr++) { 
+			
+			let FrameNode = Frame.cloneNode(true)
+			document.getElementById("wiki-tab-0-"+xr).prepend(FrameNode)
+			document.getElementById("wiki-tab-0-"+xr).style = "float: left;";
+		}
+	}
+	else {
+		
+		
+	}
+}
 
 
-
-function DisplayCostMergeShop(Items, mergeFilterAc) {
+async function DisplayCostMergeShop(Items, MFN, MFA, MFL) {
+	
 	repairSpan()
 	let tabAmount = document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length
 	let Frame = document.createElement("div") 
@@ -260,52 +604,23 @@ function DisplayCostMergeShop(Items, mergeFilterAc) {
 	
 	
 	
-	var dc = processAllMergeShopItems(tabAmount,Items,mergeFilterAc)
-	DisplayCost(dc[1], tabAmount, Frame, Items)	
+	mergeData = processAllMergeShopItems(tabAmount,Items)
+	
+	DisplayCost(mergeData[1], tabAmount, Frame, Items, MFN, MFA, MFL)	
 	
 	
-	let Element = document.createElement("table")
-	
-	let mergeshopAcquiredItems = dc[0]
-	
-	let mergeshopItemsAmount = document.getElementsByTagName("tr").length - document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li").length
-	if (mergeFilterAc) {
-		var temp = document.getElementById("page-content").innerHTML
-		mergeshopItemsAmount = (temp.match(/acsmall/g) || []).length/2;
-	}
-	
-	Element.className = "wiki-content-table"
-	Element.style = "position:relative;align:left;width:100%;"
-	Element.innerHTML = "<div class='yui-content'><table class=;wiki-content-table;><tbody><th>Items in Merge Shop</th><th>Acquired</th><tr><td style='text-align:center'>"+mergeshopItemsAmount+"</td><td>"+mergeshopAcquiredItems+"</td></tbody></table></div>"
-	
-	let ProgressbarElement = document.createElement("div")
-	var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
-	if (progressWidth != 0) {
-ProgressbarElement.innerHTML = `<br><div class="w3-dark-grey" style="text-align:center"><div class="w3-container w3-green w3-center" style="font-weight:800;width:${progressWidth}%">${progressWidth}%</div></div><br>`
-	} else {
-		ProgressbarElement.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
-	}
+	var filters = itemBooleans(mergeData[1])
 
-	Frame.prepend(ProgressbarElement)
-	let x = Element.cloneNode(true)
-	Frame.prepend(x)
+
+	itemsObject = itemFormat(mergeData[1],filters,mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+	let mergeshopItemsAmount = Object.values(itemsObject)[1]
+	let mergeshopAcquiredItems = countAcquiredItems(Items, filters, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
+
 	
-	chrome.storage.local.get({mergeFilterAc: false}, function(result){var result = result });
+	updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems)
 	
 	
 	
-	
-	
-	var el = document.getElementsByClassName("wiki-content-table")
-	for (var xr = 0; xr < el.length; xr++) { 
-		el[xr].style += "float:left;"
-	}
-	
-	for (var xr = 0; xr < tabAmount; xr++) { 
-		let FrameNode = Frame.cloneNode(true)
-		document.getElementById("wiki-tab-0-"+xr).prepend(FrameNode)
-		document.getElementById("wiki-tab-0-"+xr).style = "float: left;";
-	}
 
 
 }
