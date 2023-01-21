@@ -1,17 +1,7 @@
 // Merge Shop Calculation logic and display 
 //
-// Calculating process:
-//    1. Get all items merged 
-//			1.1 Filter some items | Already Acquired and AC tag Exclusive option 
-//    2. Use costs of these items (From itemJson) 
-//	  		2.1 (optional) Make single or few recursion to check if item required is in merge shop and use it costs 
-//	  3. Sum all costs 
-//
-//
-//
-//
-// What to display?
-//  	Items left to farm 
+// To add:
+// 	Condition when merge shop is empty telling Not Found Anything something like 
 let progressbarstyle = `<div style="width:200px" class="w3-light-grey">
   <div class="w3-container w3-green w3-center" style="width:25%">25%</div>
 </div><br>`
@@ -318,6 +308,7 @@ function DisplayCost(itemsObject, tabAmount, frame, yourItems, MFN, MFA, MFL) {
 		element.id = "MergeTable"
 	} else {
 		update = true 
+		var element = document.getElementsByClassName("MergeContentTable")
 	}
 	var mergeshopAcquiredItems = document.getElementsByClassName("Acquired").length - document.getElementsByClassName("RescourceAcquired").length;
 	
@@ -326,34 +317,22 @@ function DisplayCost(itemsObject, tabAmount, frame, yourItems, MFN, MFA, MFL) {
 	var tableHeader = `<div class='yui-content'><tbody><th>Item Needed</th><th>Amount</th><th>You Have</th><th>Left</th>`;
 	
 	var tableBody = "";
-
-	
-	
-	
 	
 	itemsObject = itemCheck(itemsObject, yourItems) 
 	
 	var filters = itemBooleans(itemsObject)
 	
 	itemsObject = itemFormat(itemsObject,filters,MFN,MFA,MFL)[0]
-	
-	
 	 
 	newDict = {}
 	tempDict = Object.entries(itemsObject).sort((a,b) => b[1] - a[1])
 	
-	xI = 0 
+
 	tempDict.forEach(([key, value]) => { 
 		newDict[key] = value 
 	})	
 	itemsObject = newDict
 					
-
-	
-	
-
-	
-		
 	Object.entries(itemsObject).forEach(([key, value]) => { 
 		if (value !== "") {
 			
@@ -386,23 +365,27 @@ function DisplayCost(itemsObject, tabAmount, frame, yourItems, MFN, MFA, MFL) {
 			
 		}
 		
-		xI = xI + 1 
+		
 	});
 
 
 	if (!update) {
 		element.classList.add("wiki-content-table")
+		element.classList.add("MergeContentTable")
 		element.style = "position:relative;float:right;align:left;text-align: center;width:100%";
+		element.innerHTML = tableHeader + tableBody;
 	}
-	
-	element.innerHTML = tableHeader + tableBody;
-	
+	else {
+		for (var i = 0; i < element.length; i++) { 
+			element[i].innerHTML = tableHeader + tableBody;
+		}
+	}
 
 	if (!update) {
 		frame.appendChild(element);
 	}
 
-
+	
 }
 
 
@@ -477,6 +460,34 @@ function countAcquiredItems(Items, Filters, FilterNormal, FilterAc, FilterLegend
 
 	return count 
 }
+function updateTitleList() {
+	// 1. Get Title Elements 
+
+	var TitleElements = document.getElementsByClassName("yui-nav")[0].getElementsByTagName("li")
+	// 1.1 get wiki table elements.
+	
+	for (var i = 0; i < TitleElements.length; i++) { 
+	    var current = "wiki-tab-0-"+i
+		
+		
+		var x = document.getElementById(current).getElementsByClassName("wiki-content-table")[2].getElementsByTagName("tr")
+		
+		var allNotHidden = false 
+		for (var n = 1; n < x.length; n++) { 
+			if (x[n].hidden == false) {
+				allNotHidden = allNotHidden | true 
+			} else {
+				allNotHidden = allNotHidden | false 
+			}
+		}
+		
+		if (allNotHidden == false) {
+			TitleElements[i].style = "display: none;"
+		} else {
+			TitleElements[i].style = ""
+		}
+	}
+}
 
 function updateCostMergeShop(Items, MFN, MFA, MFL) {
 	
@@ -501,10 +512,12 @@ function updateCostMergeShop(Items, MFN, MFA, MFL) {
 				itemsObject = itemFormat(mergeData[1],filters,mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
 				let mergeshopItemsAmount = Object.values(itemsObject)[1]
 				let mergeshopAcquiredItems = countAcquiredItems(Items, filters, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
-	
+			
+			
 				updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems)
 				
-	
+				
+				updateTitleList()
 				
 			});
 		});	
@@ -514,6 +527,9 @@ function updateCostMergeShop(Items, MFN, MFA, MFL) {
 	
 
 }
+
+
+
 
 function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 	let update = false 
@@ -528,17 +544,21 @@ function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 		Element.classList.add("wiki-content-table");
 	} else {
 		update = true 
+		var Element = document.getElementById("MasterMergeTable")
 	}
 	if (update) {
 		var x = 0
 		for (E in document.getElementsByClassName("MasterMergeTable")) {
 			EL = document.getElementsByClassName("MasterMergeTable")[x]
-			EL.style = "position:relative;align:left;width:100%;"
-			EL.innerHTML = "<div class='yui-content'><table class=;wiki-content-table;><tbody><th>Items Available</th><th>Acquired</th><tr><td style='text-align:center'>"+mergeshopItemsAmount+"</td><td>"+mergeshopAcquiredItems+"</td></tbody></table></div>"
+			if (EL != undefined) {
+				EL.style = "position:relative;align:left;width:100%;"
+				EL.innerHTML = "<div class='yui-content'><table class=;wiki-content-table;><tbody><th>Items Available</th><th>Acquired</th><tr><td style='text-align:center'>"+mergeshopItemsAmount+"</td><td>"+mergeshopAcquiredItems+"</td></tbody></table></div>"
+			}
 			x = x + 1
+			
 		}
-		for (P in documentElement.getElementsByClassName("progressBar")) {
-			PL = documentElement.getElementsByClassName("progressBar")[P]
+		for (P in Element.getElementsByClassName("progressBar")) {
+			PL = Element.getElementsByClassName("progressBar")[P]
 			var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
 			
 			if (progressWidth != 0) {
@@ -547,7 +567,7 @@ function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 			PL.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
 			}
 		}
-			
+		
 			
 		
 	} else {
@@ -586,11 +606,12 @@ function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 			document.getElementById("wiki-tab-0-"+xr).prepend(FrameNode)
 			document.getElementById("wiki-tab-0-"+xr).style = "float: left;";
 		}
+	
 	}
 	else {
 		
-		
 	}
+	
 }
 
 
@@ -620,7 +641,7 @@ async function DisplayCostMergeShop(Items, MFN, MFA, MFL) {
 	updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems)
 	
 	
-	
+	updateTitleList()
 
 
 }
