@@ -26,7 +26,7 @@ AqwDoIhave is a chromium Extension that supports manifest v3, used for Aqw Game.
 <details><summary>Artix Game Launcher Instalation (WIP but works) </summary>
 Follow instructions:
 <br><br>
-0. Download https://mega.nz/file/pm5FTT6C#TC7nfaxDPFMtq94Y5mkzFWzdF1x9SV4s8Tiyl1eBhT4<br>
+0. Download https://mega.nz/file/9voxCCxR#JizAyZUQkQpTEEmo5-yj4xht4ge-ubwajV1geCevTQE<br>
 1. First right click Artix Launcher and "Open file location"<br>
 2. Go to folder rescources and rename app.asar to backup.asar (Just For Safety)<br>
    2.1 if something goes wrong just delete app.asar and rename backup.asar to app.asar then it will work same as originally.<br>
