@@ -152,7 +152,12 @@ function httpGet(theUrl, nodeList, arrayOffset, x, isMonster, isQuest, isMerge)
 
 			return true
 			
-			}catch(err){return true}
+			} 
+			catch (err) 
+			{
+			if (!err.toString().includes("split")) console.log({ err })
+			return true
+			}
 		}
 	}
 }
@@ -195,6 +200,12 @@ function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge
 	} else if (isQuest) {
 		var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 	} 
+	// ---- START OF FIX ----
+    if (!count_node) {
+        // If count_node was never found, stop the function here to prevent a crash.
+        return; 
+    }
+    // ---- END OF FIX ----
 	var originaAmount = count_node.data.replace(",","")
 	
 	if (originaAmount !== null && originaAmount !== undefined){ 

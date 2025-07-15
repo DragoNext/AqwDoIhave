@@ -12,21 +12,19 @@ var ac_large = "http://aqwwiki.wdfiles.com/local--files/image-tags/aclarge.png"
 var rare_large = "http://aqwwiki.wdfiles.com/local--files/image-tags/rarelarge.png"
 var seasonal_large = "http://aqwwiki.wdfiles.com/local--files/image-tags/seasonallarge.png"
 var legend_large = "http://aqwwiki.wdfiles.com/local--files/image-tags/legendlarge.png"
+	
 
 
-
-function getJson(theUrl)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); 
-	xmlHttp.send(null);
-    return JSON.parse(xmlHttp.responseText)
+async function getJson(theUrl) {
+    const response = await fetch(theUrl);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
 }
 
-var items_json = getJson(chrome.runtime.getURL("data/WikiItems.json"))
-var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
-
-
+//var items_json = await getJson(chrome.runtime.getURL("data/WikiItems.json"));
+//var wiki_exclude_suffixes = await getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"));
 
 async function add_to_table(table,item_name,item_details, av_item_count, avaliableItemsElement){
 	let tr = document.createElement("tr") 
@@ -186,7 +184,12 @@ function filterItem(item_name, item_data, account_items) {
 }
 
 async function process_ToFarm_Page() {
-	
+	// ---- START OF FIX ----
+    // MOVED to here, inside the async function
+    var items_json = await getJson(chrome.runtime.getURL("data/WikiItems.json"));
+    var wiki_exclude_suffixes = await getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"));
+    // ---- END OF FIX ----
+
 	// Count of ac - account, and av - avaliable items
 	var av_item_count = 0 
 	var ac_item_count = 0 
