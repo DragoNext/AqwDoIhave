@@ -357,7 +357,7 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 				
 				
 			}
-			setTimeout(_add,500); 
+			setTimeout(_add, 0); 
 			// Don't ask it just sometimes doesn't work if timeout isn't specified and then is at beginning of list 
 			// timeout fixes that edge case, no idea why it happens negative time loading?? idk.
 			// It only appeared when changing css file (Possible that in relase this bug doesn't appears)
