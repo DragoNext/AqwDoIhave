@@ -1,68 +1,74 @@
 {
-	"manifest_version":3,
-	"name":"AqwDoIhave",
-	
-	"description":"Compares items to items that you imported for aqwiki page",
-	"version":"1.0",
+	"manifest_version": 3,
+	"name": "AqwDoIhave",
+	"description": "Compares items to items that you imported for aqwiki page",
+	"version": "1.0",
 	"options_page": "options.html",
-	
-	"action":{
-		"default_popup": "popup.html" 
+	"action": {
+		"default_popup": "popup.html"
 	},
 	"icons": {
-		"16":"/images/16.png",
-		"48":"/images/48.png",
-		"128":"/images/128.png"
-	}, 
-	  "web_accessible_resources": [ {
-      "resources": [ 
-		"js/ProcessAcountItems.js",
-		"js/ProcessWikiItem.js",
-		"themes/aqw.css",
-		"themes/dark.css",
-		"images/BannerMain.png",
-		"images/in_bank.png",
-		"images/in_inventory.png",
-		"images/price_icon.png",
-		"images/monster_drop.png",
-		"images/collectionchest_icon.png",
-		"data/Unidentified_Translation.json",
-		"data/wiki_exclude_suffixes.json",
-		"images/update_inventory.png",
-		"images/mergeshop_icon.png",
-		"images/shop_icon.png",
-		"data/WikiItems.json",
-		"images/quest_icon.png",
-		"images/treasurechest_icon.png",
-		"images/whellofdoom_icon.png",
-		"images/normal_icon.png",
-		"data/collection_chests.json",
-		"tofarm.html","images/WICF_button.png",
-		"themes/progressbar.css"
-		] ,
-      "matches": ["<all_urls>"] }
-	],
-	"content_scripts": [{
-		"matches": [
-			"http://aqwwiki.wikidot.com/*",
-			"https://account.aq.com/AQW/Inventory"
-			],
-		"run_at": "document_start",
-		"js": [
-			"js/Themes.js",
-			"js/ProcessMergeCalc.js",
-			"js/ProcessAcountItems.js",
-			"js/ProcessWikiItem.js",
-			"js/main.js",
-			"js/ProcessToFarm.js"
-			]
-	}],
-	
+		"16": "/images/16.png",
+		"48": "/images/48.png",
+		"128": "/images/128.png"
+	},
 	"permissions": [
-        "storage",
+		"storage",
 		"contextMenus",
 		"tabs"
-    ]
-	
-	
+	],
+	"host_permissions": [
+		"https://api.codetabs.com/*"
+	],
+	"web_accessible_resources": [
+		{
+			"resources": [
+				"js/ProcessAcountItems.js", "js/ProcessWikiItem.js", "themes/aqw.css",
+				"themes/dark.css", "images/BannerMain.png", "images/in_bank.png",
+				"images/in_inventory.png", "images/price_icon.png", "images/monster_drop.png",
+				"images/collectionchest_icon.png", "data/Unidentified_Translation.json",
+				"data/wiki_exclude_suffixes.json", "images/update_inventory.png",
+				"images/mergeshop_icon.png", "images/shop_icon.png", "data/WikiItems.json",
+				"images/quest_icon.png", "images/treasurechest_icon.png",
+				"images/whellofdoom_icon.png", "images/normal_icon.png",
+				"data/collection_chests.json", "tofarm.html", "images/WICF_button.png",
+				"themes/progressbar.css"
+			],
+			"matches": ["<all_urls>"]
+		}
+	],
+	"content_scripts": [
+		{
+			"comment": "Block 1: Your original extension. Runs at document_start as required.",
+			"matches": [
+				"http://aqwwiki.wikidot.com/*",
+				"https://account.aq.com/AQW/Inventory"
+			],
+			"run_at": "document_start",
+			"js": [
+				"js/Themes.js",
+				"js/ProcessMergeCalc.js",
+				"js/ProcessAcountItems.js",
+				"js/ProcessWikiItem.js",
+				"js/main.js",
+				"js/ProcessToFarm.js"
+			]
+		},
+		{
+			"comment": "Block 2: The new hover feature. Runs after the page is loaded.",
+			"matches": [
+				"http://aqwwiki.wikidot.com/*",
+				"https://account.aq.com/CharPage?id=*",
+				"https://account.aq.com/AQW/Inventory",
+				"https://account.aq.com/AQW/BuyBack",
+				"https://account.aq.com/AQW/WheelProgress",
+				"https://account.aq.com/AQW/House"
+			],
+			"run_at": "document_idle",
+			"js": [
+				"js/jquery.min.js",
+				"js/Hover.js"
+			]
+		}
+	]
 }
