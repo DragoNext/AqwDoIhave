@@ -1206,7 +1206,9 @@ async function renderQuestChainInline(button, item_name, d) {
 
 	var cytoscapeLib = (typeof window !== "undefined" && window.cytoscape) || (typeof self !== "undefined" && self.cytoscape) || (typeof globalThis !== "undefined" && globalThis.cytoscape);
 	if (!cytoscapeLib) {
-		panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-empty'>Graph library failed to load.</div>";
+		if (hintEl) {
+			hintEl.textContent = "Graph library failed to load.";
+		}
 		return;
 	}
 
@@ -1309,9 +1311,9 @@ async function renderQuestChainInline(button, item_name, d) {
 				padding: 48,
 				spacingFactor: 1.3,
 				roots: ["item-1"],
-				fit: false
+				fit: true
 			},
-			minZoom: 0.35,
+			minZoom: 0.25,
 			maxZoom: 2.2
 		});
 
@@ -1324,19 +1326,12 @@ async function renderQuestChainInline(button, item_name, d) {
 				window.open(href, "_blank", "noopener");
 			}
 		});
-		var root = cy.$id("item-1");
-		cy.zoom(0.95);
-		if (root && root.length) {
-			var rendered = root.renderedPosition();
-			cy.pan({
-				x: graphEl.clientWidth / 2 - rendered.x,
-				y: 96 - rendered.y
-			});
-		}
 		if (hintEl) {
 			hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
 		}
-		applyQuestChainNodeImages(cy);
+		await applyQuestChainNodeImages(cy);
+		cy.resize();
+		cy.fit(undefined, 40);
 		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 	} catch (err) {
 		if (hintEl) {
