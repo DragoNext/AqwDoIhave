@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="264" height="90" viewBox="0 0 264 90">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8da6d"/>
+      <stop offset="100%" stop-color="#a86a05"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b40b08"/>
+      <stop offset="100%" stop-color="#7b0403"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd88a" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ffd88a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path d="M8 6h232c10 0 18 8 18 18v40c0 10-8 18-18 18H12c-4 0-6 2-8 4L2 70V18C2 11 4 8 8 6z" fill="url(#gold)"/>
+  <path d="M14 12h218c10 0 16 5 16 14v30c0 9-6 14-16 14H17c-4 0-7 2-9 5l-1-13V23c0-7 3-11 7-11z" fill="#3b0906"/>
+  <path d="M18 16h208c8 0 13 4 13 10v26c0 7-5 10-13 10H19c-5 0-8 2-10 5V25c0-6 4-9 9-9z" fill="url(#red)"/>
+  <path d="M21 19h198c7 0 11 2 11 7v5c0 4-4 6-11 6H22c-5 0-8 2-10 4V26c0-4 4-7 9-7z" fill="url(#shine)"/>
+</svg>

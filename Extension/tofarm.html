@@ -199,7 +199,7 @@
             width: 100%;
             aspect-ratio: 1 / 1;
             object-fit: contain;
-            background: #1f1c28;
+            background: transparent;
             padding: 12px;
             transition: opacity 140ms ease;
         }
@@ -209,9 +209,20 @@
             padding: 12px 12px 0;
         }
 
+        .card-image-gallery {
+            display: block;
+            background: #1f1c28;
+            overflow: hidden;
+        }
+
         .card-image-wrap .card-img {
             display: block;
             width: 100%;
+        }
+
+        .planner-card-image[hidden],
+        .planner-card-canvas[hidden] {
+            display: none !important;
         }
 
         .card-tag-stack {
@@ -222,6 +233,20 @@
             flex-direction: column;
             gap: 6px;
             align-items: flex-end;
+        }
+
+        .card-state-icon {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            width: 22px;
+            height: 22px;
+            box-sizing: border-box;
+            padding: 2px;
+            object-fit: contain;
+            background: rgba(24, 14, 24, 0.88);
+            border: 1px solid rgba(255, 231, 185, 0.18);
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
         }
 
         .card-tag-icon {
@@ -317,6 +342,50 @@
         .planner-chip.source-chip {
             justify-content: flex-start;
             width: fit-content;
+        }
+
+        .merge-ingredient-chip {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .merge-ingredient-name {
+            color: #f0e3cf;
+        }
+
+        .merge-ingredient-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .merge-ingredient-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            padding: 2px 6px;
+            border-radius: 2px;
+            background: rgba(255, 231, 185, 0.1);
+            color: #fff4de;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .merge-ingredient-count.owned {
+            background: rgba(255, 231, 185, 0.1);
+        }
+
+        .merge-ingredient-count.need {
+            background: rgba(84, 36, 66, 0.82);
+            color: #f5ddd0;
+        }
+
+        .merge-ingredient-count.met {
+            background: rgba(60, 124, 78, 0.75);
+            color: #f5fff7;
         }
 
         a.planner-chip {
@@ -454,6 +523,56 @@
         .completed-section {
             padding: 16px;
             margin-bottom: 16px;
+        }
+
+        .completed-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .completed-section-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .completed-mini-pie {
+            --pie-color: #b56bd2;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--pie-color) 0 var(--pie-pct), rgba(255, 231, 185, 0.16) var(--pie-pct) 100%);
+        }
+
+        .completed-mini-pie.ac-seasonal {
+            --pie-color: #cc6f8f;
+        }
+
+        .completed-mini-pie-center {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f2eadf;
+            font-size: 0.62rem;
+            font-weight: 700;
+        }
+
+        .completed-section-progress-copy {
+            color: #eadcc8;
+            font-size: 0.82rem;
+            font-weight: 700;
         }
 
         .completed-summary-row {
@@ -634,6 +753,28 @@
             padding: 24px 20px;
         }
 
+        .modal-image-tabs {
+            display: inline-flex;
+            gap: 2px;
+            margin: 0 0 10px;
+        }
+
+        .modal-image-tab {
+            border: 1px solid rgba(255, 231, 185, 0.14);
+            background: rgba(68, 24, 50, 0.28);
+            color: #eadcc8;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 5px 10px;
+        }
+
+        .modal-image-tab.active {
+            background: #8f2021;
+            border-color: rgba(255, 231, 185, 0.22);
+            color: #fff4de;
+        }
+
         .modal-image {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -696,6 +837,77 @@
         .modal-value {
             line-height: 1.5;
             color: #f2eadf;
+        }
+
+        .modal-description-box {
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            border-radius: 2px;
+            background: #2b2431;
+        }
+
+        .modal-req-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-req-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 9px 10px;
+            border: 1px solid rgba(255, 231, 185, 0.1);
+            border-radius: 2px;
+            background: rgba(68, 24, 50, 0.22);
+            color: #f2eadf;
+            text-decoration: none;
+        }
+
+        a.modal-req-item:hover {
+            border-color: rgba(255, 231, 185, 0.22);
+            background: rgba(68, 24, 50, 0.32);
+            text-decoration: none;
+        }
+
+        .modal-req-main {
+            font-weight: 700;
+            color: #fff3df;
+        }
+
+        .modal-req-meta {
+            color: #eadcc8;
+            font-size: 0.82rem;
+        }
+
+        .modal-req-extra {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .modal-req-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            padding: 2px 7px;
+            border-radius: 2px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            background: rgba(255, 231, 185, 0.1);
+            color: #fff4de;
+        }
+
+        .modal-req-pill.need {
+            background: rgba(84, 36, 66, 0.82);
+            color: #f5ddd0;
+        }
+
+        .modal-req-pill.owned.met {
+            background: rgba(60, 124, 78, 0.75);
+            color: #f5fff7;
         }
 
         .modal-location-entry {
@@ -868,6 +1080,7 @@
             </div>
             <div class="modal-body">
                 <div class="modal-left">
+                    <div id="modal-image-tabs" class="modal-image-tabs" hidden></div>
                     <img id="modal-image" class="modal-image" alt="Item image">
                 </div>
                 <div class="modal-right">

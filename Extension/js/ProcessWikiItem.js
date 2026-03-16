@@ -279,23 +279,96 @@ async function addLocationIcon(nodeList, itemIdx, arrayOffset, x, isList, isMerg
 		}
 	}	
 	
+}	
+
+function markOwnedPageTitle(titleElement, titleText, ItemsMap, Where, Type) {
+	if (!titleElement || !titleText) {
+		return false;
+	}
+
+	var normalizedTitle = titleText;
+	for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
+		normalizedTitle = normalizedTitle.replace(wiki_exclude_suffixes["Excluded"][i], "");
+	}
+	normalizedTitle = normalizeInventoryKey(normalizedTitle);
+
+	var itemIdx = ItemsMap.get(normalizedTitle);
+	if (itemIdx === undefined) {
+		return false;
+	}
+
+	titleElement.style = "font-weight: bold;color:green;";
+	titleElement.classList.add("Acquired");
+
+	var existingIcon = titleElement.querySelector(".owned-title-location-icon");
+	if (!existingIcon) {
+		var whereIcon = document.createElement("span");
+		whereIcon.className = "owned-title-location-icon";
+		if (Where[itemIdx] == "Bank") {
+			whereIcon.innerHTML = "<img title='In Bank' style='height:20px;vertical-align:middle;margin-right:8px;' src='" + bank_icon + "'></img>";
+		} else {
+			whereIcon.innerHTML = "<img title='In inventory' style='height:20px;vertical-align:middle;margin-right:8px;' src='" + inv_icon + "'></img>";
+		}
+		titleElement.insertBefore(whereIcon, titleElement.firstChild);
+	}
+
+	return true;
+}
+
+function shouldSkipDecoratedWikiLink(node, isList) {
+	if (!node) {
+		return true;
+	}
+
+	if (node.closest && (node.closest("#page-title") || node.closest("#breadcrumbs") || node.closest("sub"))) {
+		return true;
+	}
+
+	var href = node.getAttribute("href") || "";
+	if (href.includes("/sort-by-")) {
+		return true;
+	}
+	if (href.startsWith("#") || href.includes("#top")) {
+		return true;
+	}
+
+	var parentParagraph = node.closest ? node.closest("p") : null;
+	if (parentParagraph) {
+		var paragraphText = (parentParagraph.textContent || "").replace(/\s+/g, " ").trim();
+		if (paragraphText.startsWith("Sort by:") || paragraphText.startsWith("Go to") || paragraphText.startsWith("Back to Top")) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
 
 
 async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) {
+	let currentNode = nodeList[arrayOffset + x];
+	if (!currentNode) {
+		return;
+	}
+
+	// Skip wiki metadata and list navigation links. These are page controls, not
+	// item rows, and decorating them can collapse the surrounding layout.
+	if (shouldSkipDecoratedWikiLink(currentNode, isList)) {
+		return;
+	}
+
 	// getting text of item + removing not needed text (dosen't compare to inv)
-	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("'","'").trim();
+	let nodeText = currentNode.innerHTML.replace("'","'").trim();
 
 	// Use Wiki Excluded Suffixes json to remove unused suffixes
 	for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
 		nodeText = nodeText.replace(wiki_exclude_suffixes["Excluded"][i],"")
 	}
-	nodeText = nodeText.toLowerCase()
+	nodeText = normalizeInventoryKey(nodeText)
 
 	// link of item /item-name
-	let nodeLink = nodeList[arrayOffset+x].href
+	let nodeLink = currentNode.href
 
 	// [Edge Case] is rep if the link is just a link to /X-faction not a item
 	let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking
@@ -303,8 +376,8 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Cate
 	if (isRep) {
 		var itemIdx = ItemsMap.get(nodeText);
 		if (itemIdx !== undefined) {
-			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
-			nodeList[arrayOffset+x].classList.add("Acquired")
+			currentNode.style = "font-weight: bold;color:green;"
+			currentNode.classList.add("Acquired")
 			if (Type[itemIdx].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory
 				var RescourceCount = processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
@@ -323,14 +396,14 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Cate
 				}
 
 				if (isMerge) {
-					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[1], nodeList[arrayOffset+x].nextSibling)
-					nodeList[arrayOffset+x].parentNode.insertBefore(Separator, nodeList[arrayOffset+x].nextSibling)
-					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[0], nodeList[arrayOffset+x].nextSibling)
+					currentNode.parentNode.insertBefore(RescourceCount[1], currentNode.nextSibling)
+					currentNode.parentNode.insertBefore(Separator, currentNode.nextSibling)
+					currentNode.parentNode.insertBefore(RescourceCount[0], currentNode.nextSibling)
 				}
 				else{
-					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[0])
-					nodeList[arrayOffset+x].parentNode.appendChild(Separator)
-					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[1])
+					currentNode.parentNode.appendChild(RescourceCount[0])
+					currentNode.parentNode.appendChild(Separator)
+					currentNode.parentNode.appendChild(RescourceCount[1])
 				}
 			}
 
@@ -338,4 +411,3 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Cate
 		}
 	}
 };
-

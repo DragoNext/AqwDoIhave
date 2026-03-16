@@ -2,9 +2,15 @@
 //
 // To add:
 // 	Condition when merge shop is empty telling Not Found Anything something like
-let progressbarstyle = `<div style="width:200px" class="w3-light-grey">
-  <div class="w3-container w3-green w3-center" style="width:25%">25%</div>
-</div><br>`
+function renderMergeProgressBar(progressWidth) {
+	if (!progressWidth) {
+		return "<br><div style='background:#616161;color:#ffffff;font-weight:800;text-align:center;padding:3px 0;'>0%</div><br>";
+	}
+
+	return "<br><div style='background:#616161;text-align:center;'>"
+		+ "<div style='background:#4CAF50;color:#ffffff;font-weight:800;text-align:center;width:" + progressWidth + "%;padding:3px 0;'>" + progressWidth + "%</div>"
+		+ "</div><br>";
+}
 
 // Shared filter function — determines if an item should be hidden based on active filters
 function shouldHideByFilter(showNormal, showAc, showLegend, isNormal, isAc, isLegend) {
@@ -265,7 +271,7 @@ function itemCheck(itemsObject, yourItems) {
 	var newObject = {} 
 	for (var key in Object.keys(itemsObject)) {
 		var item = Object.keys(itemsObject)[key]
-		if (yourItems.includes(translateUnidentified(item.trim().toLowerCase()))) {
+		if (yourItems.includes(normalizeInventoryKey(translateUnidentified(item)))) {
 			
 		} else {
 			newObject[item] = itemsObject[item] 
@@ -313,8 +319,9 @@ function DisplayCost(itemsObject, tabAmount, frame, yourItems, MFN, MFA, MFL) {
 		if (value !== "") {
 			
 			
-			if (yourItems.includes(translateUnidentified(key.toLowerCase()))) {
-				var accountAmount = parseInt(Type[yourItems.indexOf(translateUnidentified(key.toLowerCase()))][1])
+			var normalizedKey = normalizeInventoryKey(translateUnidentified(key))
+			if (yourItems.includes(normalizedKey)) {
+				var accountAmount = parseInt(Type[yourItems.indexOf(normalizedKey)][1])
 				if (isNaN(accountAmount)) {
 					var accountAmount = 1 //Item Is Armor Weapon etc.
 				}
@@ -395,7 +402,7 @@ function countAcquiredItems(Items, Filters, FilterNormal, FilterAc, FilterLegend
 		
 		if (!skip) {
 		
-			if (Items.includes(translateUnidentified(key.trim().toLowerCase()))) {
+			if (Items.includes(normalizeInventoryKey(translateUnidentified(key)))) {
 				count = count + 1
 		
 			}
@@ -506,11 +513,7 @@ function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 			PL = Element.getElementsByClassName("progressBar")[P]
 			var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
 			
-			if (progressWidth != 0) {
-				PL.innerHTML = `<br><div class="w3-dark-grey" style="text-align:center"><div class="w3-container w3-green w3-center" style="font-weight:800;width:${progressWidth}%">${progressWidth}%</div></div><br>`
-			} else {
-			PL.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
-			}
+			PL.innerHTML = renderMergeProgressBar(progressWidth)
 		}
 		
 			
@@ -528,11 +531,7 @@ function updateTable(Frame, mergeshopItemsAmount, mergeshopAcquiredItems) {
 		}
 		
 		var progressWidth = parseInt(100*mergeshopAcquiredItems/mergeshopItemsAmount)
-		if (progressWidth != 0) {
-	ProgressbarElement.innerHTML = `<br><div class="w3-dark-grey" style="text-align:center"><div class="w3-container w3-green w3-center" style="font-weight:800;width:${progressWidth}%">${progressWidth}%</div></div><br>`
-		} else {
-			ProgressbarElement.innerHTML = `<br><div style="font-weight:800;text-align:center" class="w3-dark-grey">0%</div><br>`
-		}
+		ProgressbarElement.innerHTML = renderMergeProgressBar(progressWidth)
 	}
 
 	if (!update) {

@@ -6,7 +6,7 @@ const price_icon = chrome.runtime.getURL("images/price_icon.png");
 const drop_icon = chrome.runtime.getURL("images/monster_drop.png")
 const collectionchest_icon = chrome.runtime.getURL("images/collectionchest_icon.png")
 const inventory_update_icon = chrome.runtime.getURL("images/update_inventory.png")
-const tofarm_icon = chrome.runtime.getURL("images/WICF_button.png")
+const found_items_banner = chrome.runtime.getURL("images/tab.png")
 
 const mergeshop_icon = chrome.runtime.getURL("images/mergeshop_icon.png")
 const quest_icon = chrome.runtime.getURL("images/quest_icon.png")
@@ -63,39 +63,128 @@ function processAcountBackground() {
 	document.location.href = "https://account.aq.com/AQW/Inventory"
 }
 
+function applyTabButtonHover(button) {
+	button.style.transition = "filter 120ms ease";
+	button.addEventListener("mouseenter", function() {
+		button.style.filter = "brightness(1.08)";
+	});
+	button.addEventListener("mouseleave", function() {
+		button.style.filter = "";
+	});
+}
+
 function addToFarm_button() {
 	const header = document.getElementById("side-bar")
-	var ToFarm = document.createElement("button") 
+	var ToFarm = document.createElement("button")
 	ToFarm.onclick = function() { goto_ToFarm(); return false; }
-	ToFarm.style = "background-color: Transparent;border: none;" 
-	ToFarm.innerHTML = " <img style='height:35px;' src="+tofarm_icon+"></img>"
+	ToFarm.type = "button";
+	ToFarm.textContent = "AqwDoIHave {Extras};";
+	ToFarm.style.backgroundColor = "transparent";
+	ToFarm.style.backgroundImage = "url('" + found_items_banner + "')";
+	ToFarm.style.backgroundRepeat = "no-repeat";
+	ToFarm.style.backgroundSize = "100% 100%";
+	ToFarm.style.border = "none";
+	ToFarm.style.color = "#ffffff";
+	ToFarm.style.cursor = "pointer";
+	ToFarm.style.display = "block";
+	ToFarm.style.fontSize = "11px";
+	ToFarm.style.fontWeight = "800";
+	ToFarm.style.height = "29px";
+	ToFarm.style.lineHeight = "1";
+	ToFarm.style.margin = "0 0 8px";
+	ToFarm.style.minWidth = "140px";
+	ToFarm.style.padding = "0 14px 2px";
+	ToFarm.style.textAlign = "center";
+	ToFarm.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 0 #000";
+	ToFarm.style.whiteSpace = "nowrap";
+	applyTabButtonHover(ToFarm);
 	header.prepend(ToFarm)
 	
 }
 
+function getTitleActionWrap(titleElement) {
+	var existing = document.getElementById("aqw-title-actions");
+	if (existing) {
+		return existing;
+	}
+
+	var wrap = document.createElement("span");
+	wrap.id = "aqw-title-actions";
+	wrap.style.display = "inline-flex";
+	wrap.style.alignItems = "center";
+	wrap.style.gap = "8px";
+	wrap.style.marginLeft = "8px";
+	wrap.style.verticalAlign = "middle";
+	wrap.style.whiteSpace = "nowrap";
+
+	var insertBeforeNode = null;
+	for (var i = 0; i < titleElement.childNodes.length; i++) {
+		var child = titleElement.childNodes[i];
+		if (child.nodeType === 1 && /^(P|DIV|BR|SUB)$/i.test(child.tagName)) {
+			insertBeforeNode = child;
+			break;
+		}
+	}
+
+	if (insertBeforeNode) {
+		titleElement.insertBefore(wrap, insertBeforeNode);
+	} else {
+		titleElement.appendChild(wrap);
+	}
+	return wrap;
+}
+
 function addUpdateInventory_button() {
 	const Title = document.getElementById("page-title")
-	var styles = `
-    #UpdateInventory:hover {
-		filter: contrast(120%) brightness(1.25);; 
-	}`
-	var styleSheet = document.createElement("style")
-	styleSheet.innerText = styles
-	document.head.appendChild(styleSheet)
-	
-	const updateInventory = document.createElement("button") 
-	const updateInventoryImg = document.createElement("img");
+	const actionWrap = getTitleActionWrap(Title)
+	const updateInventory = document.createElement("button")
 	updateInventory.onclick = () => processAcountBackground();
-	updateInventory.style.backgroundColor = "Transparent";
+	updateInventory.type = "button";
+	updateInventory.textContent = "UPDATE INVENTORY";
+	updateInventory.style.backgroundColor = "transparent";
+	updateInventory.style.backgroundImage = "url('" + found_items_banner + "')";
+	updateInventory.style.backgroundRepeat = "no-repeat";
+	updateInventory.style.backgroundSize = "100% 100%";
 	updateInventory.style.border = "none";
-	updateInventoryImg.id = "UpdateInventory";
-	updateInventoryImg.style.height = "35px";
-	updateInventoryImg.src = inventory_update_icon;
-	
-	updateInventory.appendChild(updateInventoryImg);
-	Title.appendChild(updateInventory)
+	updateInventory.style.color = "#ffffff";
+	updateInventory.style.cursor = "pointer";
+	updateInventory.style.display = "inline-flex";
+	updateInventory.style.alignItems = "center";
+	updateInventory.style.justifyContent = "center";
+	updateInventory.style.fontSize = "11px";
+	updateInventory.style.fontWeight = "800";
+	updateInventory.style.height = "29px";
+	updateInventory.style.lineHeight = "1";
+	updateInventory.style.minWidth = "140px";
+	updateInventory.style.padding = "0 14px 2px";
+	updateInventory.style.textAlign = "center";
+	updateInventory.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 0 #000";
+	updateInventory.style.verticalAlign = "middle";
+	updateInventory.style.whiteSpace = "nowrap";
+	applyTabButtonHover(updateInventory);
+	actionWrap.appendChild(updateInventory)
 	
 
+}
+
+function styleFoundInfoBanner(foundInfo) {
+	foundInfo.style.display = "inline-flex";
+	foundInfo.style.alignItems = "center";
+	foundInfo.style.justifyContent = "center";
+	foundInfo.style.minWidth = "140px";
+	foundInfo.style.height = "29px";
+	foundInfo.style.padding = "0 14px 2px";
+	foundInfo.style.verticalAlign = "middle";
+	foundInfo.style.backgroundImage = "url('" + found_items_banner + "')";
+	foundInfo.style.backgroundRepeat = "no-repeat";
+	foundInfo.style.backgroundSize = "100% 100%";
+	foundInfo.style.color = "#ffffff";
+	foundInfo.style.fontWeight = "800";
+	foundInfo.style.fontSize = "11px";
+	foundInfo.style.lineHeight = "1";
+	foundInfo.style.letterSpacing = "0.4px";
+	foundInfo.style.textShadow = "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 0 #000";
+	foundInfo.style.whiteSpace = "nowrap";
 }
 
 function setFilterAc() {
@@ -170,7 +259,6 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 		}
 	});
 	
-	addCss(chrome.runtime.getURL("themes/progressbar.css"));
 	// page load
 	document.addEventListener('DOMContentLoaded', async function(event) {
 	await dataReady;
@@ -184,12 +272,13 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	// Get title of Wiki page (Name of category basically) 
 	const Title = document.getElementById("page-title")
 	const Content = document.getElementById("page-content")
+	const baseTitleText = Title ? Title.textContent.trim() : ""
 	
 	// Creates Found amount element near title. 
-	var found_info = document.createElement("a") 
-	found_info.innerHTML = "- Found 0 Items"
-	found_info.style = "font-weight: bold;color:green;"
-	Title.appendChild(found_info)
+	var found_info = document.createElement("span")
+	found_info.textContent = "Found 0 Items"
+	styleFoundInfoBanner(found_info)
+	getTitleActionWrap(Title).appendChild(found_info)
 	
 	
 	
@@ -198,6 +287,9 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	
 	addUpdateInventory_button()
 	addToFarm_button()
+	if (typeof initWikiQuestChainFeature === "function") {
+		initWikiQuestChainFeature(Content)
+	}
 	
 	
 	// Selects all <a> elements 
@@ -346,7 +438,9 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	
 	// Get items and process it 
 	chrome.storage.local.get({aqwitems: []}, function(result){
-			var Items = result.aqwitems;
+			var Items = (result.aqwitems || []).map(function(item) {
+				return normalizeInventoryKey(item);
+			});
 
 			// Build a Map for O(1) lookups instead of O(n) Items.includes/indexOf scans
 			var ItemsMap = new Map();
@@ -354,6 +448,10 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 				if (!ItemsMap.has(Items[i])) {
 					ItemsMap.set(Items[i], i);
 				}
+			}
+
+			if (markOwnedPageTitle(Title, baseTitleText, ItemsMap, Where, Type)) {
+				found += 1;
 			}
 
 			if (isMerge) {
@@ -369,7 +467,7 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 			}
 
 			// Displays found amount
-			found_info.innerHTML = "- Found "+found+" Items" // Displays items found
+			found_info.textContent = "Found " + found + " Items"
 
 	})
 	

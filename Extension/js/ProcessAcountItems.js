@@ -11,6 +11,16 @@ var accountDataReady = (async function() {
 	_UndArray_1 = json_data["Translation"];
 })();
 
+function normalizeInventoryKey(itemname) {
+	return String(itemname || "")
+		.normalize("NFKC")
+		.replace(/[\u2018\u2019\u02BC\u0060\u00B4]/g, "'")
+		.replace(/[\u2013\u2014\u2212]/g, "-")
+		.replace(/\s+/g, " ")
+		.trim()
+		.toLowerCase();
+}
+
 
 // Translates unidentified items
 function translateUnidentified(itemname) {
@@ -64,15 +74,15 @@ function ProcessAccountItems(jsonData) {
 			var parts = rawName.split(" x");
 			var amount = parts[parts.length - 1];
 			var nameOnly = parts.slice(0, -1).join(" x"); // Handle names that contain " x"
-			Items.push(translateUnidentified(nameOnly.toLowerCase()));
+			Items.push(normalizeInventoryKey(translateUnidentified(nameOnly)));
 			Type.push([itemType, amount]);
 		} else if (isStackable) {
 			// Stackable without count — amount is 1
-			Items.push(translateUnidentified(rawName.toLowerCase()));
+			Items.push(normalizeInventoryKey(translateUnidentified(rawName)));
 			Type.push([itemType, 1]);
 		} else {
 			// Non-stackable (Armor, Sword, Class, etc.)
-			Items.push(translateUnidentified(rawName.toLowerCase()));
+			Items.push(normalizeInventoryKey(translateUnidentified(rawName)));
 			Type.push(itemType);
 		}
 
@@ -83,4 +93,3 @@ function ProcessAccountItems(jsonData) {
 
 	return [Items, Where, Type, Buy, Category];
 }
-
