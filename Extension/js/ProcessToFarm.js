@@ -675,73 +675,29 @@ function ensureQuestChainUi() {
 	style.id = "aqw-chain-style";
 	style.textContent = ""
 		+ ".aqw-chain-launch{display:inline-flex;align-items:center;justify-content:center;min-width:140px;height:29px;margin:12px 0 4px;padding:0 14px 2px;border:none;background:transparent url('" + chrome.runtime.getURL("images/tab.png") + "') no-repeat center/100% 100%;color:#fff;cursor:pointer;font-size:11px;font-weight:800;line-height:1;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 0 #000;white-space:nowrap;}"
-		+ ".aqw-chain-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(9,7,13,0.76);z-index:10000;padding:24px;}"
-		+ ".aqw-chain-overlay.active{display:flex;}"
-		+ ".aqw-chain-dialog{width:min(1120px,96vw);max-height:88vh;overflow:auto;background:#5a2e49;border:1px solid rgba(255,231,185,0.12);color:#f2eadf;box-shadow:0 18px 48px rgba(0,0,0,0.38);}"
-		+ ".aqw-chain-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid rgba(255,231,185,0.1);}"
-		+ ".aqw-chain-title{font-size:1.3rem;font-weight:800;color:#fff4de;}"
-		+ ".aqw-chain-subtitle{margin-top:4px;color:#eadcc8;}"
-		+ ".aqw-chain-close{border:none;background:none;color:#fff4de;cursor:pointer;font-size:32px;line-height:1;}"
-		+ ".aqw-chain-body{padding:20px;}"
-		+ ".aqw-chain-empty,.aqw-chain-loading{padding:18px 20px;color:#f2eadf;}"
-		+ ".aqw-chain-tree{display:flex;flex-direction:column;gap:18px;min-width:max-content;}"
-		+ ".aqw-chain-node{display:flex;align-items:flex-start;gap:18px;position:relative;}"
-		+ ".aqw-chain-stage{width:260px;flex:0 0 260px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;}"
-		+ ".aqw-chain-branch-wrap{flex:1;display:flex;align-items:flex-start;position:relative;min-width:320px;padding-left:26px;}"
-		+ ".aqw-chain-branch-wrap:before{content:'';position:absolute;left:0;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.24);}"
-		+ ".aqw-chain-branch-stack{position:relative;display:flex;flex-direction:column;gap:18px;flex:1;}"
-		+ ".aqw-chain-branch-stack.multi{padding-left:26px;}"
-		+ ".aqw-chain-branch-stack.multi:before{content:'';position:absolute;left:0;top:20px;bottom:20px;border-left:2px solid rgba(255,231,185,0.22);}"
-		+ ".aqw-chain-branch-label{display:inline-flex;align-self:flex-start;align-items:center;justify-content:center;padding:3px 9px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;}"
-		+ ".aqw-chain-branch{display:flex;align-items:flex-start;gap:18px;position:relative;}"
-		+ ".aqw-chain-branch.multi:before{content:'';position:absolute;left:-26px;top:26px;width:26px;border-top:2px solid rgba(255,231,185,0.22);}"
-		+ ".aqw-chain-source-stage{width:264px;flex:0 0 264px;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;}"
-		+ ".aqw-chain-child-wrap{flex:1;display:flex;align-items:flex-start;position:relative;min-width:280px;padding-left:26px;}"
-		+ ".aqw-chain-child-wrap:before{content:'';position:absolute;left:0;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.2);}"
-		+ ".aqw-chain-child-stack{position:relative;display:flex;flex-direction:column;gap:18px;flex:1;}"
-		+ ".aqw-chain-child-stack.multi{padding-left:26px;}"
-		+ ".aqw-chain-child-stack.multi:before{content:'';position:absolute;left:0;top:22px;bottom:22px;border-left:2px solid rgba(255,231,185,0.18);}"
-		+ ".aqw-chain-child-stack.multi>.aqw-chain-node:before{content:'';position:absolute;left:-26px;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.18);}"
-		+ ".aqw-chain-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid rgba(255,231,185,0.1);border-radius:2px;background:rgba(68,24,50,0.24);min-height:74px;}"
-		+ ".aqw-chain-card.root{background:#442134;border-color:rgba(255,231,185,0.16);box-shadow:inset 0 0 0 1px rgba(255,231,185,0.06);}"
-		+ ".aqw-chain-card.source{background:#3c1d31;}"
-		+ ".aqw-chain-kicker{font-size:0.74rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:#d7c4cf;}"
-		+ ".aqw-chain-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}"
-		+ ".aqw-chain-main a,.aqw-chain-main span{color:#fff4de;font-weight:800;text-decoration:none;}"
-		+ ".aqw-chain-main a:hover{text-decoration:underline;}"
-		+ ".aqw-chain-pill{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border-radius:2px;background:rgba(255,231,185,0.1);color:#fff4de;font-size:0.74rem;font-weight:800;}"
-		+ ".aqw-chain-meta{display:flex;flex-direction:column;gap:4px;color:#eadcc8;font-size:0.84rem;line-height:1.4;}"
-		+ ".aqw-chain-meta span{display:block;}"
-		+ ".aqw-chain-leaf{padding:10px 12px;border:1px dashed rgba(255,231,185,0.18);background:rgba(23,15,22,0.18);color:#eadcc8;font-size:0.84rem;min-height:42px;display:flex;align-items:center;}"
-		+ ".aqw-chain-leaf.tight{min-height:0;padding:8px 10px;}"
-		+ "@media (max-width: 760px){.aqw-chain-overlay{padding:12px;}.aqw-chain-header,.aqw-chain-body{padding:14px;}.aqw-chain-node,.aqw-chain-branch{flex-direction:column;gap:12px;}.aqw-chain-stage,.aqw-chain-source-stage{width:auto;flex:1 1 auto;}.aqw-chain-branch-wrap,.aqw-chain-child-wrap,.aqw-chain-branch-stack.multi,.aqw-chain-child-stack.multi{padding-left:0;min-width:0;}.aqw-chain-branch-wrap:before,.aqw-chain-child-wrap:before,.aqw-chain-branch-stack.multi:before,.aqw-chain-child-stack.multi:before,.aqw-chain-branch.multi:before,.aqw-chain-child-stack.multi>.aqw-chain-node:before{display:none;}.aqw-chain-tree{min-width:0;}}";
+		+ ".aqw-chain-panel{margin:10px 0 18px;border:1px solid #7d5a6f;background:#5a2e49;color:#f2eadf;box-shadow:0 10px 26px rgba(0,0,0,0.18);}"
+		+ ".aqw-chain-panel[hidden]{display:none !important;}"
+		+ ".aqw-chain-panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 16px;border-bottom:1px solid rgba(255,231,185,0.12);background:rgba(47,18,38,0.26);}"
+		+ ".aqw-chain-title{font-size:1.05rem;font-weight:800;color:#fff4de;}"
+		+ ".aqw-chain-subtitle{margin-top:4px;color:#eadcc8;font-size:0.92rem;}"
+		+ ".aqw-chain-actions{display:flex;align-items:center;gap:8px;}"
+		+ ".aqw-chain-action{padding:5px 10px;border:1px solid rgba(255,231,185,0.2);background:#4a243d;color:#fff4de;cursor:pointer;font-size:0.8rem;font-weight:700;}"
+		+ ".aqw-chain-body{padding:16px;display:flex;flex-direction:column;gap:14px;}"
+		+ ".aqw-chain-empty,.aqw-chain-loading{padding:14px 16px;color:#f2eadf;}"
+		+ ".aqw-chain-stage{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,0.9fr);gap:14px;align-items:stretch;}"
+		+ ".aqw-chain-graph{height:560px;border:1px solid rgba(255,231,185,0.12);background:linear-gradient(180deg, rgba(40,18,31,0.44), rgba(31,13,23,0.4));}"
+		+ ".aqw-chain-details{border:1px solid rgba(255,231,185,0.12);background:rgba(35,14,27,0.36);padding:14px;display:flex;flex-direction:column;gap:10px;min-height:560px;}"
+		+ ".aqw-chain-detail-title{font-size:1rem;font-weight:800;color:#fff4de;}"
+		+ ".aqw-chain-detail-kicker{font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;color:#cdb9c6;}"
+		+ ".aqw-chain-detail-meta{display:flex;flex-direction:column;gap:6px;color:#eadcc8;font-size:0.86rem;line-height:1.45;}"
+		+ ".aqw-chain-detail-link{display:inline-flex;align-self:flex-start;padding:6px 10px;border:1px solid rgba(255,231,185,0.2);background:#4a243d;color:#fff4de;text-decoration:none;font-weight:700;font-size:0.82rem;}"
+		+ ".aqw-chain-detail-link:hover{text-decoration:underline;}"
+		+ ".aqw-chain-hint{color:#d8c9d2;font-size:0.84rem;line-height:1.45;}"
+		+ ".aqw-chain-legend{display:flex;flex-wrap:wrap;gap:8px;}"
+		+ ".aqw-chain-legend span{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;color:#eadcc8;}"
+		+ ".aqw-chain-dot{width:10px;height:10px;display:inline-block;border-radius:50%;}"
+		+ "@media (max-width: 980px){.aqw-chain-stage{grid-template-columns:1fr;}.aqw-chain-graph{height:440px;}.aqw-chain-details{min-height:0;}}";
 	document.head.appendChild(style);
-
-	var overlay = document.createElement("div");
-	overlay.id = "aqw-chain-overlay";
-	overlay.className = "aqw-chain-overlay";
-	overlay.innerHTML = ""
-		+ "<div class='aqw-chain-dialog'>"
-		+ "<div class='aqw-chain-header'>"
-		+ "<div><div id='aqw-chain-title' class='aqw-chain-title'>Quest Chain</div><div id='aqw-chain-subtitle' class='aqw-chain-subtitle'></div></div>"
-		+ "<button type='button' id='aqw-chain-close' class='aqw-chain-close'>&times;</button>"
-		+ "</div>"
-		+ "<div id='aqw-chain-body' class='aqw-chain-body'></div>"
-		+ "</div>";
-	document.body.appendChild(overlay);
-	document.getElementById("aqw-chain-close").addEventListener("click", closeQuestChainOverlay);
-	overlay.addEventListener("click", function(event) {
-		if (event.target === overlay) {
-			closeQuestChainOverlay();
-		}
-	});
-}
-
-function closeQuestChainOverlay() {
-	var overlay = document.getElementById("aqw-chain-overlay");
-	if (overlay) {
-		overlay.classList.remove("active");
-	}
 }
 
 function findQuestMatchesForItem(item_name) {
@@ -955,83 +911,334 @@ async function buildQuestChainTree(item_name, d, qty, ctx) {
 	};
 }
 
-function renderQuestChainNode(node, isRoot) {
-	var mainLabel = node.slug ? "<a href='" + escapeHtml(wikiUrl(node.slug)) + "' target='_blank' rel='noreferrer'>" + escapeHtml(node.name) + "</a>" : "<span>" + escapeHtml(node.name) + "</span>";
-	var qtyHtml = node.qty && String(node.qty) !== "1" ? "<span class='aqw-chain-pill'>x" + escapeHtml(String(node.qty)) + "</span>" : "";
-	var special = "";
-	if (node.cycle) {
-		special = "<div class='aqw-chain-leaf tight'>Cycle detected here.</div>";
+function wrapQuestChainLabel(text, width) {
+	var words = String(text || "").split(/\s+/).filter(Boolean);
+	if (!words.length) {
+		return "";
 	}
-	if (node.truncated) {
-		special = "<div class='aqw-chain-leaf tight'>Further dependencies truncated.</div>";
+	var lines = [];
+	var current = "";
+	for (var i = 0; i < words.length; i++) {
+		var next = current ? current + " " + words[i] : words[i];
+		if (next.length > width && current) {
+			lines.push(current);
+			current = words[i];
+		} else {
+			current = next;
+		}
 	}
-	if (node.missing) {
-		special = "<div class='aqw-chain-leaf tight'>Source data unavailable.</div>";
+	if (current) {
+		lines.push(current);
 	}
-
-	var body = "";
-	if (!special && node.sources && node.sources.length) {
-		var stackClass = node.sources.length > 1 ? "aqw-chain-branch-stack multi" : "aqw-chain-branch-stack";
-		var labelHtml = node.sources.length > 1 ? "<div class='aqw-chain-branch-label'>OR Paths</div>" : "";
-		body = "<div class='aqw-chain-branch-wrap'><div class='" + stackClass + "'>" + labelHtml + node.sources.map(function(source) {
-			return renderQuestChainSource(source, node.sources.length > 1);
-		}).join("") + "</div></div>";
-	}
-	return ""
-		+ "<div class='aqw-chain-node'>"
-		+ "<div class='aqw-chain-stage'>"
-		+ "<div class='aqw-chain-card" + (isRoot ? " root" : "") + "'>"
-		+ "<div class='aqw-chain-kicker'>" + (isRoot ? "Target Item" : "Required Item") + "</div>"
-		+ "<div class='aqw-chain-main'>" + mainLabel + qtyHtml + "</div>"
-		+ "</div>"
-		+ special
-		+ "</div>"
-		+ body
-		+ "</div>";
+	return lines.join("\n");
 }
 
-function renderQuestChainSource(source, isBranchAlternative) {
-	var titleHtml = source.slug ? "<a href='" + escapeHtml(wikiUrl(source.slug)) + "' target='_blank' rel='noreferrer'>" + escapeHtml(source.name) + "</a>" : "<span>" + escapeHtml(source.name) + "</span>";
-	var metaHtml = (source.meta || []).length ? "<div class='aqw-chain-meta'>" + source.meta.map(function(line) {
+function getQuestChainNodeHref(data) {
+	if (!data || !data.slug) {
+		return "";
+	}
+	return wikiUrl(data.slug);
+}
+
+function buildQuestChainGraph(tree) {
+	var nodes = [];
+	var edges = [];
+	var detailMap = new Map();
+	var idCounter = 0;
+
+	function addNode(nodeDef, detail) {
+		nodes.push(nodeDef);
+		detailMap.set(nodeDef.id, detail);
+		return nodeDef.id;
+	}
+
+	function addEdge(from, to, options) {
+		edges.push(Object.assign({
+			from: from,
+			to: to,
+			arrows: "to",
+			color: {
+				color: "rgba(255, 230, 184, 0.32)",
+				highlight: "rgba(255, 230, 184, 0.78)",
+				hover: "rgba(255, 230, 184, 0.62)"
+			}
+		}, options || {}));
+	}
+
+	function walkItem(node, parentId) {
+		var itemId = addNode({
+			id: "item-" + (++idCounter),
+			label: wrapQuestChainLabel(node.name, 20) + (node.qty && String(node.qty) !== "1" ? "\nx" + node.qty : ""),
+			shape: "box",
+			margin: 12,
+			font: { color: "#fff4de", face: "Verdana", size: 16, bold: true },
+			color: {
+				background: parentId ? "#442134" : "#532743",
+				border: "#e7c28f",
+				highlight: { background: "#6a3154", border: "#ffe7b7" }
+			},
+			chosen: { node: false }
+		}, {
+			kind: "item",
+			name: node.name,
+			slug: node.slug,
+			qty: node.qty,
+			tags: node.tags || [],
+			cycle: !!node.cycle,
+			truncated: !!node.truncated,
+			missing: !!node.missing
+		});
+
+		if (parentId) {
+			addEdge(parentId, itemId);
+		}
+		if (node.cycle || node.truncated || node.missing || !(node.sources || []).length) {
+			return itemId;
+		}
+
+		var sourceParentId = itemId;
+		if (node.sources.length > 1) {
+			sourceParentId = addNode({
+				id: "or-" + (++idCounter),
+				label: "OR",
+				shape: "diamond",
+				size: 18,
+				font: { color: "#fff4de", face: "Verdana", size: 12, bold: true },
+				color: {
+					background: "#7b2426",
+					border: "#f1c29e",
+					highlight: { background: "#973032", border: "#ffe7b7" }
+				},
+				chosen: { node: false }
+			}, {
+				kind: "or",
+				name: "OR Path Split",
+				meta: ["Any one connected source branch works."]
+			});
+			addEdge(itemId, sourceParentId, { length: 80 });
+		}
+
+		node.sources.forEach(function(source) {
+			walkSource(source, sourceParentId);
+		});
+		return itemId;
+	}
+
+	function walkSource(source, parentId) {
+		var sourceId = addNode({
+			id: "source-" + (++idCounter),
+			label: (source.sourceType ? source.sourceType + "\n" : "") + wrapQuestChainLabel(source.name, 22),
+			shape: "box",
+			margin: 11,
+			font: { color: "#fff4de", face: "Verdana", size: 14, bold: true },
+			color: {
+				background: source.sourceType === "Quest" ? "#3e243d" : source.sourceType === "Merge Shop" ? "#2f2a47" : "#3c1d31",
+				border: "#ba9c7a",
+				highlight: { background: "#5f3656", border: "#ffe7b7" }
+			},
+			chosen: { node: false }
+		}, {
+			kind: "source",
+			name: source.name,
+			slug: source.slug,
+			sourceType: source.sourceType,
+			meta: source.meta || [],
+			direct: !(source.children || []).length
+		});
+		addEdge(parentId, sourceId);
+		(source.children || []).forEach(function(child) {
+			walkItem(child, sourceId);
+		});
+	}
+
+	walkItem(tree, "");
+	return {
+		nodes: nodes,
+		edges: edges,
+		detailMap: detailMap
+	};
+}
+
+function renderQuestChainDetails(panel, detail) {
+	var detailEl = panel.querySelector(".aqw-chain-details");
+	if (!detailEl) {
+		return;
+	}
+	if (!detail) {
+		detailEl.innerHTML = "<div class='aqw-chain-hint'>Select a node to inspect that step, open its wiki page, or see whether it is an OR split, quest, merge shop, or final requirement.</div>";
+		return;
+	}
+
+	var kicker = "Step";
+	var meta = [];
+	if (detail.kind === "item") {
+		kicker = "Item";
+		if (detail.qty && String(detail.qty) !== "1") {
+			meta.push("Quantity needed: " + detail.qty);
+		}
+		if ((detail.tags || []).length) {
+			meta.push("Tags: " + detail.tags.join(", "));
+		}
+		if (detail.cycle) {
+			meta.push("Cycle detected on this branch.");
+		}
+		if (detail.truncated) {
+			meta.push("Further dependencies were truncated here.");
+		}
+		if (detail.missing) {
+			meta.push("No additional source data was available here.");
+		}
+	} else if (detail.kind === "source") {
+		kicker = detail.sourceType || "Source";
+		meta = (detail.meta || []).slice();
+		if (detail.direct) {
+			meta.push("Farm this source directly.");
+		}
+	} else if (detail.kind === "or") {
+		kicker = "OR Split";
+		meta = (detail.meta || []).slice();
+	}
+
+	var href = getQuestChainNodeHref(detail);
+	var metaHtml = meta.length ? "<div class='aqw-chain-detail-meta'>" + meta.map(function(line) {
 		return "<span>" + escapeHtml(line) + "</span>";
-	}).join("") + "</div>" : "";
-	var childrenHtml = "";
-	if (source.children && source.children.length) {
-		var childStackClass = source.children.length > 1 ? "aqw-chain-child-stack multi" : "aqw-chain-child-stack";
-		childrenHtml = "<div class='aqw-chain-child-wrap'><div class='" + childStackClass + "'>" + source.children.map(function(child) {
-			return renderQuestChainNode(child, false);
-		}).join("") + "</div></div>";
-	} else {
-		childrenHtml = "<div class='aqw-chain-child-wrap'><div class='aqw-chain-child-stack'><div class='aqw-chain-leaf'>Farm this source directly.</div></div></div>";
-	}
-	return ""
-		+ "<div class='aqw-chain-branch" + (isBranchAlternative ? " multi" : "") + "'>"
-		+ "<div class='aqw-chain-source-stage'>"
-		+ "<div class='aqw-chain-card source'>"
-		+ "<div class='aqw-chain-kicker'>" + escapeHtml(source.sourceType) + "</div>"
-		+ "<div class='aqw-chain-main'>" + titleHtml + "</div>"
+	}).join("") + "</div>" : "<div class='aqw-chain-hint'>No extra metadata for this node.</div>";
+	detailEl.innerHTML = ""
+		+ "<div class='aqw-chain-detail-kicker'>" + escapeHtml(kicker) + "</div>"
+		+ "<div class='aqw-chain-detail-title'>" + escapeHtml(detail.name || "Quest Chain") + "</div>"
 		+ metaHtml
-		+ "</div>"
-		+ "</div>"
-		+ childrenHtml
-		+ "</div>";
+		+ (href ? "<a class='aqw-chain-detail-link' href='" + escapeHtml(href) + "' target='_blank' rel='noreferrer'>Open Wiki Page</a>" : "");
 }
 
-async function openQuestChainOverlay(item_name, d) {
+function ensureQuestChainPanel(button, item_name) {
+	var panel = document.getElementById("aqw-chain-panel");
+	if (!panel) {
+		panel = document.createElement("section");
+		panel.id = "aqw-chain-panel";
+		panel.className = "aqw-chain-panel";
+		panel.hidden = true;
+		panel.innerHTML = ""
+			+ "<div class='aqw-chain-panel-header'>"
+			+ "<div><div class='aqw-chain-title'>Quest Chain</div><div class='aqw-chain-subtitle'></div></div>"
+			+ "<div class='aqw-chain-actions'>"
+			+ "<button type='button' class='aqw-chain-action' data-action='fit'>Fit Graph</button>"
+			+ "<button type='button' class='aqw-chain-action' data-action='hide'>Hide</button>"
+			+ "</div>"
+			+ "</div>"
+			+ "<div class='aqw-chain-body'>"
+			+ "<div class='aqw-chain-legend'>"
+			+ "<span><i class='aqw-chain-dot' style='background:#532743'></i>Target / required item</span>"
+			+ "<span><i class='aqw-chain-dot' style='background:#3e243d'></i>Quest step</span>"
+			+ "<span><i class='aqw-chain-dot' style='background:#2f2a47'></i>Merge shop</span>"
+			+ "<span><i class='aqw-chain-dot' style='background:#7b2426'></i>OR split</span>"
+			+ "</div>"
+			+ "<div class='aqw-chain-stage'>"
+			+ "<div class='aqw-chain-graph'></div>"
+			+ "<div class='aqw-chain-details'></div>"
+			+ "</div>"
+			+ "</div>";
+		button.insertAdjacentElement("afterend", panel);
+		panel.querySelector("[data-action='hide']").addEventListener("click", function() {
+			panel.hidden = true;
+			button.textContent = "Quest Chain";
+		});
+		panel.querySelector("[data-action='fit']").addEventListener("click", function() {
+			if (panel._network) {
+				panel._network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
+			}
+		});
+	}
+	panel.querySelector(".aqw-chain-subtitle").textContent = item_name;
+	return panel;
+}
+
+async function renderQuestChainInline(button, item_name, d) {
 	ensureQuestChainUi();
-	var overlay = document.getElementById("aqw-chain-overlay");
-	var body = document.getElementById("aqw-chain-body");
-	document.getElementById("aqw-chain-title").textContent = "Quest Chain";
-	document.getElementById("aqw-chain-subtitle").textContent = item_name;
-	body.innerHTML = "<div class='aqw-chain-loading'>Building dependency graph...</div>";
-	overlay.classList.add("active");
+	var panel = ensureQuestChainPanel(button, item_name);
+	if (!panel.hidden && panel.dataset.itemSlug === String(d[0] || "")) {
+		panel.hidden = true;
+		button.textContent = "Quest Chain";
+		return;
+	}
+	panel.hidden = false;
+	button.textContent = "Hide Quest Chain";
+	panel.dataset.itemSlug = String(d[0] || "");
+	panel.querySelector(".aqw-chain-graph").innerHTML = "";
+	panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-loading'>Building dependency graph...</div>";
+
+	if (typeof vis === "undefined" || !vis.Network || !vis.DataSet) {
+		panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-empty'>Graph library failed to load.</div>";
+		return;
+	}
 
 	await ensureQuestChainDataReady();
 	try {
 		var tree = await buildQuestChainTree(item_name, d, 1);
-		body.innerHTML = "<div class='aqw-chain-tree'>" + renderQuestChainNode(tree, true) + "</div>";
+		var graph = buildQuestChainGraph(tree);
+		var graphEl = panel.querySelector(".aqw-chain-graph");
+		var details = panel.querySelector(".aqw-chain-details");
+		if (panel._network) {
+			panel._network.destroy();
+		}
+		var network = new vis.Network(graphEl, {
+			nodes: new vis.DataSet(graph.nodes),
+			edges: new vis.DataSet(graph.edges)
+		}, {
+			autoResize: true,
+			physics: false,
+			layout: {
+				hierarchical: {
+					enabled: true,
+					direction: "LR",
+					sortMethod: "directed",
+					levelSeparation: 190,
+					nodeSpacing: 170,
+					treeSpacing: 220,
+					parentCentralization: true
+				}
+			},
+			interaction: {
+				dragNodes: true,
+				dragView: true,
+				hover: true,
+				keyboard: true,
+				navigationButtons: true,
+				zoomView: true
+			},
+			edges: {
+				smooth: {
+					enabled: true,
+					type: "cubicBezier",
+					forceDirection: "horizontal",
+					roundness: 0.34
+				},
+				width: 2
+			}
+		});
+		panel._network = network;
+		panel._graphDetails = graph.detailMap;
+		renderQuestChainDetails(panel, graph.detailMap.get("item-1"));
+		network.on("click", function(params) {
+			var nodeId = params.nodes && params.nodes[0];
+			renderQuestChainDetails(panel, nodeId ? graph.detailMap.get(nodeId) : null);
+		});
+		network.on("doubleClick", function(params) {
+			var nodeId = params.nodes && params.nodes[0];
+			var detail = nodeId ? graph.detailMap.get(nodeId) : null;
+			var href = getQuestChainNodeHref(detail);
+			if (href) {
+				window.open(href, "_blank", "noopener");
+			}
+		});
+		setTimeout(function() {
+			network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
+		}, 40);
+		if (details && !details.innerHTML) {
+			renderQuestChainDetails(panel, null);
+		}
+		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 	} catch (err) {
-		body.innerHTML = "<div class='aqw-chain-empty'>Failed to build dependency graph.</div>";
+		panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-empty'>Failed to build dependency graph.</div>";
 	}
 }
 
@@ -1060,7 +1267,7 @@ function initWikiQuestChainFeature(contentEl) {
 	button.className = "aqw-chain-launch";
 	button.textContent = "Quest Chain";
 	button.addEventListener("click", function() {
-		openQuestChainOverlay(item_name, d);
+		renderQuestChainInline(button, item_name, d);
 	});
 	mount.insertAdjacentElement("afterend", button);
 }

@@ -52,6 +52,7 @@
 				"js/ProcessMergeCalc.js",
 				"js/ProcessAcountItems.js",
 				"js/ProcessWikiItem.js",
+				"js/vendor/vis-network.min.js",
 				"js/main.js",
 				"js/ProcessToFarm.js"
 			]
