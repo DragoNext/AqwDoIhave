@@ -205,6 +205,9 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 
 
 function processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQuest, isMonster) {
+	if (!Type || !Type[itemIdx] || Type[itemIdx].length < 2) {
+		return false;
+	}
 	var accountAmount = parseInt(Type[itemIdx][1])
 	var originalAmountCount = document.createElement("span")
 	var accountAmountCount = document.createElement("span")
@@ -215,12 +218,9 @@ function processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQues
 	} else if (isQuest) {
 		var count_node = nodeList[arrayOffset+x].parentNode.lastChild
 	} 
-	// ---- START OF FIX ----
-    if (!count_node) {
-        // If count_node was never found, stop the function here to prevent a crash.
-        return; 
-    }
-    // ---- END OF FIX ----
+	if (!count_node) {
+		return false;
+	}
 	var originaAmount = count_node.data.replace(",","")
 	
 	if (originaAmount !== null && originaAmount !== undefined){ 
@@ -247,7 +247,8 @@ function processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQues
 		count_node.data = " "
 		return [originalAmountCount,accountAmountCount]
 	}
-	
+
+	return false;
 }
 
 async function addLocationIcon(nodeList, itemIdx, arrayOffset, x, isList, isMerge) {
@@ -378,7 +379,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Cate
 		if (itemIdx !== undefined) {
 			currentNode.style = "font-weight: bold;color:green;"
 			currentNode.classList.add("Acquired")
-			if (Type[itemIdx].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
+			if (Type[itemIdx] && Type[itemIdx].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
 				// gets amount from inventory
 				var RescourceCount = processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
 			} else {
@@ -388,7 +389,7 @@ async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Cate
 			// Adds icons of where is located
 			addLocationIcon(nodeList, itemIdx, arrayOffset, x, isList, isMerge)
 
-			if (RescourceCount !== false){
+			if (Array.isArray(RescourceCount) && RescourceCount.length >= 2 && RescourceCount[0] && RescourceCount[1]){
 				var Separator = document.createElement("b")
 				Separator.innerHTML = "/"
 				if (RescourceCount[0].innerHTML == " "){
