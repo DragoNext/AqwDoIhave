@@ -63,7 +63,7 @@
 			],
 			"run_at": "document_idle",
 			"js": [
-				"js/vendor/vis-network.min.js"
+				"js/vendor/cytoscape.min.js"
 			]
 		},
 		{

@@ -1143,8 +1143,8 @@ function ensureQuestChainPanel(button, item_name) {
 			button.textContent = "Quest Chain";
 		});
 		panel.querySelector("[data-action='fit']").addEventListener("click", function() {
-			if (panel._network) {
-				panel._network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
+			if (panel._cy) {
+				panel._cy.fit(undefined, 40);
 			}
 		});
 	}
@@ -1166,9 +1166,8 @@ async function renderQuestChainInline(button, item_name, d) {
 	panel.querySelector(".aqw-chain-graph").innerHTML = "";
 	panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-loading'>Building dependency graph...</div>";
 
-	var visLib = (typeof window !== "undefined" && window.vis) || (typeof self !== "undefined" && self.vis) || (typeof globalThis !== "undefined" && globalThis.vis);
-	var VisDataSet = visLib && (visLib.DataSet || (visLib.data && visLib.data.DataSet));
-	if (!visLib || !visLib.Network) {
+	var cytoscapeLib = (typeof window !== "undefined" && window.cytoscape) || (typeof self !== "undefined" && self.cytoscape) || (typeof globalThis !== "undefined" && globalThis.cytoscape);
+	if (!cytoscapeLib) {
 		panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-empty'>Graph library failed to load.</div>";
 		return;
 	}
@@ -1179,63 +1178,123 @@ async function renderQuestChainInline(button, item_name, d) {
 		var graph = buildQuestChainGraph(tree);
 		var graphEl = panel.querySelector(".aqw-chain-graph");
 		var details = panel.querySelector(".aqw-chain-details");
-		if (panel._network) {
-			panel._network.destroy();
+		if (panel._cy) {
+			panel._cy.destroy();
 		}
-		var networkData = {
-			nodes: VisDataSet ? new VisDataSet(graph.nodes) : graph.nodes,
-			edges: VisDataSet ? new VisDataSet(graph.edges) : graph.edges
-		};
-		var network = new visLib.Network(graphEl, networkData, {
-			autoResize: true,
-			physics: false,
-			layout: {
-				hierarchical: {
-					enabled: true,
-					direction: "LR",
-					sortMethod: "directed",
-					levelSeparation: 190,
-					nodeSpacing: 170,
-					treeSpacing: 220,
-					parentCentralization: true
+		var elements = [];
+		graph.nodes.forEach(function(node) {
+			var detail = graph.detailMap.get(node.id) || {};
+			elements.push({
+				data: {
+					id: node.id,
+					label: node.label,
+					kind: detail.kind || "step",
+					href: getQuestChainNodeHref(detail)
 				}
-			},
-			interaction: {
-				dragNodes: true,
-				dragView: true,
-				hover: true,
-				keyboard: true,
-				navigationButtons: true,
-				zoomView: true
-			},
-			edges: {
-				smooth: {
-					enabled: true,
-					type: "cubicBezier",
-					forceDirection: "horizontal",
-					roundness: 0.34
+			});
+		});
+		graph.edges.forEach(function(edge, index) {
+			elements.push({
+				data: {
+					id: "edge-" + index,
+					source: edge.from,
+					target: edge.to
+				}
+			});
+		});
+
+		var cy = cytoscapeLib({
+			container: graphEl,
+			elements: elements,
+			wheelSensitivity: 0.18,
+			boxSelectionEnabled: false,
+			style: [
+				{
+					selector: "node",
+					style: {
+						"shape": "round-rectangle",
+						"background-color": "#442134",
+						"border-width": 2,
+						"border-color": "#e7c28f",
+						"color": "#fff4de",
+						"text-wrap": "wrap",
+						"text-max-width": "160px",
+						"label": "data(label)",
+						"font-size": "14px",
+						"font-weight": "700",
+						"text-valign": "center",
+						"text-halign": "center",
+						"padding": "14px",
+						"width": "label",
+						"height": "label"
+					}
 				},
-				width: 2
+				{
+					selector: "node[kind = 'source']",
+					style: {
+						"background-color": "#3c1d31",
+						"border-color": "#ba9c7a"
+					}
+				},
+				{
+					selector: "node[kind = 'or']",
+					style: {
+						"shape": "diamond",
+						"background-color": "#7b2426",
+						"border-color": "#f1c29e",
+						"font-size": "12px",
+						"padding": "10px"
+					}
+				},
+				{
+					selector: "edge",
+					style: {
+						"width": 2,
+						"curve-style": "bezier",
+						"line-color": "rgba(255, 230, 184, 0.34)",
+						"target-arrow-shape": "triangle",
+						"target-arrow-color": "rgba(255, 230, 184, 0.34)"
+					}
+				},
+				{
+					selector: ":selected",
+					style: {
+						"overlay-opacity": 0,
+						"border-color": "#fff4de",
+						"line-color": "#fff4de",
+						"target-arrow-color": "#fff4de"
+					}
+				}
+			],
+			layout: {
+				name: "breadthfirst",
+				directed: true,
+				padding: 28,
+				spacingFactor: 1.15,
+				roots: ["item-1"]
 			}
 		});
-		panel._network = network;
+
+		panel._cy = cy;
 		panel._graphDetails = graph.detailMap;
 		renderQuestChainDetails(panel, graph.detailMap.get("item-1"));
-		network.on("click", function(params) {
-			var nodeId = params.nodes && params.nodes[0];
-			renderQuestChainDetails(panel, nodeId ? graph.detailMap.get(nodeId) : null);
+		cy.on("tap", "node", function(evt) {
+			var nodeId = evt.target.id();
+			renderQuestChainDetails(panel, graph.detailMap.get(nodeId) || null);
 		});
-		network.on("doubleClick", function(params) {
-			var nodeId = params.nodes && params.nodes[0];
-			var detail = nodeId ? graph.detailMap.get(nodeId) : null;
+		cy.on("tap", function(evt) {
+			if (evt.target === cy) {
+				renderQuestChainDetails(panel, null);
+			}
+		});
+		cy.on("dbltap", "node", function(evt) {
+			var detail = graph.detailMap.get(evt.target.id()) || null;
 			var href = getQuestChainNodeHref(detail);
 			if (href) {
 				window.open(href, "_blank", "noopener");
 			}
 		});
-		setTimeout(function() {
-			network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
-		}, 40);
+		cy.fit(undefined, 40);
 		if (details && !details.innerHTML) {
 			renderQuestChainDetails(panel, null);
 		}
