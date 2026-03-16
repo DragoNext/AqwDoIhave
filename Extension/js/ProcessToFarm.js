@@ -1235,9 +1235,17 @@ function sizeQuestChainGraphToContent(cy, graphEl) {
 		return;
 	}
 	var bounds = cy.elements().boundingBox();
-	var desiredHeight = Math.ceil((bounds.h || 0) + 180);
 	var minHeight = window.innerWidth <= 980 ? 460 : 620;
-	graphEl.style.height = Math.max(minHeight, desiredHeight) + "px";
+	var containerWidth = graphEl.clientWidth || (graphEl.parentElement && graphEl.parentElement.clientWidth) || 960;
+	var rawHeight = Math.ceil((bounds.h || 0) + 180);
+	var aspectRatio = (bounds.w && bounds.h) ? (bounds.w / Math.max(bounds.h, 1)) : 1;
+	var widthCap = aspectRatio > 1.5
+		? Math.ceil(containerWidth * 0.62)
+		: Math.ceil(containerWidth * 0.9);
+	var hardCap = window.innerWidth <= 980 ? 900 : 980;
+	var maxHeight = Math.max(minHeight, Math.min(widthCap, hardCap));
+	var desiredHeight = Math.max(minHeight, Math.min(rawHeight, maxHeight));
+	graphEl.style.height = desiredHeight + "px";
 }
 
 function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange) {
@@ -1263,17 +1271,28 @@ function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange
 
 	Array.from(layer.querySelectorAll(".aqw-chain-choice-node")).forEach(function(nodeEl) {
 		var choiceId = nodeEl.getAttribute("data-choice-id");
-		var nodeId = nodeEl.getAttribute("data-node-id");
 		var select = nodeEl.querySelector("select");
-		var cyNode = cy.$id(nodeId);
-		if (cyNode && cyNode.length) {
-			var pos = cyNode.renderedPosition();
-			nodeEl.style.left = pos.x + "px";
-			nodeEl.style.top = (pos.y + 26) + "px";
-		}
 		select.addEventListener("change", function() {
 			onChange(choiceId, select.value);
 		});
+	});
+	positionQuestChainChoiceOverlays(panel, cy);
+}
+
+function positionQuestChainChoiceOverlays(panel, cy) {
+	var layer = panel.querySelector(".aqw-chain-choice-layer");
+	if (!layer || !cy) {
+		return;
+	}
+	Array.from(layer.querySelectorAll(".aqw-chain-choice-node")).forEach(function(nodeEl) {
+		var nodeId = nodeEl.getAttribute("data-node-id");
+		var cyNode = cy.$id(nodeId);
+		if (!cyNode || !cyNode.length) {
+			return;
+		}
+		var pos = cyNode.renderedPosition();
+		nodeEl.style.left = pos.x + "px";
+		nodeEl.style.top = (pos.y + 26) + "px";
 	});
 }
 
@@ -1389,9 +1408,13 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 		var cy = cytoscapeLib({
 			container: graphEl,
 			elements: elements,
-			wheelSensitivity: 0.18,
+			wheelSensitivity: 0.45,
 			boxSelectionEnabled: false,
 			autounselectify: true,
+			textureOnViewport: true,
+			motionBlur: true,
+			hideEdgesOnViewport: true,
+			pixelRatio: 1,
 			style: [
 				{
 					selector: "node",
@@ -1477,13 +1500,14 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 		cy.resize();
 		cy.fit(undefined, 40);
 		function syncChoiceOverlays() {
-			renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
-				panel._orSelections[choiceId] = value;
-				renderQuestChainInline(button, item_name, d, true);
-			});
+			positionQuestChainChoiceOverlays(panel, cy);
 		}
+		renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
+			panel._orSelections[choiceId] = value;
+			renderQuestChainInline(button, item_name, d, true);
+		});
 		syncChoiceOverlays();
-		cy.on("pan zoom resize render", syncChoiceOverlays);
+		cy.on("pan zoom resize", syncChoiceOverlays);
 		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 	} catch (err) {
 		if (hintEl) {
