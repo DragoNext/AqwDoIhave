@@ -252,6 +252,14 @@ def _find_strong_section(container: Tag, label: str) -> Tag | None:
     return None
 
 
+def _extract_qty(text: str) -> int:
+    """Extract trailing wiki quantity markers like 'x14' or 'x 1'."""
+    match = re.search(r"(?:^|\s)x\s*(\d[\d,]*)\b", text)
+    if not match:
+        return 1
+    return int(match.group(1).replace(",", ""))
+
+
 def _parse_required_items(ul: Tag) -> list[dict]:
     """Parse the Items Required <ul> list."""
     items = []
@@ -266,8 +274,7 @@ def _parse_required_items(ul: Tag) -> list[dict]:
                 break
         li_text = re.sub(r"\s+", " ", li_text).strip()
 
-        qty_match = re.search(r"x\s*([\d,]+)", li_text)
-        qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
+        qty = _extract_qty(li_text)
         item_name = re.sub(r"\s*x\s*[\d,]+\s*(\(.*\))?\s*$", "", li_text).strip()
 
         item_link = li.find("a", recursive=False)
@@ -342,8 +349,7 @@ def _parse_rewards(container: Tag) -> dict:
         link = li.find("a", href=True)
         if link:
             item_tags = parse_index_tag_images(li)
-            qty_match = re.search(r"x\s*([\d,]+)", text)
-            qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
+            qty = _extract_qty(text)
             rewards["items"].append({
                 "name": link.get_text(strip=True),
                 "slug": link.get("href", ""),
@@ -360,8 +366,7 @@ def _parse_rewards(container: Tag) -> dict:
                 if link:
                     item_tags = parse_index_tag_images(li)
                     text = li.get_text(" ", strip=True)
-                    qty_match = re.search(r"x\s*([\d,]+)", text)
-                    qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
+                    qty = _extract_qty(text)
                     rewards["items"].append({
                         "name": link.get_text(strip=True),
                         "slug": link.get("href", ""),
