@@ -1166,7 +1166,9 @@ async function renderQuestChainInline(button, item_name, d) {
 	panel.querySelector(".aqw-chain-graph").innerHTML = "";
 	panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-loading'>Building dependency graph...</div>";
 
-	if (typeof vis === "undefined" || !vis.Network || !vis.DataSet) {
+	var visLib = (typeof window !== "undefined" && window.vis) || (typeof globalThis !== "undefined" && globalThis.vis);
+	var VisDataSet = visLib && (visLib.DataSet || (visLib.data && visLib.data.DataSet));
+	if (!visLib || !visLib.Network || !VisDataSet) {
 		panel.querySelector(".aqw-chain-details").innerHTML = "<div class='aqw-chain-empty'>Graph library failed to load.</div>";
 		return;
 	}
@@ -1180,9 +1182,9 @@ async function renderQuestChainInline(button, item_name, d) {
 		if (panel._network) {
 			panel._network.destroy();
 		}
-		var network = new vis.Network(graphEl, {
-			nodes: new vis.DataSet(graph.nodes),
-			edges: new vis.DataSet(graph.edges)
+		var network = new visLib.Network(graphEl, {
+			nodes: new VisDataSet(graph.nodes),
+			edges: new VisDataSet(graph.edges)
 		}, {
 			autoResize: true,
 			physics: false,
