@@ -711,6 +711,10 @@ function ensureQuestChainUi() {
 		+ ".aqw-chain-hint{color:#6b5560;font-size:0.84rem;line-height:1.45;}"
 		+ ".aqw-chain-legend{display:flex;flex-wrap:wrap;gap:10px;}"
 		+ ".aqw-chain-legend span{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;color:#6b5560;}"
+		+ ".aqw-chain-choices{display:flex;flex-direction:column;gap:8px;}"
+		+ ".aqw-chain-choice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}"
+		+ ".aqw-chain-choice label{font-size:0.8rem;font-weight:700;color:#58294b;}"
+		+ ".aqw-chain-choice select{min-width:220px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.75);color:#58294b;}"
 		+ ".aqw-chain-dot{width:10px;height:10px;display:inline-block;border-radius:50%;}"
 		+ ".aqw-chain-graph{min-height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
 		+ "@media (max-width: 980px){.aqw-chain-graph{min-height:460px;}}";
@@ -971,11 +975,44 @@ function getQuestChainNodeHref(data) {
 	return wikiUrl(data.slug);
 }
 
-function buildQuestChainGraph(tree) {
+function collectQuestChainChoices(tree) {
+	var choices = [];
+
+	function walkItem(node, pathKey) {
+		if (!node || !node.sources || !node.sources.length) {
+			return;
+		}
+		var itemKey = normalizeSlug(node.slug || normalize(node.name).replace(/\s+/g, "-")) || "item";
+		var nextPath = pathKey + "/" + itemKey;
+		if (node.sources.length > 1) {
+			choices.push({
+				id: nextPath,
+				label: node.name,
+				options: node.sources.map(function(source, index) {
+					return {
+						value: String(index),
+						label: (source.sourceType ? source.sourceType + ": " : "") + source.name
+					};
+				})
+			});
+		}
+		node.sources.forEach(function(source, index) {
+			(source.children || []).forEach(function(child) {
+				walkItem(child, nextPath + "/source-" + index);
+			});
+		});
+	}
+
+	walkItem(tree, "root");
+	return choices;
+}
+
+function buildQuestChainGraph(tree, selections) {
 	var nodes = [];
 	var edges = [];
 	var detailMap = new Map();
 	var idCounter = 0;
+	var choiceMap = selections || {};
 
 	function addNode(nodeDef, detail) {
 		nodes.push(nodeDef);
@@ -996,7 +1033,7 @@ function buildQuestChainGraph(tree) {
 		}, options || {}));
 	}
 
-	function walkItem(node, parentId) {
+	function walkItem(node, parentId, pathKey) {
 		var itemLabel = wrapQuestChainLabel(node.name, 20);
 		if (node.qty && String(node.qty) !== "1") {
 			itemLabel += "\nNeed " + node.qty;
@@ -1035,35 +1072,24 @@ function buildQuestChainGraph(tree) {
 			return itemId;
 		}
 
-		var sourceParentId = itemId;
+		var itemKey = normalizeSlug(node.slug || normalize(node.name).replace(/\s+/g, "-")) || "item";
+		var nextPath = pathKey + "/" + itemKey;
+		var sourceIndexes = node.sources.map(function(_, index) { return index; });
 		if (node.sources.length > 1) {
-			sourceParentId = addNode({
-				id: "or-" + (++idCounter),
-				label: "OR",
-				shape: "diamond",
-				size: 18,
-				font: { color: "#fff4de", face: "Verdana", size: 12, bold: true },
-				color: {
-					background: "#7b2426",
-					border: "#f1c29e",
-					highlight: { background: "#973032", border: "#ffe7b7" }
-				},
-				chosen: { node: false }
-			}, {
-				kind: "or",
-				name: "OR Path Split",
-				meta: ["Any one connected source branch works."]
-			});
-			addEdge(itemId, sourceParentId, { length: 80 });
+			var selectedIndex = parseInt(choiceMap[nextPath], 10);
+			if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= node.sources.length) {
+				selectedIndex = 0;
+			}
+			sourceIndexes = [selectedIndex];
 		}
 
-		node.sources.forEach(function(source) {
-			walkSource(source, sourceParentId);
+		sourceIndexes.forEach(function(index) {
+			walkSource(node.sources[index], itemId, nextPath + "/source-" + index);
 		});
 		return itemId;
 	}
 
-	function walkSource(source, parentId) {
+	function walkSource(source, parentId, pathKey) {
 		var sourceLabel = source.sourceType ? source.sourceType + "\n" : "";
 		sourceLabel += wrapQuestChainLabel(source.name, 22);
 		if (source.sourceType === "Quest") {
@@ -1096,11 +1122,11 @@ function buildQuestChainGraph(tree) {
 		});
 		addEdge(parentId, sourceId);
 		(source.children || []).forEach(function(child) {
-			walkItem(child, sourceId);
+			walkItem(child, sourceId, pathKey);
 		});
 	}
 
-	walkItem(tree, "");
+	walkItem(tree, "", "root");
 	return {
 		nodes: nodes,
 		edges: edges,
@@ -1213,6 +1239,35 @@ function sizeQuestChainGraphToContent(cy, graphEl) {
 	graphEl.style.height = Math.max(minHeight, desiredHeight) + "px";
 }
 
+function renderQuestChainChoiceControls(panel, choices, selections, onChange) {
+	var wrap = panel.querySelector(".aqw-chain-choices");
+	if (!wrap) {
+		return;
+	}
+	if (!choices.length) {
+		wrap.innerHTML = "";
+		wrap.hidden = true;
+		return;
+	}
+	wrap.hidden = false;
+	wrap.innerHTML = choices.map(function(choice, idx) {
+		var optionsHtml = choice.options.map(function(option) {
+			var selected = String(selections[choice.id] || "0") === option.value ? " selected" : "";
+			return "<option value='" + escapeHtml(option.value) + "'" + selected + ">" + escapeHtml(option.label) + "</option>";
+		}).join("");
+		return ""
+			+ "<div class='aqw-chain-choice'>"
+			+ "<label for='aqw-chain-choice-" + idx + "'>" + escapeHtml(choice.label) + "</label>"
+			+ "<select id='aqw-chain-choice-" + idx + "' data-choice-id='" + escapeHtml(choice.id) + "'>" + optionsHtml + "</select>"
+			+ "</div>";
+	}).join("");
+	Array.from(wrap.querySelectorAll("select[data-choice-id]")).forEach(function(select) {
+		select.addEventListener("change", function() {
+			onChange(select.getAttribute("data-choice-id"), select.value);
+		});
+	});
+}
+
 function ensureQuestChainPanel(button, item_name) {
 	var panel = document.getElementById("aqw-chain-panel");
 	if (!panel) {
@@ -1233,8 +1288,8 @@ function ensureQuestChainPanel(button, item_name) {
 			+ "<span><i class='aqw-chain-dot' style='background:#532743'></i>Target / required item</span>"
 			+ "<span><i class='aqw-chain-dot' style='background:#3e243d'></i>Quest step</span>"
 			+ "<span><i class='aqw-chain-dot' style='background:#2f2a47'></i>Merge shop</span>"
-			+ "<span><i class='aqw-chain-dot' style='background:#7b2426'></i>OR split</span>"
 			+ "</div>"
+			+ "<div class='aqw-chain-choices' hidden></div>"
 			+ "<div class='aqw-chain-graph'></div>"
 			+ "<div class='aqw-chain-hint'>Click an item, NPC, monster, quest, or shop node to open its wiki page in a new tab.</div>"
 			+ "</div>";
@@ -1253,10 +1308,10 @@ function ensureQuestChainPanel(button, item_name) {
 	return panel;
 }
 
-async function renderQuestChainInline(button, item_name, d) {
+async function renderQuestChainInline(button, item_name, d, forceOpen) {
 	ensureQuestChainUi();
 	var panel = ensureQuestChainPanel(button, item_name);
-	if (!panel.hidden && panel.dataset.itemSlug === String(d[0] || "")) {
+	if (!forceOpen && !panel.hidden && panel.dataset.itemSlug === String(d[0] || "")) {
 		panel.hidden = true;
 		button.textContent = "Quest Chain";
 		return;
@@ -1281,8 +1336,26 @@ async function renderQuestChainInline(button, item_name, d) {
 	await ensureQuestChainDataReady();
 	await ensureQuestChainAccountDataReady();
 	try {
-		var tree = await buildQuestChainTree(item_name, d, 1);
-		var graph = buildQuestChainGraph(tree);
+		var itemSlug = String(d[0] || "");
+		var tree = panel._questChainTree;
+		if (!tree || panel.dataset.itemSlug !== itemSlug) {
+			tree = await buildQuestChainTree(item_name, d, 1);
+			panel._questChainTree = tree;
+			panel._orSelections = {};
+		}
+		var choices = collectQuestChainChoices(tree);
+		var selections = panel._orSelections || {};
+		choices.forEach(function(choice) {
+			if (typeof selections[choice.id] === "undefined") {
+				selections[choice.id] = "0";
+			}
+		});
+		panel._orSelections = selections;
+		renderQuestChainChoiceControls(panel, choices, selections, function(choiceId, value) {
+			panel._orSelections[choiceId] = value;
+			renderQuestChainInline(button, item_name, d, true);
+		});
+		var graph = buildQuestChainGraph(tree, selections);
 		var graphEl = panel.querySelector(".aqw-chain-graph");
 		if (panel._cy) {
 			panel._cy.destroy();
