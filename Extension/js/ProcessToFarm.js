@@ -32,6 +32,7 @@ var _accountCountLookup = null;
 var _imageCache = new Map();
 var _imageVariantCache = new Map();
 var _questChainDataReady = null;
+var _questChainAccountDataReady = null;
 var _questRewardLookup = null;
 var _liveQuestBranchCache = new Map();
 var EMPTY_IMAGE_SRC = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
@@ -185,6 +186,29 @@ function getAccountCountLookup() {
 
 function getOwnedAmount(name) {
 	return getAccountCountLookup().get(normalize(name)) || 0;
+}
+
+function ensureQuestChainAccountDataReady() {
+	if (_accountItems.length || _accountType.length) {
+		return Promise.resolve();
+	}
+	if (_questChainAccountDataReady) {
+		return _questChainAccountDataReady;
+	}
+	_questChainAccountDataReady = new Promise(function(resolve) {
+		chrome.storage.local.get({
+			aqwitems: [],
+			aqwwhere: [],
+			aqwtype: []
+		}, function(result) {
+			_accountItems = (result.aqwitems || []).map(function(item) { return normalize(item); });
+			_accountWhere = result.aqwwhere || [];
+			_accountType = result.aqwtype || [];
+			_accountCountLookup = null;
+			resolve();
+		});
+	});
+	return _questChainAccountDataReady;
 }
 
 function buildMergeIngredientChip(ing) {
@@ -784,6 +808,14 @@ async function buildItemSourceBranches(item_name, d, ctx) {
 		}
 		return Promise.all(matches.map(async function(match) {
 			var meta = [];
+			var rewardQty = 1;
+			if (match.reward && match.reward.qty) {
+				var parsedRewardQty = parseInt(match.reward.qty, 10);
+				if (!isNaN(parsedRewardQty) && parsedRewardQty > 0) {
+					rewardQty = parsedRewardQty;
+				}
+			}
+			var requiredRuns = Math.max(1, Math.ceil((parseInt(ctx.requiredQty, 10) || 1) / rewardQty));
 			if (match.page.npc && match.page.npc.name) {
 				meta.push("NPC: " + match.page.npc.name);
 			}
@@ -793,12 +825,16 @@ async function buildItemSourceBranches(item_name, d, ctx) {
 			if (match.quest.requirements_note) {
 				meta.push("Requires: " + match.quest.requirements_note);
 			}
+			meta.push("Gives: " + rewardQty);
+			meta.push("Turn-ins needed: " + requiredRuns);
 			return {
 				kind: "source",
 				sourceType: "Quest",
 				name: match.quest.name || price[1] || "Quest Reward",
 				slug: (match.page.slug || price[2] || "").replace(/#.*$/, ""),
 				meta: meta,
+				rewardQty: rewardQty,
+				requiredRuns: requiredRuns,
 				children: await Promise.all(((match.quest.items_required) || []).map(function(req) {
 					return buildChainForRequirement(req, "", "", ctx);
 				}))
@@ -896,10 +932,12 @@ async function buildQuestChainTree(item_name, d, qty, ctx) {
 		slug: d[0] || "",
 		qty: itemQty,
 		tags: getItemTags(d, { includeRarity: true }),
+		owned: getOwnedAmount(item_name),
 		sources: await buildItemSourceBranches(item_name, d, {
 			path: nextPath,
 			counter: state.counter,
-			depth: state.depth
+			depth: state.depth,
+			requiredQty: itemQty
 		})
 	};
 }
@@ -959,9 +997,16 @@ function buildQuestChainGraph(tree) {
 	}
 
 	function walkItem(node, parentId) {
+		var itemLabel = wrapQuestChainLabel(node.name, 20);
+		if (node.qty && String(node.qty) !== "1") {
+			itemLabel += "\nNeed " + node.qty;
+		}
+		if (typeof node.owned === "number") {
+			itemLabel += "\nHave " + node.owned;
+		}
 		var itemId = addNode({
 			id: "item-" + (++idCounter),
-			label: wrapQuestChainLabel(node.name, 20) + (node.qty && String(node.qty) !== "1" ? "\nx" + node.qty : ""),
+			label: itemLabel,
 			shape: "box",
 			margin: 12,
 			font: { color: "#fff4de", face: "Verdana", size: 16, bold: true },
@@ -976,6 +1021,7 @@ function buildQuestChainGraph(tree) {
 			name: node.name,
 			slug: node.slug,
 			qty: node.qty,
+			owned: node.owned,
 			tags: node.tags || [],
 			cycle: !!node.cycle,
 			truncated: !!node.truncated,
@@ -1018,9 +1064,19 @@ function buildQuestChainGraph(tree) {
 	}
 
 	function walkSource(source, parentId) {
+		var sourceLabel = source.sourceType ? source.sourceType + "\n" : "";
+		sourceLabel += wrapQuestChainLabel(source.name, 22);
+		if (source.sourceType === "Quest") {
+			if (source.rewardQty) {
+				sourceLabel += "\nGives " + source.rewardQty;
+			}
+			if (source.requiredRuns) {
+				sourceLabel += "\nDo " + source.requiredRuns + "x";
+			}
+		}
 		var sourceId = addNode({
 			id: "source-" + (++idCounter),
-			label: (source.sourceType ? source.sourceType + "\n" : "") + wrapQuestChainLabel(source.name, 22),
+			label: sourceLabel,
 			shape: "box",
 			margin: 11,
 			font: { color: "#fff4de", face: "Verdana", size: 14, bold: true },
@@ -1223,6 +1279,7 @@ async function renderQuestChainInline(button, item_name, d) {
 	}
 
 	await ensureQuestChainDataReady();
+	await ensureQuestChainAccountDataReady();
 	try {
 		var tree = await buildQuestChainTree(item_name, d, 1);
 		var graph = buildQuestChainGraph(tree);
