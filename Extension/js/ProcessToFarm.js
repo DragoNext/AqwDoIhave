@@ -975,8 +975,9 @@ function getQuestChainNodeHref(data) {
 	return wikiUrl(data.slug);
 }
 
-function collectQuestChainChoices(tree) {
+function collectQuestChainChoices(tree, selections) {
 	var choices = [];
+	var choiceMap = selections || {};
 
 	function walkItem(node, pathKey) {
 		if (!node || !node.sources || !node.sources.length) {
@@ -996,7 +997,16 @@ function collectQuestChainChoices(tree) {
 				})
 			});
 		}
-		node.sources.forEach(function(source, index) {
+		var sourceIndexes = node.sources.map(function(_, index) { return index; });
+		if (node.sources.length > 1) {
+			var selectedIndex = parseInt(choiceMap[nextPath], 10);
+			if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= node.sources.length) {
+				selectedIndex = 0;
+			}
+			sourceIndexes = [selectedIndex];
+		}
+		sourceIndexes.forEach(function(index) {
+			var source = node.sources[index];
 			(source.children || []).forEach(function(child) {
 				walkItem(child, nextPath + "/source-" + index);
 			});
@@ -1343,8 +1353,8 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			panel._questChainTree = tree;
 			panel._orSelections = {};
 		}
-		var choices = collectQuestChainChoices(tree);
 		var selections = panel._orSelections || {};
+		var choices = collectQuestChainChoices(tree, selections);
 		choices.forEach(function(choice) {
 			if (typeof selections[choice.id] === "undefined") {
 				selections[choice.id] = "0";
