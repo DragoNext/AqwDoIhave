@@ -127,13 +127,14 @@ def _parse_section_meta(nodes: list[Tag], fallback_slug: str = "") -> dict:
         if not text:
             continue
 
-        if "Quest Locations:" in text:
-            location = _extract_locations_block(node, nodes[index + 1] if index + 1 < len(nodes) else None) or location
-        elif "Quest Location:" in text:
-            location = _extract_link_after_strong(node, "Quest Location:") or _extract_first_link(node) or location
+        next_node = nodes[index + 1] if index + 1 < len(nodes) else None
+        normalized = text.lower()
 
-        if "Quests Begun From:" in text:
-            npc = _extract_link_after_strong(node, "Quests Begun From:") or npc
+        if any(label in normalized for label in ("quest locations:", "quest location:", "locations:", "location:")):
+            location = _extract_labeled_link(node, next_node, pick="first") or location
+
+        if any(label in normalized for label in ("quests begun from:", "quest begun from:")):
+            npc = _extract_labeled_link(node, next_node, pick="last") or npc
 
         if "Requirements:" in text:
             note = _extract_requirement_text(node)
@@ -149,30 +150,13 @@ def _parse_section_meta(nodes: list[Tag], fallback_slug: str = "") -> dict:
     }
 
 
-def _extract_locations_block(node: Tag, next_node: Tag | None) -> dict:
+def _extract_labeled_link(node: Tag, next_node: Tag | None, pick: str = "first") -> dict:
     links = node.find_all("a", href=True)
     if not links and next_node and next_node.name == "ul":
         links = next_node.find_all("a", href=True)
     if not links:
         return {}
-    link = links[0]
-    return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
-
-
-def _extract_link_after_strong(node: Tag, label: str) -> dict:
-    for strong in node.find_all("strong"):
-        if label not in strong.get_text(" ", strip=True):
-            continue
-        link = strong.find_next("a", href=True)
-        if link:
-            return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
-    return {}
-
-
-def _extract_first_link(node: Tag) -> dict:
-    link = node.find("a", href=True)
-    if not link:
-        return {}
+    link = links[-1] if pick == "last" else links[0]
     return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
 
 
@@ -374,5 +358,26 @@ def _parse_rewards(container: Tag) -> dict:
                         "qty": qty,
                         "random": True,
                     })
+
+    for label in ("Items:", "Item:"):
+        items_header = _find_strong_section(container, label)
+        if not items_header:
+            continue
+        items_ul = items_header.find_next("ul")
+        if not items_ul:
+            continue
+        for li in items_ul.find_all("li", recursive=False):
+            link = li.find("a", href=True)
+            if not link:
+                continue
+            item_tags = parse_index_tag_images(li)
+            text = li.get_text(" ", strip=True)
+            qty = _extract_qty(text)
+            rewards["items"].append({
+                "name": link.get_text(strip=True),
+                "slug": link.get("href", ""),
+                "tags": item_tags,
+                "qty": qty,
+            })
 
     return rewards

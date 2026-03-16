@@ -547,6 +547,24 @@ function parseQuestSectionRewards(container) {
 	});
 }
 
+function extractSectionLink(node, pickLast) {
+	if (!node || !node.querySelectorAll) {
+		return null;
+	}
+	var links = Array.from(node.querySelectorAll("a[href]"));
+	if (!links.length && node.nextElementSibling && node.nextElementSibling.tagName === "UL") {
+		links = Array.from(node.nextElementSibling.querySelectorAll("a[href]"));
+	}
+	if (!links.length) {
+		return null;
+	}
+	var link = pickLast ? links[links.length - 1] : links[0];
+	return {
+		name: (link.textContent || "").trim(),
+		slug: link.getAttribute("href") || ""
+	};
+}
+
 function parseQuestSectionMeta(nodes) {
 	var location = null;
 	var npc = null;
@@ -554,36 +572,23 @@ function parseQuestSectionMeta(nodes) {
 
 	nodes.forEach(function(node) {
 		var text = (node.textContent || "").replace(/\s+/g, " ").trim();
+		var lowered = text.toLowerCase();
 		if (!text) {
 			return;
 		}
-		if (!location && /^Quest Location/i.test(text)) {
-			var locationLink = node.querySelector("a[href]");
-			if (locationLink) {
-				location = {
-					name: (locationLink.textContent || "").trim(),
-					slug: locationLink.getAttribute("href") || ""
-				};
-			}
+		if (!location && (
+			lowered.indexOf("quest locations:") !== -1 ||
+			lowered.indexOf("quest location:") !== -1 ||
+			lowered.indexOf("locations:") !== -1 ||
+			lowered.indexOf("location:") !== -1
+		)) {
+			location = extractSectionLink(node, false);
 		}
-		if (!location && /^Quest Locations/i.test(text)) {
-			var locationList = node.nextElementSibling && node.nextElementSibling.tagName === "UL" ? node.nextElementSibling : node;
-			var locationAnchor = locationList.querySelector("a[href]");
-			if (locationAnchor) {
-				location = {
-					name: (locationAnchor.textContent || "").trim(),
-					slug: locationAnchor.getAttribute("href") || ""
-				};
-			}
-		}
-		if (!npc && /^Quests Begun From/i.test(text)) {
-			var npcLink = node.querySelector("a[href]");
-			if (npcLink) {
-				npc = {
-					name: (npcLink.textContent || "").trim(),
-					slug: npcLink.getAttribute("href") || ""
-				};
-			}
+		if (!npc && (
+			lowered.indexOf("quests begun from:") !== -1 ||
+			lowered.indexOf("quest begun from:") !== -1
+		)) {
+			npc = extractSectionLink(node, true);
 		}
 		if (!requirementsNote && /^Requirements/i.test(text)) {
 			requirementsNote = text.replace(/^Requirements:\s*/i, "").trim();
@@ -742,7 +747,19 @@ async function findQuestMatchesForItemAsync(item_name, d) {
 			return normalize(reward.name) === normalizedName;
 		});
 	});
-	return filtered.length ? filtered : liveMatches;
+	if (filtered.length) {
+		return filtered;
+	}
+	var questName = normalize(price[1] || "");
+	if (questName) {
+		var byQuestName = liveMatches.filter(function(entry) {
+			return normalize(entry.quest && entry.quest.name || "") === questName;
+		});
+		if (byQuestName.length) {
+			return byQuestName;
+		}
+	}
+	return liveMatches.length === 1 ? liveMatches : [];
 }
 
 async function buildChainForRequirement(reqOrName, slug, qty, ctx) {
