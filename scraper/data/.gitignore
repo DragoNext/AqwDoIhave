@@ -1,0 +1,12 @@
+state*.json
+scrape_log.jsonl
+WikiItems.json
+WikiItems.json.bak
+merge_shops.json
+merge_shops.json.bak
+quests.json
+quests.json.bak
+locations.json
+locations.json.bak
+npcs.json
+npcs.json.bak

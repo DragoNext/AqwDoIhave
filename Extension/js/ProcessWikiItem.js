@@ -1,9 +1,24 @@
 // ProcessWikiItem.js
 
-// Get Json of Wiki Exclusion Suffixes 
-var wiki_exclude_suffixes = getJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json"))
-var collection_chests = getJson(chrome.runtime.getURL("data/collection_chests.json"))["chests"]
-var items_json = getJson(chrome.runtime.getURL("data/WikiItems.json"))
+// Async data loading — no longer blocks the UI thread
+var wiki_exclude_suffixes;
+var collection_chests;
+var items_json;
+
+var dataReady = (async function() {
+	async function fetchJson(url) {
+		var resp = await fetch(url);
+		return resp.json();
+	}
+	var results = await Promise.all([
+		fetchJson(chrome.runtime.getURL("data/wiki_exclude_suffixes.json")),
+		fetchJson(chrome.runtime.getURL("data/collection_chests.json")),
+		fetchJson(chrome.runtime.getURL("data/WikiItems.json"))
+	]);
+	wiki_exclude_suffixes = results[0];
+	collection_chests = results[1]["chests"];
+	items_json = results[2];
+})();
 
 // WIP stuff 
 
@@ -189,10 +204,10 @@ async function ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, T
 //
 
 
-function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster) {
-	var accountAmount = parseInt(Type[Items.indexOf(nodeText)][1] )
-	var originalAmountCount = document.createElement("span") 
-	var accountAmountCount = document.createElement("span") 
+function processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQuest, isMonster) {
+	var accountAmount = parseInt(Type[itemIdx][1])
+	var originalAmountCount = document.createElement("span")
+	var accountAmountCount = document.createElement("span")
 	
 	if (isMerge || isMonster) {
 		var count_node = nodeList[arrayOffset+x].nextSibling
@@ -235,12 +250,12 @@ function processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge
 	
 }
 
-async function addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList, isMerge) {
-	// where_icon 
+async function addLocationIcon(nodeList, itemIdx, arrayOffset, x, isList, isMerge) {
+	// where_icon
 	let where_icon = document.createElement("a");
-	
-	// Adds icons of where is located 	
-	if (Where[Items.indexOf(nodeText)] == "Bank") {
+
+	// Adds icons of where is located
+	if (Where[itemIdx] == "Bank") {
 		where_icon.innerHTML = " <img title='In Bank' style='height:20px' src='"+bank_icon+"'></img>"
 		if (isList) {
 			nodeList[arrayOffset+x].parentNode.appendChild(where_icon, nodeList[arrayOffset+x])
@@ -269,66 +284,57 @@ async function addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList
 
 
 
-async function ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) {
-	// getting text of item + removing not needed text (dosen't compare to inv) 
-	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("’","'").trim();
-	
-	
-	// Use Wiki Excluded Suffixes json to remove unused suffixes 
+async function ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) {
+	// getting text of item + removing not needed text (dosen't compare to inv)
+	let nodeText = nodeList[arrayOffset+x].innerHTML.replace("'","'").trim();
+
+	// Use Wiki Excluded Suffixes json to remove unused suffixes
 	for (var i = 0; i < wiki_exclude_suffixes["Excluded"].length; i++) {
 		nodeText = nodeText.replace(wiki_exclude_suffixes["Excluded"][i],"")
 	}
 	nodeText = nodeText.toLowerCase()
-	
-	
-	
-	
-	// link of item /item-name 
+
+	// link of item /item-name
 	let nodeLink = nodeList[arrayOffset+x].href
-	
-	// [Edge Case] is rep if the link is just a link to /X-faction not a item 
-	let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking 
-	
-	
-	if (isRep) { 
-		if (Items.includes(nodeText)) {
-			nodeText = nodeText
+
+	// [Edge Case] is rep if the link is just a link to /X-faction not a item
+	let isRep = !nodeLink.includes("-faction") // Skip Ranks in merge shop from checking
+
+	if (isRep) {
+		var itemIdx = ItemsMap.get(nodeText);
+		if (itemIdx !== undefined) {
 			nodeList[arrayOffset+x].style = "font-weight: bold;color:green;"
 			nodeList[arrayOffset+x].classList.add("Acquired")
-			if (Type[Items.indexOf(nodeText)].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
-				// gets amount from inventory 
-				var RescourceCount = processRescourceItem(Items, nodeText, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
+			if (Type[itemIdx].length == 2 && window.location.href !== "http://aqwwiki.wikidot.com/misc-items") {
+				// gets amount from inventory
+				var RescourceCount = processRescourceItem(itemIdx, nodeList, arrayOffset, x, isMerge, isQuest, isMonster);
 			} else {
-				var RescourceCount = false 
+				var RescourceCount = false
 			}
-			
-			// Adds icons of where is located 	
-			addLocationIcon(nodeList, nodeText, Items, arrayOffset, x, isList, isMerge)
-			
-			
-			
+
+			// Adds icons of where is located
+			addLocationIcon(nodeList, itemIdx, arrayOffset, x, isList, isMerge)
+
 			if (RescourceCount !== false){
-				var Separator = document.createElement("b") 
+				var Separator = document.createElement("b")
 				Separator.innerHTML = "/"
 				if (RescourceCount[0].innerHTML == " "){
 					RescourceCount[0].innerHTML = " x1"
 				}
-				
+
 				if (isMerge) {
-					
 					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[1], nodeList[arrayOffset+x].nextSibling)
 					nodeList[arrayOffset+x].parentNode.insertBefore(Separator, nodeList[arrayOffset+x].nextSibling)
 					nodeList[arrayOffset+x].parentNode.insertBefore(RescourceCount[0], nodeList[arrayOffset+x].nextSibling)
-				} 
+				}
 				else{
 					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[0])
 					nodeList[arrayOffset+x].parentNode.appendChild(Separator)
 					nodeList[arrayOffset+x].parentNode.appendChild(RescourceCount[1])
 				}
 			}
-			
-			
-			found += 1 //Count items found 
+
+			found += 1 //Count items found
 		}
 	}
 };

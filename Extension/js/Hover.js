@@ -12,10 +12,11 @@ jQuery.noConflict();
     var mouseHover = false;
     var controller = null;
     var timeout = null;
+    var imageCache = new Map();
 
-    $("body").on("mouseover", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a", function() {
+    $("body").on("mouseover", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a, #table-content a", function() {
         hovered(this.href);
-    }).on("mouseout", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a", function() {
+    }).on("mouseout", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a, #table-content a", function() {
         unhovered();
     });
 
@@ -58,11 +59,19 @@ jQuery.noConflict();
 
     async function wikimg(url, signal) {
         if (!url || !url.startsWith("http://aqwwiki.wikidot.com/")) return;
+        if (imageCache.has(url)) return imageCache.get(url);
+        var result = await _wikimgFetch(url, signal);
+        if (result) imageCache.set(url, result);
+        return result;
+    }
+
+    async function _wikimgFetch(url, signal) {
+        var fetchUrl = url;
         if (window.location.hostname !== "aqwwiki.wikidot.com") {
-            url = "https://api.codetabs.com/v1/proxy?quest=" + url;
+            fetchUrl = "https://api.codetabs.com/v1/proxy?quest=" + url;
         }
         try {
-            var doc = await fetchParse(url, signal);
+            var doc = await fetchParse(fetchUrl, signal);
         } catch {
             return;
         }
@@ -140,4 +149,7 @@ jQuery.noConflict();
             }
         }, 25);
     }
+
+    // Expose wikimg globally so other pages (tofarm) can fetch item images
+    window._wikimg = wikimg;
 })(jQuery);

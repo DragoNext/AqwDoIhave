@@ -1,95 +1,893 @@
 <!DOCTYPE html>
-<html lang="en" style="--bs-light: #efdfc2;--bs-light-rgb: 239,223,194;--bs-body-bg: #efdfc2;">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Untitled</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/animate.min.css">
-    <link rel="stylesheet" href="assets/css/Navbar-Centered-Brand-Dark-icons.css">
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AqwDoIHave Planner</title>
+    <style>
+        :root {
+            --bg: #efdfc2;
+            --bg-soft: #5b2c48;
+            --panel: #653452;
+            --panel-soft: #653452;
+            --border: rgba(60, 24, 50, 0.18);
+            --text: #f2eadf;
+            --muted: #eadcc8;
+            --accent: #9b4dca;
+            --good: #43c17b;
+            --warn: #f0b35a;
+            --bad: #de5b6d;
+            --item-grid-min: 170px;
+            --group-grid-min: 220px;
+        }
 
-<body class="text-light flex-grow-1 flex-shrink-0 flex-fill" style="--bs-primary: #3f0b2c;--bs-primary-rgb: 63,11,44;--bs-light: #efdfc2;--bs-light-rgb: 239,223,194;">
-    <nav class="navbar navbar-dark navbar-expand-md bg-primary bg-gradient py-3" data-bss-hover-animate="bounce" style="background: #3c7bc3;">
-        <div class="container"><span>AqwDoIHave {To Farm};</span><a class="navbar-brand d-flex align-items-center" href="#"></a>
-            <div class="collapse navbar-collapse flex-grow-0 order-md-first" id="navcol-6">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"></li>
-                    <li class="nav-item"></li>
-                </ul>
-            </div>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #efdfc2;
+            color: #3b2230;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px 12px;
+            border-bottom: 1px solid rgba(255, 231, 185, 0.12);
+            background: #441832;
+        }
+
+        .top-bar-left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .brand-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #6eb1f0;
+            margin-right: 4px;
+        }
+
+        .tab-link {
+            border: 1px solid transparent;
+            border-radius: 2px;
+            background: transparent;
+            color: #d9c7d3;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 4px 2px;
+            text-decoration: none;
+            transition: 120ms ease;
+        }
+
+        .tab-link:hover,
+        .tab-link.active {
+            border-color: transparent;
+            background: transparent;
+            color: #fff4de;
+        }
+
+        .top-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #d9c7d3;
+            font-size: 0.9rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            border-bottom: 1px solid rgba(255, 231, 185, 0.12);
+            background: #5b2c48;
+        }
+
+        .filter-left,
+        .filter-right {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 231, 185, 0.1);
+            color: #e7d9cc;
+            font-size: 0.9rem;
+        }
+
+        .filter-pill[hidden],
+        .inbank-only-filter[hidden] {
+            display: none !important;
+        }
+
+        .filter-pill input {
+            accent-color: var(--accent);
+        }
+
+        .filter-pill img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+
+        .separator {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 231, 185, 0.16);
+        }
+
+        .location-filter,
+        .grid-size-select,
+        .search-input {
+            border: 1px solid rgba(255, 231, 185, 0.12);
+            border-radius: 2px;
+            background: rgba(68, 24, 50, 0.26);
+            color: #f3ebdf;
+            padding: 8px 10px;
+        }
+
+        .search-input::placeholder {
+            color: #d7c4cf;
+        }
+
+        .search-input {
+            min-width: 220px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px 24px 40px;
+            background: #efdfc2;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--item-grid-min), 1fr));
+            gap: 14px;
+        }
+
+        .item-card,
+        .group-card,
+        .completed-section {
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            border-radius: 3px;
+            box-shadow: none;
+            color: #f2eadf;
+        }
+
+        .item-card {
+            overflow: hidden;
+            cursor: pointer;
+            transition: 140ms ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 231, 185, 0.22);
+        }
+
+        .card-img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            background: #1f1c28;
+            padding: 12px;
+            transition: opacity 140ms ease;
+        }
+
+        .card-image-wrap {
+            position: relative;
+            padding: 12px 12px 0;
+        }
+
+        .card-image-wrap .card-img {
+            display: block;
+            width: 100%;
+        }
+
+        .card-tag-stack {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
+        .card-tag-icon {
+            width: 22px;
+            height: 22px;
+            box-sizing: border-box;
+            padding: 2px;
+            object-fit: contain;
+            background: rgba(24, 14, 24, 0.88);
+            border: 1px solid rgba(255, 231, 185, 0.18);
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+        }
+
+        .card-tag-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 20px;
+            padding: 2px 6px;
+            border: 1px solid rgba(255, 231, 185, 0.18);
+            background: rgba(24, 14, 24, 0.88);
+            color: #f3ebdf;
+            font-size: 0.64rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .card-tag-label.rare {
+            border-color: rgba(214, 172, 92, 0.42);
+            color: #f2d48a;
+        }
+
+        .card-tag-label.pseudo-rare {
+            border-color: rgba(210, 171, 223, 0.34);
+            color: #ead3f3;
+        }
+
+        .card-body {
+            padding: 12px;
+        }
+
+        .card-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .card-badge,
+        .planner-chip,
+        .source-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 2px;
+            padding: 4px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .card-badge {
+            margin: 10px 10px 0;
+            color: #fff;
+            background: rgba(106, 48, 82, 0.9);
+        }
+
+        .card-badge.bank {
+            background: rgba(122, 89, 45, 0.9);
+        }
+
+        .card-badge.owned {
+            background: rgba(52, 110, 75, 0.9);
+        }
+
+        .card-badge.needed {
+            background: rgba(106, 48, 82, 0.9);
+        }
+
+        .card-tags,
+        .group-meta,
+        .planner-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .planner-chip {
+            background: rgba(255, 255, 255, 0.08);
+            color: #eadcc8;
+        }
+
+        .planner-chip.source-chip {
+            justify-content: flex-start;
+            width: fit-content;
+        }
+
+        a.planner-chip {
+            text-decoration: none;
+        }
+
+        a.planner-chip:hover {
+            text-decoration: underline;
+        }
+
+        .planner-chip img {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+        }
+
+        .card-source-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+
+        .group-card {
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .group-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .group-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+        }
+
+        .group-title a {
+            color: #fff4de;
+            text-decoration: none;
+        }
+
+        .group-title a:hover {
+            text-decoration: underline;
+        }
+
+        .group-progress {
+            min-width: 210px;
+        }
+
+        .progress-bar-wrap {
+            width: 100%;
+            height: 12px;
+            border-radius: 2px;
+            overflow: hidden;
+            background: rgba(255, 231, 185, 0.12);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #9b4dca;
+        }
+
+        .progress-text {
+            margin-top: 6px;
+            font-size: 0.82rem;
+            color: #eadcc8;
+            text-align: right;
+        }
+
+        .group-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .group-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--group-grid-min), 1fr));
+            gap: 12px;
+        }
+
+        .owned-toggle {
+            background: none;
+            border: none;
+            color: var(--accent-2);
+            cursor: pointer;
+            font-weight: 700;
+            padding: 0;
+        }
+
+        .owned-collapsed {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .owned-collapsed.active {
+            display: block;
+        }
+
+        .subquest-section {
+            border-top: 1px solid rgba(255, 231, 185, 0.12);
+            padding-top: 12px;
+        }
+
+        .subquest-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .subquest-desc,
+        .req-sub,
+        .empty-state {
+            color: #eadcc8;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .req-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .completed-section {
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .completed-summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .completed-summary-card {
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .completed-summary-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f2eadf;
+        }
+
+        .completed-summary-main {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .summary-pie {
+            --pie-color: #d1a44c;
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            flex: 0 0 74px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--pie-color) 0 var(--pie-pct), rgba(255, 231, 185, 0.16) var(--pie-pct) 100%);
+        }
+
+        .summary-pie.ac {
+            --pie-color: #b56bd2;
+        }
+
+        .summary-pie.ac-seasonal {
+            --pie-color: #cc6f8f;
+        }
+
+        .summary-pie-center {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f2eadf;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .completed-summary-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #eadcc8;
+        }
+
+        .completed-summary-primary {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: #f2eadf;
+        }
+
+        .completed-summary-secondary,
+        .completed-summary-total {
+            font-size: 0.84rem;
+        }
+
+        .completed-section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 12px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .pagination-controls button,
+        .modal-wiki-btn,
+        .copy-icon {
+            border: 1px solid rgba(255, 231, 185, 0.12);
+            border-radius: 2px;
+            background: #5b2c48;
+            color: #f2eadf;
+            cursor: pointer;
+            padding: 7px 10px;
+            text-decoration: none;
+        }
+
+        .pagination-controls button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: #5b2c48;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .modal-overlay {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            inset: 0;
+            position: fixed;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 24px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: min(980px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.12);
+            border-radius: 3px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            color: #f2eadf;
+        }
+
+        .modal-header,
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 231, 185, 0.12);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(255, 231, 185, 0.12);
+            border-bottom: none;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.4rem;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 24px;
+            padding: 24px 20px;
+        }
+
+        .modal-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            background: #151524;
+            border-radius: 2px;
+            padding: 16px;
+            transition: opacity 140ms ease;
+        }
+
+        .planner-card-image[data-image-state="loading"],
+        .modal-image[data-image-state="loading"] {
+            background-image: linear-gradient(90deg, rgba(255, 231, 185, 0.04) 0%, rgba(255, 231, 185, 0.15) 50%, rgba(255, 231, 185, 0.04) 100%);
+            background-size: 200% 100%;
+            animation: image-skeleton 1.15s linear infinite;
+        }
+
+        .planner-card-image[data-image-state="loaded"],
+        .modal-image[data-image-state="loaded"] {
+            animation: none;
+            background-image: none;
+        }
+
+        .planner-card-image[data-image-state="missing"],
+        .modal-image[data-image-state="missing"] {
+            animation: none;
+            background-image: none;
+            opacity: 1;
+        }
+
+        @keyframes image-skeleton {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-label {
+            display: block;
+            color: #eadcc8;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .modal-value {
+            line-height: 1.5;
+            color: #f2eadf;
+        }
+
+        .modal-location-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-location-entry:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-value a,
+        .req-sub a,
+        .modal-footer a {
+            color: #f5e8c9;
+            text-decoration: underline;
+        }
+
+        .modal-value code,
+        .join-cmd code {
+            color: #fff4de;
+        }
+
+        #modal-slug {
+            color: #eadcc8;
+        }
+
+        .join-cmd {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0;
+            border-radius: 2px;
+            background: rgba(68, 24, 50, 0.28);
+            padding: 6px 10px;
+        }
+
+        .req-sub {
+            margin-top: 2px;
+        }
+
+        .copy-icon.copied {
+            border-color: rgba(67, 193, 123, 0.4);
+            color: #9ef0c0;
+        }
+
+        .hidden-compat {
+            display: none;
+        }
+
+        @media (max-width: 860px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar,
+            .filter-bar,
+            .tab-content {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span class="brand-label">AqwDoIHave</span>
+            <a href="#" class="tab-link active" data-tab="todrop">{To Drop};</a>
+            <a href="#" class="tab-link" data-tab="tomerge">{To Merge};</a>
+            <a href="#" class="tab-link" data-tab="toquest">{To Quest};</a>
+            <a href="#" class="tab-link" data-tab="inbank">{In Bank};</a>
+            <a href="#" class="tab-link" data-tab="completed">{Completed};</a>
         </div>
-    </nav><span>Text</span>
-    <nav class="navbar navbar-light navbar-expand-md d-lg-flex py-3" style="color: rgb(81,63,30);--bs-body-bg: #716550;background: linear-gradient(#5b2c48 84%, #441832 100%), #5b2c48;padding: 0px 0px;">
-        <div class="container">
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Normal Items" id="Filter_NormalItem" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Normal Items" src="http://aqwwiki.wdfiles.com/local--files/image-tags/Sword_Table.png" style="width: 25px;transform: translateY(-23px);">&nbsp;</span>
-		
-		
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Ac Item" id="Filter_AcItem"class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Ac Item" src="https://aqwwiki.wdfiles.com/local--files/image-tags/aclarge.png" style="width: 40px;transform: translateY(-23px);">&nbsp;</span><span class="text-end" style="width: 70px;height: 33px;"><input id="Filter_LegendItem" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img src="https://aqwwiki.wdfiles.com/local--files/image-tags/legendlarge.png" style="width: 40px;transform: translateY(-23px);">&nbsp;</span>
-		
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Seasonal Items" id="Filter_SeasonalItem" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Seasonal Items" src="https://aqwwiki.wdfiles.com/local--files/image-tags/seasonallarge.png" style="width: 40px;transform: translateY(-23px);">&nbsp;</span>
-		
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Monster Drop Items" id="Filter_MonsterDrop" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Monster Drop Items" id="bossdrop" src="" style="width: 40px;transform: translateY(-23px);">&nbsp;</span>
-		
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Merge Items" id="Filter_MergeDrop" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Merge Items" id="mergeshopdrop" src="" style="width: 40px;transform: translateY(-23px);">&nbsp;</span>
-		
-		<span class="text-end" style="width: 70px;height: 33px;"><input title="Quest Drop" id="Filter_QuestDrop" class="d-flex d-lg-flex justify-content-lg-end align-items-lg-center" type="checkbox" style="width: 20px;height: 20px;transform: translateY(0px) skew(0deg);" checked=""><img title="Quest Drop" id="questdrop" src="" style="width: 40px;transform: translateY(-23px);">&nbsp;</span>
-		
-		
-		<a class="navbar-brand d-flex align-items-center" href="#"></a>
-            <div class="collapse navbar-collapse flex-grow-0 order-md-first" id="navcol-4">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"></li>
-                    <li class="nav-item"></li>
-                </ul>
-                <div class="d-md-none my-2"><button class="btn btn-light me-2" type="button">Button</button><button class="btn btn-primary" type="button">Button</button></div>
-            </div>
-            <div class="d-none d-md-block"></div>
-        </div>
-    </nav>
-    <div class="container-fluid d-inline-block" style="overflow: hidden;display: none;padding-bottom: 0px;margin-bottom: -209px;--bs-info: rgba(191,191,191,0);--bs-info-rgb: 191,191,191;">
-        <nav class="navbar navbar-light navbar-expand-md py-3">
-            <div class="container"><label class="form-label fs-1 fw-semibold text-center text-primary" id="av-items">Avaliable Items: {0}</label><a class="navbar-brand d-flex align-items-center" href="#"></a><label id="ac-items" class="form-label fs-1 fw-semibold text-primary">Account Items: {0}</label>
-                <div class="collapse navbar-collapse flex-grow-0 order-md-first" id="navcol-1">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item"></li>
-                        <li class="nav-item"></li>
-                    </ul>
-                    <div class="d-md-none my-2"><button class="btn btn-light me-2" type="button">Button</button><button class="btn btn-primary" type="button">Button</button></div>
-                </div>
-                <div class="d-none d-md-block"></div>
-            </div>
-        </nav>
-        <div class="table-responsive font-monospace fs-6 fw-semibold text-start d-flex flex-grow-0 flex-shrink-1 flex-nowrap" style="margin: 0px 0px 0px;margin-top: 58px;overflow: visible;display: flex;overflow-x: clip;padding-left: 0px;transform: perspective(0px);background: var(--bs-info);border: 5px none rgb(41,41,41);--bs-body-bg: #572844;padding-bottom: 368px;margin-bottom: -426px;padding-right: 0px;margin-right: 324px;overflow-y: clip;--bs-info: rgba(13,202,240,0);--bs-info-rgb: 13,202,240;height: 400px;max-height: -2px;">
-            <table class="table table-striped table-sm table-bordered">
-                <thead class="text-primary text-bg-info bg-primary">
-                    <tr style="--bs-dark: #17324e;--bs-dark-rgb: 23,50,78;--bs-body-color: #396a9c;"></tr>
-                </thead>
-                <tbody class="text-white-50 text-bg-info bg-primary">
-                    <tr class="text-white" style="padding-bottom: 4px;">
-                        <td class="text-white" style="width: 33.33%;--bs-body-bg: #511f3c;">Item Name</td>
-                        <td class="text-white" style="width: 33.33%;">Get From</td>
-                        <td class="text-white" style="width: 33.33%;">Tags</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="table-responsive font-monospace text-nowrap fs-6 fw-semibold text-start d-flex flex-grow-0 flex-nowrap" style="margin-top: 58px;overflow: scroll;display: flex;overflow-x: clip;padding-right: 0px;padding-left: 0px;margin-bottom: 251px;margin-right: 308px;height: 700px;transform: perspective(0px);background: rgba(190,190,190,0.16);border: 5px none rgb(41,41,41);padding-bottom: 0px;">
-            <table style="table-layout: fixed" class="table table-striped table-sm table-bordered">
-                <thead>
-                    <tr style="--bs-dark: #17324e;--bs-dark-rgb: 23,50,78;--bs-body-color: #396a9c;"></tr>
-                </thead>
-                <tbody id="table-content">
-                  
-                </tbody>
-            </table>
+        <div class="top-stats">
+            <span id="stats-left">Loaded Account Items: 0</span>
+            <span id="stats-right">Visible Results: 0</span>
         </div>
     </div>
-    <div class="text-start"></div>
-    <div class="btn-group" role="group"></div>
+
+    <div class="filter-bar">
+        <div class="filter-left">
+            <label class="filter-pill">
+                <input id="Filter_NormalItem" type="checkbox" checked>
+                <img src="http://aqwwiki.wdfiles.com/local--files/image-tags/Sword_Table.png" alt="Normal">
+                <span>Normal</span>
+            </label>
+            <label class="filter-pill">
+                <input id="Filter_AcItem" type="checkbox" checked>
+                <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/aclarge.png" alt="AC">
+                <span>AC</span>
+            </label>
+            <label class="filter-pill">
+                <input id="Filter_LegendItem" type="checkbox" checked>
+                <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/legendlarge.png" alt="Legend">
+                <span>Legend</span>
+            </label>
+            <label class="filter-pill">
+                <input id="Filter_SeasonalItem" type="checkbox" checked>
+                <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/seasonallarge.png" alt="Seasonal">
+                <span>Seasonal</span>
+            </label>
+            <label class="filter-pill inbank-only-filter" hidden>
+                <input id="Filter_RareItem" type="checkbox">
+                <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/rarelarge.png" alt="Rare">
+                <span>Rare</span>
+            </label>
+            <label class="filter-pill inbank-only-filter" hidden>
+                <input id="Filter_PseudoRareItem" type="checkbox">
+                <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/pseudolarge.png" alt="Pseudo Rare">
+                <span>Pseudo Rare</span>
+            </label>
+            <span class="separator"></span>
+            <select id="location-filter" class="location-filter" hidden>
+                <option value="all">All</option>
+                <option value="Inv">Inventory</option>
+                <option value="Bank">Bank</option>
+            </select>
+        </div>
+        <div class="filter-right">
+            <select id="grid-size-select" class="grid-size-select">
+                <option value="compact">Compact Grid</option>
+                <option value="medium" selected>Medium Grid</option>
+                <option value="large">Large Grid</option>
+            </select>
+            <input id="search-input" class="search-input" type="search" placeholder="Search items, shops, quests, NPCs...">
+        </div>
+    </div>
+
+    <div id="tab-todrop" class="tab-content active">
+        <div id="todrop-grid" class="item-grid"></div>
+        <div id="todrop-pagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="tab-tomerge" class="tab-content">
+        <div id="tomerge-wrap"></div>
+        <div id="tomerge-pagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="tab-toquest" class="tab-content">
+        <div id="toquest-wrap"></div>
+        <div id="toquest-pagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="tab-inbank" class="tab-content">
+        <div id="inbank-grid" class="item-grid"></div>
+        <div id="inbank-pagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="tab-completed" class="tab-content">
+        <div id="completed-wrap"></div>
+    </div>
+
+    <div class="hidden-compat">
+        <div id="table-content"></div>
+        <div id="pagination-controls"></div>
+    </div>
+
+    <div id="item-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div id="modal-title" class="group-title">Item</div>
+                    <div id="modal-tags" class="planner-chip-row"></div>
+                </div>
+                <button id="modal-close" class="modal-close" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-left">
+                    <img id="modal-image" class="modal-image" alt="Item image">
+                </div>
+                <div class="modal-right">
+                    <div id="modal-description" class="modal-section"></div>
+                    <div id="modal-price" class="modal-section"></div>
+                    <div id="modal-sellback" class="modal-section"></div>
+                    <div id="modal-location" class="modal-section"></div>
+                    <div id="modal-requirements" class="modal-section"></div>
+                    <div id="modal-flags" class="modal-section"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="modal-slug" class="req-sub"></span>
+                <a id="modal-wiki-link" class="modal-wiki-btn" href="#" target="_blank" rel="noreferrer">Open Wiki</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/ProcessToFarm.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/Hover.js"></script>
 </body>
-<script src="js/ProcessToFarm.js">
-</script>
 </html>

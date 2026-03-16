@@ -33,82 +33,22 @@ function resetFilterMerge() {
 
 
 function TagFilterMerge(normal,ac,legend) {
-	var hideNormal = !normal 
-	var hideAc = !ac 
-	var hideLegend = !legend 
-	
 	var elementList = document.querySelectorAll("tr")
-	
-	for (var x = 0; x < elementList.length; x++) { 
+
+	for (var x = 0; x < elementList.length; x++) {
 		if (elementList[x].querySelectorAll("td").length == 3) {
-			
-			checkAc = elementList[x].innerHTML.includes("acsmall.png")
-			checkLegend = elementList[x].innerHTML.includes("legendsmall.png")
-			checkNormal = !checkAc & !checkLegend
-			
-			//alert(checkAc+"  "+checkLegend+"  "+checkNormal+"\n"+hideAc+"  "+hideLegend+"  "+hideNormal+"\n")
-			
+			var checkAc = elementList[x].innerHTML.includes("acsmall.png")
+			var checkLegend = elementList[x].innerHTML.includes("legendsmall.png")
+			var checkNormal = !checkAc && !checkLegend
 
-			if (hideLegend == false & hideAc == false & hideNormal == true) {
-				if (checkNormal == true) {
-					elementList[x].hidden = true 
-				} 
-				if (checkAc == true & checkLegend == false) {
-					elementList[x].hidden = true 
-				} 
-				if (checkAc == false & checkLegend == true) {
-					elementList[x].hidden = true 
-				} 
-				
-			} else if (hideLegend == false & hideAc == true & hideNormal == true) {
-				if (checkLegend == false) {
-					elementList[x].hidden = true 
-				}
-			} else if (hideLegend == true & hideAc == true & hideNormal == true) {
-
-			} else if (hideLegend == true & hideAc == false & hideNormal == true) {
-				if (!checkAc == true) {
-					elementList[x].hidden = true 
-				}
-			} else if (hideLegend == false & hideAc == true & hideNormal == false) {
-				if (checkAc == true | checkNormal == true) {
-					elementList[x].hidden = true 
-				}
-			} else if (hideLegend == true & hideAc == false & hideNormal == false) {
-				if (!checkAc == true | checkLegend == true) {
-					elementList[x].hidden = true 
-				}
-				
-			} else if (hideLegend == true & hideAc == true & hideNormal == false) {
-				if (checkAc == true | checkLegend == true) {
-					elementList[x].hidden = true 
-				}
-				
-			} 
-			
-			
+			elementList[x].hidden = shouldHideByFilter(normal, ac, legend, checkNormal, checkAc, checkLegend)
 		}
 	}
-	
 }
 
 
 
 
-// Wait and Process acount data
-function waitForTableToLoad(){
-		if(typeof document.getElementById("listinvFull").innerHTML.length !== "undefined"){
-			if(document.getElementById("listinvFull").innerHTML.length >= 2000){
-				processAcount();
-			} 
-			else {
-				setTimeout(waitForTableToLoad, 250);
-			}	
-		} 
-		else {
-			setTimeout(waitForTableToLoad, 250);
-	}
-}
 
 function goto_ToFarm() {
 	document.location.href = chrome.runtime.getURL("tofarm.html")
@@ -184,40 +124,38 @@ function setFilterLegend() {
 
 
 
-function processAcount() {
-	
-	var data = ProcessAccountItems();
-	
-	// Save Items to local Storage 
+async function processAcount() {
+	var jsonData = await fetchInventoryData();
+	var data = ProcessAccountItems(jsonData);
+
+	// Save Items to local Storage
 	chrome.storage.local.set({"aqwitems": data[0]}, function() {});
 	chrome.storage.local.set({"aqwwhere": data[1]}, function() {});
 	chrome.storage.local.set({"aqwtype": data[2]}, function() {});
 	chrome.storage.local.set({"aqwbuy": data[3]}, function() {});
 	chrome.storage.local.set({"aqwcategory": data[4]}, function() {});
-	
+
 	chrome.storage.local.get({background: false}, function(result){
 		if (result.background !== false && document.location.href == "https://account.aq.com/AQW/Inventory") {
-			if (result.background.includes("http://aqwwiki.wikidot.com/")) { // Redirect Only Aqw Wiki Pages  
+			if (result.background.includes("http://aqwwiki.wikidot.com/")) { // Redirect Only Aqw Wiki Pages
 				document.location.href = result.background
 			}
 			chrome.storage.local.set({"background": false}, function() {});
-		} 
-		
+		}
+
 	});
-	
+
 }
 
 
 
 
-// Account Page Handling 
+// Account Page Handling
 if (window.location.href == "https://account.aq.com/AQW/Inventory") {
-	// page load 
-	document.addEventListener('DOMContentLoaded', function(event) {
-		
-	// Wait function for table load 
-	waitForTableToLoad()
-	
+	// page load — fetch inventory from JSON API
+	document.addEventListener('DOMContentLoaded', async function(event) {
+		await accountDataReady;
+		await processAcount();
 	})
 	
 	
@@ -233,9 +171,11 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	});
 	
 	addCss(chrome.runtime.getURL("themes/progressbar.css"));
-	// page load 
-	document.addEventListener('DOMContentLoaded', function(event) {
-	
+	// page load
+	document.addEventListener('DOMContentLoaded', async function(event) {
+	await dataReady;
+	await accountDataReady;
+
 	// Removes width bar [Not even usefull]
 	var Body = document.getElementsByTagName('body')[0]
 	Body.style = Body.style +";overflow-x: hidden;";
@@ -407,35 +347,30 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	// Get items and process it 
 	chrome.storage.local.get({aqwitems: []}, function(result){
 			var Items = result.aqwitems;
-			
+
+			// Build a Map for O(1) lookups instead of O(n) Items.includes/indexOf scans
+			var ItemsMap = new Map();
+			for (var i = 0; i < Items.length; i++) {
+				if (!ItemsMap.has(Items[i])) {
+					ItemsMap.set(Items[i], i);
+				}
+			}
+
 			if (isMerge) {
 				DisplayCostMergeShop(Items, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
 				FilterEvent = updateCostMergeShop.bind(null, Items, mergeFilterNormal, mergeFilterAc, mergeFilterLegend)
-				
-	
 			}
-	
-			
-			// Iterate over nodelist with array offset applied 
+
+			// Iterate over nodelist with array offset applied
 			for (var x = 0; x < arrayList.length; x++) {
-				
-				ProcessWikiItem(nodeList, arrayOffset, Items, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster) 
-				
-				
-				// Wip process (Can be enabled in options of Extension.
-				if (WIP_moreinfo) {
-			
-					ProcessAnyWikiItem(nodeList, arrayOffset, Buy, Category, Where, Type, x, isMonster, isQuest, isMerge)
-					
-				}
-			
-			
+
+				ProcessWikiItem(nodeList, arrayOffset, Items, ItemsMap, Buy, Category, Where, Type, x, isMerge, isList, isQuest, isMonster)
+
 			}
-			
-			
-			// Displays found amount 
-			found_info.innerHTML = "- Found "+found+" Items" // Displays items found 
-			
+
+			// Displays found amount
+			found_info.innerHTML = "- Found "+found+" Items" // Displays items found
+
 	})
 	
 	})

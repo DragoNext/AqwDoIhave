@@ -1,10 +1,20 @@
-// Merge Shop Calculation logic and display 
+// Merge Shop Calculation logic and display
 //
 // To add:
-// 	Condition when merge shop is empty telling Not Found Anything something like 
+// 	Condition when merge shop is empty telling Not Found Anything something like
 let progressbarstyle = `<div style="width:200px" class="w3-light-grey">
   <div class="w3-container w3-green w3-center" style="width:25%">25%</div>
 </div><br>`
+
+// Shared filter function — determines if an item should be hidden based on active filters
+function shouldHideByFilter(showNormal, showAc, showLegend, isNormal, isAc, isLegend) {
+	if (showNormal && showAc && showLegend) return false;
+	if (!showNormal && !showAc && !showLegend) return false;
+	if (isNormal && showNormal) return false;
+	if (isAc && showAc) return false;
+	if (isLegend && showLegend) return false;
+	return true;
+}
 
 let mergeData = {}
 
@@ -78,7 +88,7 @@ function processTable(table,Items) {
 					isItemAc = true 
 				} if (itemHtml.includes("legendsmall.png")) {
 					isItemLegend = true 
-				} if (!itemHtml.includes("legendsmall.png") & !itemHtml.includes("acsmall.png")) {
+				} if (!itemHtml.includes("legendsmall.png") && !itemHtml.includes("acsmall.png")) {
 					isItemNormal = true 
 				}  
 			
@@ -216,43 +226,9 @@ function itemFormat(obj, filters, FilterNormal, FilterAc, FilterLegend) {
 		currentFilter = filters[x] 
 		for (let i = 0; i < itemList.length; i += 2) {
 		  
-		 
-		  skip = false 
-		  if (FilterLegend == false & FilterAc == false & FilterNormal == true) {
-				if (currentFilter[0] == false) {
-					skip = true 
-				} 
-				if (currentFilter[2] == true | currentFilter[1] == true) {
-					skip = true 
-				}
-			} else if (FilterLegend == false & FilterAc == true & FilterNormal == true) {
-				if (currentFilter[1] == false | currentFilter[2] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == true & FilterNormal == true) {
-			} else if (FilterLegend == true & FilterAc == false & FilterNormal == true) {
-				if (!currentFilter[2] == true) {
-					skip = true 
-				} 
-				if (currentFilter[2] == true & currentFilter[1] == true) {
-					skip = true 
-				}
-			} else if (FilterLegend == false & FilterAc == true & FilterNormal == false) {
-				if (!currentFilter[1] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == false & FilterNormal == false) {
-				if (!currentFilter[2] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == true & FilterNormal == false) {
-				if (currentFilter[1] == true & currentFilter[2] == true) {
-			
-				} else { skip = true }
-			} 
-			
 
-			
+		  skip = shouldHideByFilter(FilterNormal, FilterAc, FilterLegend, currentFilter[0], currentFilter[1], currentFilter[2]);
+
 			let item = itemList[i];
 			let quantity = itemList[i+1];
 			if (!skip) {
@@ -413,40 +389,9 @@ function countAcquiredItems(Items, Filters, FilterNormal, FilterAc, FilterLegend
 	
 	Object.entries(mergeData[1]).forEach(([key, value]) => { 
 		  
-		  skip = false 
-		  var currentFilter = Filters[x] 
-		  if (FilterLegend == false & FilterAc == false & FilterNormal == true) {
-				if (currentFilter[0] == false) {
-					skip = true 
-				} 
-				if (currentFilter[2] == true | currentFilter[1] == true) {
-					skip = true 
-				}
-			} else if (FilterLegend == false & FilterAc == true & FilterNormal == true) {
-				if (currentFilter[1] == false | currentFilter[2] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == true & FilterNormal == true) {
-			} else if (FilterLegend == true & FilterAc == false & FilterNormal == true) {
-				if (!currentFilter[2] == true) {
-					skip = true 
-				} 
-				if (currentFilter[2] == true & currentFilter[1] == true) {
-					skip = true 
-				}
-			} else if (FilterLegend == false & FilterAc == true & FilterNormal == false) {
-				if (!currentFilter[1] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == false & FilterNormal == false) {
-				if (!currentFilter[2] == true) {
-					skip = true 
-				} 
-			} else if (FilterLegend == true & FilterAc == true & FilterNormal == false) {
-				if (currentFilter[1] == true & currentFilter[2] == true) {
-			
-				} else { skip = true }
-			} 
+		  skip = false
+		  var currentFilter = Filters[x]
+		  skip = shouldHideByFilter(FilterNormal, FilterAc, FilterLegend, currentFilter[0], currentFilter[1], currentFilter[2]);
 		
 		if (!skip) {
 		
@@ -475,9 +420,9 @@ function updateTitleList() {
 		var allNotHidden = false 
 		for (var n = 1; n < x.length; n++) { 
 			if (x[n].hidden == false) {
-				allNotHidden = allNotHidden | true 
+				allNotHidden = allNotHidden || true
 			} else {
-				allNotHidden = allNotHidden | false 
+				allNotHidden = allNotHidden || false
 			}
 		}
 		

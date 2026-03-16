@@ -32,7 +32,8 @@
 				"images/quest_icon.png", "images/treasurechest_icon.png",
 				"images/whellofdoom_icon.png", "images/normal_icon.png",
 				"data/collection_chests.json", "tofarm.html", "images/WICF_button.png",
-				"themes/progressbar.css"
+				"themes/progressbar.css",
+				"data/merge_shops.json", "data/quests.json", "data/locations.json"
 			],
 			"matches": ["<all_urls>"]
 		}
