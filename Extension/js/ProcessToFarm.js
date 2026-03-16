@@ -684,24 +684,37 @@ function ensureQuestChainUi() {
 		+ ".aqw-chain-close{border:none;background:none;color:#fff4de;cursor:pointer;font-size:32px;line-height:1;}"
 		+ ".aqw-chain-body{padding:20px;}"
 		+ ".aqw-chain-empty,.aqw-chain-loading{padding:18px 20px;color:#f2eadf;}"
-		+ ".aqw-chain-tree{display:flex;flex-direction:column;gap:14px;}"
-		+ ".aqw-chain-node{display:flex;flex-direction:column;gap:10px;}"
-		+ ".aqw-chain-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid rgba(255,231,185,0.1);border-radius:2px;background:rgba(68,24,50,0.24);}"
-		+ ".aqw-chain-card.root{background:#442134;border-color:rgba(255,231,185,0.16);}"
+		+ ".aqw-chain-tree{display:flex;flex-direction:column;gap:18px;min-width:max-content;}"
+		+ ".aqw-chain-node{display:flex;align-items:flex-start;gap:18px;position:relative;}"
+		+ ".aqw-chain-stage{width:260px;flex:0 0 260px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;}"
+		+ ".aqw-chain-branch-wrap{flex:1;display:flex;align-items:flex-start;position:relative;min-width:320px;padding-left:26px;}"
+		+ ".aqw-chain-branch-wrap:before{content:'';position:absolute;left:0;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.24);}"
+		+ ".aqw-chain-branch-stack{position:relative;display:flex;flex-direction:column;gap:18px;flex:1;}"
+		+ ".aqw-chain-branch-stack.multi{padding-left:26px;}"
+		+ ".aqw-chain-branch-stack.multi:before{content:'';position:absolute;left:0;top:20px;bottom:20px;border-left:2px solid rgba(255,231,185,0.22);}"
+		+ ".aqw-chain-branch-label{display:inline-flex;align-self:flex-start;align-items:center;justify-content:center;padding:3px 9px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;}"
+		+ ".aqw-chain-branch{display:flex;align-items:flex-start;gap:18px;position:relative;}"
+		+ ".aqw-chain-branch.multi:before{content:'';position:absolute;left:-26px;top:26px;width:26px;border-top:2px solid rgba(255,231,185,0.22);}"
+		+ ".aqw-chain-source-stage{width:264px;flex:0 0 264px;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;}"
+		+ ".aqw-chain-child-wrap{flex:1;display:flex;align-items:flex-start;position:relative;min-width:280px;padding-left:26px;}"
+		+ ".aqw-chain-child-wrap:before{content:'';position:absolute;left:0;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.2);}"
+		+ ".aqw-chain-child-stack{position:relative;display:flex;flex-direction:column;gap:18px;flex:1;}"
+		+ ".aqw-chain-child-stack.multi{padding-left:26px;}"
+		+ ".aqw-chain-child-stack.multi:before{content:'';position:absolute;left:0;top:22px;bottom:22px;border-left:2px solid rgba(255,231,185,0.18);}"
+		+ ".aqw-chain-child-stack.multi>.aqw-chain-node:before{content:'';position:absolute;left:-26px;top:28px;width:26px;border-top:2px solid rgba(255,231,185,0.18);}"
+		+ ".aqw-chain-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid rgba(255,231,185,0.1);border-radius:2px;background:rgba(68,24,50,0.24);min-height:74px;}"
+		+ ".aqw-chain-card.root{background:#442134;border-color:rgba(255,231,185,0.16);box-shadow:inset 0 0 0 1px rgba(255,231,185,0.06);}"
 		+ ".aqw-chain-card.source{background:#3c1d31;}"
 		+ ".aqw-chain-kicker{font-size:0.74rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:#d7c4cf;}"
 		+ ".aqw-chain-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}"
 		+ ".aqw-chain-main a,.aqw-chain-main span{color:#fff4de;font-weight:800;text-decoration:none;}"
 		+ ".aqw-chain-main a:hover{text-decoration:underline;}"
 		+ ".aqw-chain-pill{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border-radius:2px;background:rgba(255,231,185,0.1);color:#fff4de;font-size:0.74rem;font-weight:800;}"
-		+ ".aqw-chain-pill.or{background:#8f2021;color:#fff4de;}"
-		+ ".aqw-chain-meta{color:#eadcc8;font-size:0.86rem;line-height:1.45;}"
-		+ ".aqw-chain-children{margin-left:18px;padding-left:18px;border-left:1px solid rgba(255,231,185,0.18);display:flex;flex-direction:column;gap:12px;}"
-		+ ".aqw-chain-alternatives{display:flex;flex-direction:column;gap:10px;}"
-		+ ".aqw-chain-alt-header{display:flex;align-items:center;gap:8px;color:#eadcc8;font-size:0.82rem;font-weight:700;}"
-		+ ".aqw-chain-branch{display:flex;flex-direction:column;gap:10px;}"
-		+ ".aqw-chain-leaf{color:#eadcc8;font-size:0.84rem;}"
-		+ "@media (max-width: 760px){.aqw-chain-overlay{padding:12px;}.aqw-chain-header,.aqw-chain-body{padding:14px;}.aqw-chain-children{margin-left:10px;padding-left:12px;}}";
+		+ ".aqw-chain-meta{display:flex;flex-direction:column;gap:4px;color:#eadcc8;font-size:0.84rem;line-height:1.4;}"
+		+ ".aqw-chain-meta span{display:block;}"
+		+ ".aqw-chain-leaf{padding:10px 12px;border:1px dashed rgba(255,231,185,0.18);background:rgba(23,15,22,0.18);color:#eadcc8;font-size:0.84rem;min-height:42px;display:flex;align-items:center;}"
+		+ ".aqw-chain-leaf.tight{min-height:0;padding:8px 10px;}"
+		+ "@media (max-width: 760px){.aqw-chain-overlay{padding:12px;}.aqw-chain-header,.aqw-chain-body{padding:14px;}.aqw-chain-node,.aqw-chain-branch{flex-direction:column;gap:12px;}.aqw-chain-stage,.aqw-chain-source-stage{width:auto;flex:1 1 auto;}.aqw-chain-branch-wrap,.aqw-chain-child-wrap,.aqw-chain-branch-stack.multi,.aqw-chain-child-stack.multi{padding-left:0;min-width:0;}.aqw-chain-branch-wrap:before,.aqw-chain-child-wrap:before,.aqw-chain-branch-stack.multi:before,.aqw-chain-child-stack.multi:before,.aqw-chain-branch.multi:before,.aqw-chain-child-stack.multi>.aqw-chain-node:before{display:none;}.aqw-chain-tree{min-width:0;}}";
 	document.head.appendChild(style);
 
 	var overlay = document.createElement("div");
@@ -947,46 +960,58 @@ function renderQuestChainNode(node, isRoot) {
 	var qtyHtml = node.qty && String(node.qty) !== "1" ? "<span class='aqw-chain-pill'>x" + escapeHtml(String(node.qty)) + "</span>" : "";
 	var special = "";
 	if (node.cycle) {
-		special = "<div class='aqw-chain-leaf'>Cycle detected here.</div>";
+		special = "<div class='aqw-chain-leaf tight'>Cycle detected here.</div>";
 	}
 	if (node.truncated) {
-		special = "<div class='aqw-chain-leaf'>Further dependencies truncated.</div>";
+		special = "<div class='aqw-chain-leaf tight'>Further dependencies truncated.</div>";
 	}
 	if (node.missing) {
-		special = "<div class='aqw-chain-leaf'>Source data unavailable.</div>";
+		special = "<div class='aqw-chain-leaf tight'>Source data unavailable.</div>";
 	}
 
 	var body = "";
 	if (!special && node.sources && node.sources.length) {
-		if (node.sources.length === 1) {
-			body = "<div class='aqw-chain-children'>" + renderQuestChainSource(node.sources[0]) + "</div>";
-		} else {
-			body = "<div class='aqw-chain-children'><div class='aqw-chain-alternatives'><div class='aqw-chain-alt-header'><span class='aqw-chain-pill or'>OR</span><span>Any of these sources works</span></div>" + node.sources.map(renderQuestChainSource).join("") + "</div></div>";
-		}
+		var stackClass = node.sources.length > 1 ? "aqw-chain-branch-stack multi" : "aqw-chain-branch-stack";
+		var labelHtml = node.sources.length > 1 ? "<div class='aqw-chain-branch-label'>OR Paths</div>" : "";
+		body = "<div class='aqw-chain-branch-wrap'><div class='" + stackClass + "'>" + labelHtml + node.sources.map(function(source) {
+			return renderQuestChainSource(source, node.sources.length > 1);
+		}).join("") + "</div></div>";
 	}
 	return ""
 		+ "<div class='aqw-chain-node'>"
+		+ "<div class='aqw-chain-stage'>"
 		+ "<div class='aqw-chain-card" + (isRoot ? " root" : "") + "'>"
 		+ "<div class='aqw-chain-kicker'>" + (isRoot ? "Target Item" : "Required Item") + "</div>"
 		+ "<div class='aqw-chain-main'>" + mainLabel + qtyHtml + "</div>"
 		+ "</div>"
 		+ special
+		+ "</div>"
 		+ body
 		+ "</div>";
 }
 
-function renderQuestChainSource(source) {
+function renderQuestChainSource(source, isBranchAlternative) {
 	var titleHtml = source.slug ? "<a href='" + escapeHtml(wikiUrl(source.slug)) + "' target='_blank' rel='noreferrer'>" + escapeHtml(source.name) + "</a>" : "<span>" + escapeHtml(source.name) + "</span>";
-	var metaHtml = (source.meta || []).length ? "<div class='aqw-chain-meta'>" + source.meta.map(escapeHtml).join(" · ") + "</div>" : "";
-	var childrenHtml = source.children && source.children.length ? "<div class='aqw-chain-children'>" + source.children.map(function(child) {
-		return renderQuestChainNode(child, false);
-	}).join("") + "</div>" : "<div class='aqw-chain-leaf'>No further item dependencies.</div>";
+	var metaHtml = (source.meta || []).length ? "<div class='aqw-chain-meta'>" + source.meta.map(function(line) {
+		return "<span>" + escapeHtml(line) + "</span>";
+	}).join("") + "</div>" : "";
+	var childrenHtml = "";
+	if (source.children && source.children.length) {
+		var childStackClass = source.children.length > 1 ? "aqw-chain-child-stack multi" : "aqw-chain-child-stack";
+		childrenHtml = "<div class='aqw-chain-child-wrap'><div class='" + childStackClass + "'>" + source.children.map(function(child) {
+			return renderQuestChainNode(child, false);
+		}).join("") + "</div></div>";
+	} else {
+		childrenHtml = "<div class='aqw-chain-child-wrap'><div class='aqw-chain-child-stack'><div class='aqw-chain-leaf'>Farm this source directly.</div></div></div>";
+	}
 	return ""
-		+ "<div class='aqw-chain-branch'>"
+		+ "<div class='aqw-chain-branch" + (isBranchAlternative ? " multi" : "") + "'>"
+		+ "<div class='aqw-chain-source-stage'>"
 		+ "<div class='aqw-chain-card source'>"
 		+ "<div class='aqw-chain-kicker'>" + escapeHtml(source.sourceType) + "</div>"
 		+ "<div class='aqw-chain-main'>" + titleHtml + "</div>"
 		+ metaHtml
+		+ "</div>"
 		+ "</div>"
 		+ childrenHtml
 		+ "</div>";
