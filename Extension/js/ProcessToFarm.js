@@ -688,8 +688,8 @@ function ensureQuestChainUi() {
 		+ ".aqw-chain-legend{display:flex;flex-wrap:wrap;gap:10px;}"
 		+ ".aqw-chain-legend span{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;color:#6b5560;}"
 		+ ".aqw-chain-dot{width:10px;height:10px;display:inline-block;border-radius:50%;}"
-		+ ".aqw-chain-graph{height:430px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.12);}"
-		+ "@media (max-width: 980px){.aqw-chain-graph{height:360px;}}";
+		+ ".aqw-chain-graph{height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
+		+ "@media (max-width: 980px){.aqw-chain-graph{height:460px;}}";
 	document.head.appendChild(style);
 }
 
@@ -1108,7 +1108,14 @@ async function applyQuestChainNodeImages(cy) {
 		return;
 	}
 	var nodes = cy.nodes().filter(function(node) {
-		return !!node.data("href") && node.data("kind") !== "or";
+		var detail = node.data("detail") || {};
+		if (!node.data("href") || node.data("kind") === "or") {
+			return false;
+		}
+		if (detail.kind === "item") {
+			return true;
+		}
+		return detail.kind === "source" && detail.sourceType === "Drop";
 	});
 	for (var i = 0; i < nodes.length; i++) {
 		var node = nodes[i];
@@ -1123,16 +1130,16 @@ async function applyQuestChainNodeImages(cy) {
 				"background-image": imageSrc,
 				"background-fit": "contain",
 				"background-repeat": "no-repeat",
-				"background-width": "78%",
-				"background-height": "68%",
-				"background-position-y": "28%",
+				"background-width": "82%",
+				"background-height": "70%",
+				"background-position-y": "24%",
 				"text-valign": "bottom",
-				"text-margin-y": "12px",
-				"width": 118,
-				"height": 118,
+				"text-margin-y": "16px",
+				"width": 160,
+				"height": 156,
 				"padding": "12px",
-				"font-size": "11px",
-				"text-max-width": "108px"
+				"font-size": "13px",
+				"text-max-width": "138px"
 			});
 		} catch (err) {
 			// Keep text-only nodes when art lookup fails.
@@ -1219,7 +1226,8 @@ async function renderQuestChainInline(button, item_name, d) {
 					id: node.id,
 					label: node.label,
 					kind: detail.kind || "step",
-					href: getQuestChainNodeHref(detail)
+					href: getQuestChainNodeHref(detail),
+					detail: detail
 				}
 			});
 		});
@@ -1249,15 +1257,15 @@ async function renderQuestChainInline(button, item_name, d) {
 						"border-color": "#c1a29d",
 						"color": "#fff7ef",
 						"text-wrap": "wrap",
-						"text-max-width": "122px",
+						"text-max-width": "142px",
 						"label": "data(label)",
-						"font-size": "12px",
+						"font-size": "14px",
 						"font-weight": "700",
 						"text-valign": "center",
 						"text-halign": "center",
-						"padding": "10px",
-						"width": 110,
-						"height": 110,
+						"padding": "12px",
+						"width": 148,
+						"height": 124,
 						"text-outline-width": 1,
 						"text-outline-color": "rgba(52,20,42,0.65)"
 					}
@@ -1266,7 +1274,9 @@ async function renderQuestChainInline(button, item_name, d) {
 					selector: "node[kind = 'source']",
 					style: {
 						"background-color": "rgba(69, 36, 59, 0.9)",
-						"border-color": "#ba9c7a"
+						"border-color": "#ba9c7a",
+						"width": 156,
+						"height": 112
 					}
 				},
 				{
@@ -1296,10 +1306,13 @@ async function renderQuestChainInline(button, item_name, d) {
 			layout: {
 				name: "breadthfirst",
 				directed: true,
-				padding: 28,
-				spacingFactor: 1.15,
-				roots: ["item-1"]
-			}
+				padding: 48,
+				spacingFactor: 1.3,
+				roots: ["item-1"],
+				fit: false
+			},
+			minZoom: 0.35,
+			maxZoom: 2.2
 		});
 
 		panel._cy = cy;
@@ -1311,9 +1324,17 @@ async function renderQuestChainInline(button, item_name, d) {
 				window.open(href, "_blank", "noopener");
 			}
 		});
-		cy.fit(undefined, 40);
+		var root = cy.$id("item-1");
+		cy.zoom(0.95);
+		if (root && root.length) {
+			var rendered = root.renderedPosition();
+			cy.pan({
+				x: graphEl.clientWidth / 2 - rendered.x,
+				y: 96 - rendered.y
+			});
+		}
 		if (hintEl) {
-			hintEl.textContent = "Click an item, NPC, monster, quest, or shop node to open its wiki page in a new tab.";
+			hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
 		}
 		applyQuestChainNodeImages(cy);
 		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
