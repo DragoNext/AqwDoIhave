@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 def parse_quest_page(html: str, slug: str, name: str = "") -> dict | None:
     """Parse a quest page into structured data.
 
-    Returns dict with: name, slug, location, npc, tags, quests[...]
+    Handles both simple single-section quest pages and large pages that contain
+    multiple anchored quest sections with their own tabviews, locations, and
+    requirements.
     """
     soup = BeautifulSoup(html, "lxml")
     page_content = soup.select_one("#page-content")
@@ -24,45 +26,40 @@ def parse_quest_page(html: str, slug: str, name: str = "") -> dict | None:
         name = title.get_text(strip=True).replace(" - AQW", "") if title else slug.lstrip("/")
 
     raw_tags, tag_flags = parse_page_tags(soup)
+    sections = _extract_quest_sections(page_content)
 
-    # Quest Location + NPC
-    location = {}
-    npc = {}
-    for p in page_content.find_all("p"):
-        text = p.get_text()
-        if "Quest Location:" in text:
-            for strong in p.find_all("strong"):
-                st = strong.get_text(strip=True)
-                if "Quest Location:" in st:
-                    link = strong.find_next("a")
-                    if link:
-                        location = {"name": link.get_text(strip=True), "slug": link.get("href", "")}
-                elif "Quests Begun From:" in st:
-                    link = strong.find_next("a")
-                    if link:
-                        npc = {"name": link.get_text(strip=True), "slug": link.get("href", "")}
-            break
-
-    # Parse individual quests from tabs
     quests = []
-    tabview = page_content.select_one("div.yui-navset")
-    if tabview:
-        tab_names = [em.get_text(strip=True) for em in tabview.select("ul.yui-nav li a em")]
-        tab_panels = tabview.select("div.yui-content > div")
-        for i, panel in enumerate(tab_panels):
-            quest_name = tab_names[i] if i < len(tab_names) else f"Quest {i+1}"
-            quest = _parse_single_quest(panel, quest_name)
-            quests.append(quest)
-    else:
-        # Single quest, no tabs
-        quest = _parse_single_quest(page_content, name)
-        quests.append(quest)
+    page_locations = []
+    page_npcs = []
+
+    for section in sections:
+        if section["location"]:
+            page_locations.append(section["location"])
+        if section["npc"]:
+            page_npcs.append(section["npc"])
+
+        tabview = section.get("tabview")
+        if tabview:
+            tab_names = [em.get_text(strip=True) for em in tabview.select("ul.yui-nav li a em")]
+            tab_panels = tabview.select("div.yui-content > div")
+            for i, panel in enumerate(tab_panels):
+                quest_name = tab_names[i] if i < len(tab_names) else f"Quest {i + 1}"
+                quests.append(_parse_single_quest(panel, quest_name, section))
+        else:
+            container = section.get("container")
+            if container:
+                quests.append(_parse_single_quest(container, section.get("name") or name, section))
+
+    if not quests:
+        fallback_section = _parse_section_meta([], slug)
+        fallback_section["container"] = page_content
+        quests.append(_parse_single_quest(page_content, name, fallback_section))
 
     return {
         "name": name,
         "slug": slug,
-        "location": location,
-        "npc": npc,
+        "location": _collapse_shared_links(page_locations),
+        "npc": _collapse_shared_links(page_npcs),
         "tags": raw_tags,
         "rare": tag_flags.get("rare", False),
         "pseudo_rare": tag_flags.get("pseudo_rare", False),
@@ -70,20 +67,157 @@ def parse_quest_page(html: str, slug: str, name: str = "") -> dict | None:
     }
 
 
-def _parse_single_quest(container: Tag, quest_name: str) -> dict:
+def _extract_quest_sections(page_content: Tag) -> list[dict]:
+    sections = []
+    section_nodes = []
+    last_location = {}
+    last_npc = {}
+
+    for child in page_content.children:
+        if not isinstance(child, Tag):
+            continue
+        section_nodes.append(child)
+        if child.name == "div" and "yui-navset" in (child.get("class") or []):
+            section = _build_section(section_nodes)
+            if not section.get("location") and last_location:
+                section["location"] = last_location
+            if not section.get("npc") and last_npc:
+                section["npc"] = last_npc
+            if section.get("location"):
+                last_location = section["location"]
+            if section.get("npc"):
+                last_npc = section["npc"]
+            sections.append(section)
+            section_nodes = []
+
+    if not sections and section_nodes:
+        sections.append(_build_section(section_nodes))
+
+    return sections
+
+
+def _build_section(nodes: list[Tag]) -> dict:
+    tabview = None
+    meta_nodes = []
+    for node in nodes:
+        if node.name == "div" and "yui-navset" in (node.get("class") or []):
+            tabview = node
+            break
+        meta_nodes.append(node)
+
+    section = _parse_section_meta(meta_nodes)
+    section["tabview"] = tabview
+    if not tabview:
+        section["container"] = meta_nodes[-1] if meta_nodes else None
+    return section
+
+
+def _parse_section_meta(nodes: list[Tag], fallback_slug: str = "") -> dict:
+    anchor = ""
+    location = {}
+    npc = {}
+    requirements_notes = []
+
+    for index, node in enumerate(nodes):
+        anchor_tag = node.find("a", attrs={"name": True})
+        if anchor_tag and anchor_tag.get("name") and anchor_tag.get("name") != "page-top":
+            anchor = anchor_tag.get("name")
+
+        text = node.get_text(" ", strip=True)
+        if not text:
+            continue
+
+        if "Quest Locations:" in text:
+            location = _extract_locations_block(node, nodes[index + 1] if index + 1 < len(nodes) else None) or location
+        elif "Quest Location:" in text:
+            location = _extract_link_after_strong(node, "Quest Location:") or _extract_first_link(node) or location
+
+        if "Quests Begun From:" in text:
+            npc = _extract_link_after_strong(node, "Quests Begun From:") or npc
+
+        if "Requirements:" in text:
+            note = _extract_requirement_text(node)
+            if note:
+                requirements_notes.append(note)
+
+    return {
+        "anchor": anchor,
+        "anchor_slug": (fallback_slug or "") + ("#" + anchor if fallback_slug and anchor else ""),
+        "location": location,
+        "npc": npc,
+        "requirements_note": " | ".join(dict.fromkeys(requirements_notes)),
+    }
+
+
+def _extract_locations_block(node: Tag, next_node: Tag | None) -> dict:
+    links = node.find_all("a", href=True)
+    if not links and next_node and next_node.name == "ul":
+        links = next_node.find_all("a", href=True)
+    if not links:
+        return {}
+    link = links[0]
+    return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
+
+
+def _extract_link_after_strong(node: Tag, label: str) -> dict:
+    for strong in node.find_all("strong"):
+        if label not in strong.get_text(" ", strip=True):
+            continue
+        link = strong.find_next("a", href=True)
+        if link:
+            return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
+    return {}
+
+
+def _extract_first_link(node: Tag) -> dict:
+    link = node.find("a", href=True)
+    if not link:
+        return {}
+    return {"name": link.get_text(strip=True), "slug": link.get("href", "")}
+
+
+def _extract_requirement_text(node: Tag) -> str:
+    text = node.get_text(" ", strip=True)
+    match = re.search(r"Requirements:\s*(.+)$", text)
+    if not match:
+        return ""
+    return match.group(1).strip()
+
+
+def _collapse_shared_links(values: list[dict]) -> dict:
+    cleaned = [value for value in values if value and value.get("name")]
+    if not cleaned:
+        return {}
+    first = cleaned[0]
+    if all(value.get("name") == first.get("name") and value.get("slug") == first.get("slug") for value in cleaned[1:]):
+        return first
+    return {}
+
+
+def _parse_single_quest(container: Tag, quest_name: str, section: dict) -> dict:
     """Parse a single quest from a tab panel or page content."""
-    # Description: first <p> that isn't a strong-label paragraph
     description = ""
+    requirements_notes = []
+
     for p in container.find_all("p", recursive=False):
         first_child = p.find()
+        text = p.get_text(" ", strip=True)
+        if not text:
+            continue
+
+        if text.startswith("Requirements:"):
+            note = _extract_requirement_text(p)
+            if note:
+                requirements_notes.append(note)
+            continue
+
         if first_child and first_child.name == "strong":
             continue
-        text = p.get_text(strip=True)
-        if text and len(text) > 10:
+
+        if len(text) > 10:
             description = text
             break
 
-    # Items Required
     items_required = []
     req_header = _find_strong_section(container, "Items Required:")
     if req_header:
@@ -91,12 +225,20 @@ def _parse_single_quest(container: Tag, quest_name: str) -> dict:
         if ul:
             items_required = _parse_required_items(ul)
 
-    # Rewards
     rewards = _parse_rewards(container)
+    combined_requirements = []
+    if section.get("requirements_note"):
+        combined_requirements.append(section["requirements_note"])
+    combined_requirements.extend(requirements_notes)
 
     return {
         "name": quest_name,
         "description": description,
+        "location": section.get("location", {}),
+        "npc": section.get("npc", {}),
+        "section_anchor": section.get("anchor", ""),
+        "section_slug": section.get("anchor_slug", ""),
+        "requirements_note": " | ".join(dict.fromkeys([note for note in combined_requirements if note])),
         "items_required": items_required,
         "rewards": rewards,
     }
@@ -114,7 +256,6 @@ def _parse_required_items(ul: Tag) -> list[dict]:
     """Parse the Items Required <ul> list."""
     items = []
     for li in ul.find_all("li", recursive=False):
-        # Item name + qty from the li text (before any nested ul)
         li_text = ""
         for child in li.children:
             if isinstance(child, NavigableString):
@@ -123,16 +264,14 @@ def _parse_required_items(ul: Tag) -> list[dict]:
                 li_text += child.get_text()
             else:
                 break
-        li_text = li_text.strip()
+        li_text = re.sub(r"\s+", " ", li_text).strip()
 
-        qty_match = re.search(r"x\s*(\d+)", li_text)
-        qty = int(qty_match.group(1)) if qty_match else 1
-        item_name = re.sub(r"\s*x\s*\d+\s*$", "", li_text).strip()
+        qty_match = re.search(r"x\s*([\d,]+)", li_text)
+        qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
+        item_name = re.sub(r"\s*x\s*[\d,]+\s*(\(.*\))?\s*$", "", li_text).strip()
 
-        # Check if item name is linked
         item_link = li.find("a", recursive=False)
         if not item_link:
-            # Check inside non-ul children
             for child in li.children:
                 if isinstance(child, Tag) and child.name == "a":
                     item_link = child
@@ -142,12 +281,14 @@ def _parse_required_items(ul: Tag) -> list[dict]:
         if item_link:
             item_name = item_link.get_text(strip=True)
 
-        # Dropped by (nested ul)
+        if not item_name or item_name.upper() == "N/A":
+            continue
+
         dropped_by = []
         nested_ul = li.find("ul")
         if nested_ul:
             for nested_li in nested_ul.find_all("li"):
-                for link in nested_li.find_all("a"):
+                for link in nested_li.find_all("a", href=True):
                     dropped_by.append({
                         "name": link.get_text(strip=True),
                         "slug": link.get("href", ""),
@@ -176,7 +317,7 @@ def _parse_rewards(container: Tag) -> dict:
         return rewards
 
     for li in ul.find_all("li", recursive=False):
-        text = li.get_text(strip=True)
+        text = li.get_text(" ", strip=True)
 
         gold_match = re.search(r"([\d,]+)\s*Gold", text, re.IGNORECASE)
         if gold_match:
@@ -190,7 +331,7 @@ def _parse_rewards(container: Tag) -> dict:
 
         rep_match = re.search(r"([\d,]+)\s*Rep", text, re.IGNORECASE)
         if rep_match:
-            faction_link = li.find("a")
+            faction_link = li.find("a", href=True)
             rewards["rep"] = {
                 "amount": int(rep_match.group(1).replace(",", "")),
                 "faction": faction_link.get_text(strip=True) if faction_link else "",
@@ -198,29 +339,34 @@ def _parse_rewards(container: Tag) -> dict:
             }
             continue
 
-        # Item reward
-        link = li.find("a")
+        link = li.find("a", href=True)
         if link:
             item_tags = parse_index_tag_images(li)
+            qty_match = re.search(r"x\s*([\d,]+)", text)
+            qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
             rewards["items"].append({
                 "name": link.get_text(strip=True),
                 "slug": link.get("href", ""),
                 "tags": item_tags,
+                "qty": qty,
             })
 
-    # Also check "You may also receive, at random:" section
     random_header = _find_strong_section(container, "at random:")
     if random_header:
         random_ul = random_header.find_next("ul")
         if random_ul:
             for li in random_ul.find_all("li", recursive=False):
-                link = li.find("a")
+                link = li.find("a", href=True)
                 if link:
                     item_tags = parse_index_tag_images(li)
+                    text = li.get_text(" ", strip=True)
+                    qty_match = re.search(r"x\s*([\d,]+)", text)
+                    qty = int(qty_match.group(1).replace(",", "")) if qty_match else 1
                     rewards["items"].append({
                         "name": link.get_text(strip=True),
                         "slug": link.get("href", ""),
                         "tags": item_tags,
+                        "qty": qty,
                         "random": True,
                     })
 
