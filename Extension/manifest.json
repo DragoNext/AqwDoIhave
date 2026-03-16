@@ -52,9 +52,18 @@
 				"js/ProcessMergeCalc.js",
 				"js/ProcessAcountItems.js",
 				"js/ProcessWikiItem.js",
-				"js/vendor/vis-network.min.js",
 				"js/main.js",
 				"js/ProcessToFarm.js"
+			]
+		},
+		{
+			"comment": "Block 1b: Graph library for inline quest-chain rendering. Delay load until the page DOM exists.",
+			"matches": [
+				"http://aqwwiki.wikidot.com/*"
+			],
+			"run_at": "document_idle",
+			"js": [
+				"js/vendor/vis-network.min.js"
 			]
 		},
 		{
