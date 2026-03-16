@@ -688,8 +688,8 @@ function ensureQuestChainUi() {
 		+ ".aqw-chain-legend{display:flex;flex-wrap:wrap;gap:10px;}"
 		+ ".aqw-chain-legend span{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;color:#6b5560;}"
 		+ ".aqw-chain-dot{width:10px;height:10px;display:inline-block;border-radius:50%;}"
-		+ ".aqw-chain-graph{height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
-		+ "@media (max-width: 980px){.aqw-chain-graph{height:460px;}}";
+		+ ".aqw-chain-graph{min-height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
+		+ "@media (max-width: 980px){.aqw-chain-graph{min-height:460px;}}";
 	document.head.appendChild(style);
 }
 
@@ -1147,6 +1147,16 @@ async function applyQuestChainNodeImages(cy) {
 	}
 }
 
+function sizeQuestChainGraphToContent(cy, graphEl) {
+	if (!cy || !graphEl) {
+		return;
+	}
+	var bounds = cy.elements().boundingBox();
+	var desiredHeight = Math.ceil((bounds.h || 0) + 180);
+	var minHeight = window.innerWidth <= 980 ? 460 : 620;
+	graphEl.style.height = Math.max(minHeight, desiredHeight) + "px";
+}
+
 function ensureQuestChainPanel(button, item_name) {
 	var panel = document.getElementById("aqw-chain-panel");
 	if (!panel) {
@@ -1311,7 +1321,7 @@ async function renderQuestChainInline(button, item_name, d) {
 				padding: 48,
 				spacingFactor: 1.3,
 				roots: ["item-1"],
-				fit: true
+				fit: false
 			},
 			minZoom: 0.25,
 			maxZoom: 2.2
@@ -1330,6 +1340,7 @@ async function renderQuestChainInline(button, item_name, d) {
 			hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
 		}
 		await applyQuestChainNodeImages(cy);
+		sizeQuestChainGraphToContent(cy, graphEl);
 		cy.resize();
 		cy.fit(undefined, 40);
 		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
