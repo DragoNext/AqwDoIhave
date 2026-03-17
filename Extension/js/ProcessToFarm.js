@@ -1348,13 +1348,40 @@ function sizeQuestChainGraphToContent(cy, graphEl) {
 	var containerWidth = graphEl.clientWidth || (graphEl.parentElement && graphEl.parentElement.clientWidth) || 960;
 	var rawHeight = Math.ceil((bounds.h || 0) + 180);
 	var aspectRatio = (bounds.w && bounds.h) ? (bounds.w / Math.max(bounds.h, 1)) : 1;
-	var widthCap = aspectRatio > 1.5
-		? Math.ceil(containerWidth * 0.62)
-		: Math.ceil(containerWidth * 0.9);
-	var hardCap = window.innerWidth <= 980 ? 900 : 980;
+	var widthCap = aspectRatio > 2.2
+		? Math.ceil(containerWidth * 0.72)
+		: aspectRatio > 1.4
+			? Math.ceil(containerWidth * 1.05)
+			: Math.ceil(containerWidth * 1.45);
+	var hardCap = window.innerWidth <= 980 ? 1300 : 1650;
 	var maxHeight = Math.max(minHeight, Math.min(widthCap, hardCap));
 	var desiredHeight = Math.max(minHeight, Math.min(rawHeight, maxHeight));
 	graphEl.style.height = desiredHeight + "px";
+}
+
+function fitQuestChainViewport(cy, graphEl) {
+	if (!cy || !graphEl || !cy.elements || !cy.elements().length) {
+		return;
+	}
+	var bounds = cy.elements().boundingBox();
+	if (!bounds.w || !bounds.h) {
+		return;
+	}
+	var width = graphEl.clientWidth || 0;
+	var height = graphEl.clientHeight || 0;
+	if (!width || !height) {
+		return;
+	}
+	var marginX = 56;
+	var marginY = 44;
+	var zoomX = (width - (marginX * 2)) / bounds.w;
+	var zoomY = (height - (marginY * 2)) / bounds.h;
+	var targetZoom = Math.max(cy.minZoom(), Math.min(cy.maxZoom(), Math.min(zoomX, zoomY, 1)));
+	cy.zoom(targetZoom);
+	cy.pan({
+		x: marginX - (bounds.x1 * targetZoom),
+		y: marginY - (bounds.y1 * targetZoom)
+	});
 }
 
 function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange) {
@@ -1468,11 +1495,15 @@ function ensureQuestChainPanel(button, item_name) {
 			panel.hidden = true;
 			button.textContent = "Quest Chain";
 		});
-		panel.querySelector("[data-action='fit']").addEventListener("click", function() {
-			if (panel._cy) {
-				panel._cy.fit(undefined, 40);
-			}
-		});
+			panel.querySelector("[data-action='fit']").addEventListener("click", function() {
+				if (panel._cy) {
+					var graphEl = panel.querySelector(".aqw-chain-graph");
+					sizeQuestChainGraphToContent(panel._cy, graphEl);
+					panel._cy.resize();
+					fitQuestChainViewport(panel._cy, graphEl);
+					scheduleQuestChainViewportUpdate(panel, panel._cy, graphEl, false);
+				}
+			});
 	}
 	panel.querySelector(".aqw-chain-subtitle").textContent = item_name;
 	return panel;
@@ -1664,7 +1695,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				viewportFinalized = true;
 				sizeQuestChainGraphToContent(cy, graphEl);
 				cy.resize();
-				cy.fit(undefined, 40);
+				fitQuestChainViewport(cy, graphEl);
 				scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
 			}
 			cy.one("layoutstop", finalizeViewport);
