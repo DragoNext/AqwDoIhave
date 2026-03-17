@@ -1154,12 +1154,44 @@ function buildQuestChainGraph(tree, selections) {
 		});
 	}
 
-	walkItem(tree, "", "root");
+	var rootId = walkItem(tree, "", "root");
+	var adjacency = new Map();
+	var depths = {};
+	edges.forEach(function(edge) {
+		if (!adjacency.has(edge.from)) {
+			adjacency.set(edge.from, []);
+		}
+		adjacency.get(edge.from).push(edge.to);
+	});
+	if (rootId) {
+		var queue = [{ id: rootId, depth: 0 }];
+		var seen = new Set();
+		while (queue.length) {
+			var current = queue.shift();
+			if (seen.has(current.id)) {
+				continue;
+			}
+			seen.add(current.id);
+			depths[current.id] = current.depth;
+			(adjacency.get(current.id) || []).forEach(function(nextId) {
+				queue.push({ id: nextId, depth: current.depth + 1 });
+			});
+		}
+	}
+	var maxDepth = 0;
+	Object.keys(depths).forEach(function(nodeId) {
+		if (depths[nodeId] > maxDepth) {
+			maxDepth = depths[nodeId];
+		}
+	});
 	return {
 		nodes: nodes,
 		edges: edges,
 		detailMap: detailMap,
-		choices: choices
+		choices: choices,
+		rootId: rootId,
+		depths: depths,
+		maxDepth: maxDepth
 	};
 }
 
@@ -1448,6 +1480,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						id: node.id,
 						label: node.label,
 						kind: detail.kind || "step",
+						depth: graph.depths[node.id] || 0,
 						sourceType: detail.sourceType || "",
 						imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
 						href: getQuestChainNodeHref(detail),
@@ -1542,14 +1575,22 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 					}
 				}
 			],
-			layout: {
-				name: "breadthfirst",
-				directed: true,
-				padding: 48,
-				spacingFactor: 1.3,
-				roots: ["item-1"],
-				fit: false
-			},
+				layout: {
+					name: "concentric",
+					padding: 42,
+					spacingFactor: 0.9,
+					minNodeSpacing: 22,
+					avoidOverlap: true,
+					equidistant: false,
+					startAngle: -Math.PI / 2,
+					concentric: function(ele) {
+						return (graph.maxDepth || 0) - (ele.data("depth") || 0);
+					},
+					levelWidth: function() {
+						return 1;
+					},
+					fit: false
+				},
 			minZoom: 0.25,
 			maxZoom: 2.2
 		});
