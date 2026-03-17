@@ -1419,7 +1419,10 @@ function fitQuestChainViewport(cy, graphEl) {
 	var marginY = 44;
 	var zoomX = (width - (marginX * 2)) / bounds.w;
 	var zoomY = (height - (marginY * 2)) / bounds.h;
-	var targetZoom = Math.max(cy.minZoom(), Math.min(cy.maxZoom(), Math.min(zoomX, zoomY, 1)));
+	var fitZoom = Math.min(zoomX, zoomY);
+	var smallGraph = bounds.w < (width * 0.6) && bounds.h < (height * 0.6);
+	var maxInitialZoom = smallGraph ? 1.75 : 1.05;
+	var targetZoom = Math.max(cy.minZoom(), Math.min(cy.maxZoom(), Math.min(fitZoom, maxInitialZoom)));
 	cy.zoom(targetZoom);
 	cy.pan({
 		x: marginX - (bounds.x1 * targetZoom),
