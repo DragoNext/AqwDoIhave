@@ -1216,7 +1216,7 @@ function renderQuestChainDetails(panel, detail) {
 
 async function applyQuestChainNodeImages(cy) {
 	if (!cy || typeof getWikiImageVariants !== "function") {
-		return;
+		return false;
 	}
 	var nodes = cy.nodes().filter(function(node) {
 		var detail = node.data("detail") || {};
@@ -1228,14 +1228,14 @@ async function applyQuestChainNodeImages(cy) {
 		}
 		return detail.kind === "source" && detail.sourceType === "Drop";
 	});
-	for (var i = 0; i < nodes.length; i++) {
-		var node = nodes[i];
+	var changed = false;
+	await Promise.allSettled(nodes.map(async function(node) {
 		var href = node.data("href");
 		try {
 			var variants = await getWikiImageVariants(href);
 			var imageSrc = variants && variants[0];
 			if (!imageSrc) {
-				continue;
+				return;
 			}
 			node.style({
 				"background-image": imageSrc,
@@ -1243,19 +1243,14 @@ async function applyQuestChainNodeImages(cy) {
 				"background-repeat": "no-repeat",
 				"background-width": "82%",
 				"background-height": "70%",
-				"background-position-y": "24%",
-				"text-valign": "bottom",
-				"text-margin-y": "16px",
-				"width": 160,
-				"height": 156,
-				"padding": "12px",
-				"font-size": "13px",
-				"text-max-width": "138px"
+				"background-position-y": "24%"
 			});
+			changed = true;
 		} catch (err) {
 			// Keep text-only nodes when art lookup fails.
 		}
-	}
+	}));
+	return changed;
 }
 
 function sizeQuestChainGraphToContent(cy, graphEl) {
@@ -1324,6 +1319,19 @@ function positionQuestChainChoiceOverlays(panel, cy) {
 	});
 }
 
+function scheduleQuestChainChoiceOverlayPosition(panel, cy) {
+	if (!panel || !cy) {
+		return;
+	}
+	if (panel._choiceOverlayFrame) {
+		return;
+	}
+	panel._choiceOverlayFrame = requestAnimationFrame(function() {
+		panel._choiceOverlayFrame = 0;
+		positionQuestChainChoiceOverlays(panel, cy);
+	});
+}
+
 function ensureQuestChainPanel(button, item_name) {
 	var panel = document.getElementById("aqw-chain-panel");
 	if (!panel) {
@@ -1375,6 +1383,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 	button.textContent = "Hide Quest Chain";
 	panel.dataset.itemSlug = String(d[0] || "");
 	panel.querySelector(".aqw-chain-graph").innerHTML = "";
+	panel.querySelector(".aqw-chain-graph").style.height = "";
 	var hintEl = panel.querySelector(".aqw-chain-hint");
 	if (hintEl) {
 		hintEl.textContent = "Building dependency graph...";
@@ -1411,18 +1420,20 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			panel._cy.destroy();
 		}
 		var elements = [];
-		graph.nodes.forEach(function(node) {
-			var detail = graph.detailMap.get(node.id) || {};
-			elements.push({
-				data: {
-					id: node.id,
-					label: node.label,
-					kind: detail.kind || "step",
-					href: getQuestChainNodeHref(detail),
-					detail: detail
-				}
+			graph.nodes.forEach(function(node) {
+				var detail = graph.detailMap.get(node.id) || {};
+				elements.push({
+					data: {
+						id: node.id,
+						label: node.label,
+						kind: detail.kind || "step",
+						sourceType: detail.sourceType || "",
+						imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
+						href: getQuestChainNodeHref(detail),
+						detail: detail
+					}
+				});
 			});
-		});
 		graph.edges.forEach(function(edge, index) {
 			elements.push({
 				data: {
@@ -1443,10 +1454,10 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			motionBlur: true,
 			hideEdgesOnViewport: true,
 			pixelRatio: 1,
-			style: [
-				{
-					selector: "node",
-					style: {
+				style: [
+					{
+						selector: "node",
+						style: {
 						"shape": "round-rectangle",
 						"background-color": "rgba(88, 41, 75, 0.92)",
 						"border-width": 1,
@@ -1455,22 +1466,33 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						"text-wrap": "wrap",
 						"text-max-width": "142px",
 						"label": "data(label)",
-						"font-size": "14px",
-						"font-weight": "700",
-						"text-valign": "center",
-						"text-halign": "center",
-						"padding": "12px",
-						"width": 148,
+							"font-size": "14px",
+							"font-weight": "700",
+							"text-valign": "center",
+							"text-halign": "center",
+							"padding": "12px",
+							"width": 148,
 						"height": 124,
 						"text-outline-width": 1,
 						"text-outline-color": "rgba(52,20,42,0.65)"
-					}
-				},
-				{
-					selector: "node[kind = 'source']",
-					style: {
-						"background-color": "rgba(69, 36, 59, 0.9)",
-						"border-color": "#ba9c7a",
+						}
+					},
+					{
+						selector: "node[imageCapable = 'true']",
+						style: {
+							"text-valign": "bottom",
+							"text-margin-y": "16px",
+							"width": 160,
+							"height": 156,
+							"font-size": "13px",
+							"text-max-width": "138px"
+						}
+					},
+					{
+						selector: "node[kind = 'source']",
+						style: {
+							"background-color": "rgba(69, 36, 59, 0.9)",
+							"border-color": "#ba9c7a",
 						"width": 156,
 						"height": 112
 					}
@@ -1511,8 +1533,8 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			maxZoom: 2.2
 		});
 
-		panel._cy = cy;
-		panel._graphDetails = graph.detailMap;
+			panel._cy = cy;
+			panel._graphDetails = graph.detailMap;
 		cy.on("tap", "node", function(evt) {
 			var detail = graph.detailMap.get(evt.target.id()) || null;
 			var href = getQuestChainNodeHref(detail);
@@ -1520,24 +1542,41 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				window.open(href, "_blank", "noopener");
 			}
 		});
-		if (hintEl) {
-			hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
-		}
-		await applyQuestChainNodeImages(cy);
-		sizeQuestChainGraphToContent(cy, graphEl);
-		cy.resize();
-		cy.fit(undefined, 40);
-		function syncChoiceOverlays() {
-			positionQuestChainChoiceOverlays(panel, cy);
-		}
-		renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
-			panel._orSelections[choiceId] = value;
-			renderQuestChainInline(button, item_name, d, true);
-		});
-		syncChoiceOverlays();
-		cy.on("pan zoom resize", syncChoiceOverlays);
-		panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-	} catch (err) {
+			if (hintEl) {
+				hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
+			}
+			renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
+				panel._orSelections[choiceId] = value;
+				renderQuestChainInline(button, item_name, d, true);
+			});
+			var viewportFinalized = false;
+			function finalizeViewport() {
+				if (viewportFinalized) {
+					return;
+				}
+				viewportFinalized = true;
+				sizeQuestChainGraphToContent(cy, graphEl);
+				cy.resize();
+				cy.fit(undefined, 40);
+				scheduleQuestChainChoiceOverlayPosition(panel, cy);
+			}
+			cy.one("layoutstop", finalizeViewport);
+			requestAnimationFrame(finalizeViewport);
+			scheduleQuestChainChoiceOverlayPosition(panel, cy);
+			cy.on("pan zoom resize", function() {
+				scheduleQuestChainChoiceOverlayPosition(panel, cy);
+			});
+			cy.on("position free", "node[kind = 'or']", function() {
+				scheduleQuestChainChoiceOverlayPosition(panel, cy);
+			});
+			applyQuestChainNodeImages(cy).then(function(changed) {
+				if (!panel._cy || panel._cy !== cy || !changed) {
+					return;
+				}
+				scheduleQuestChainChoiceOverlayPosition(panel, cy);
+			});
+			panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+		} catch (err) {
 		if (hintEl) {
 			hintEl.textContent = "Failed to build dependency graph.";
 		}
