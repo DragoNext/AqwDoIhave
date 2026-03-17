@@ -1486,6 +1486,24 @@ function renderQuestChainStatusOverlays(panel, cy, detailMap) {
 	positionQuestChainStatusOverlays(panel, cy);
 }
 
+function getQuestChainStatusOverlayScale(cyNode) {
+	if (!cyNode || !cyNode.length) {
+		return 1;
+	}
+	var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
+	var scale = (box.h || 156) / 156;
+	return Math.max(0.62, Math.min(1, scale));
+}
+
+function getQuestChainChoiceOverlayScale(cyNode) {
+	if (!cyNode || !cyNode.length) {
+		return 1;
+	}
+	var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
+	var scale = (box.h || 44) / 44;
+	return Math.max(0.68, Math.min(1, scale));
+}
+
 function positionQuestChainStatusOverlays(panel, cy) {
 	var layer = panel.querySelector(".aqw-chain-status-layer");
 	if (!layer || !cy) {
@@ -1500,7 +1518,7 @@ function positionQuestChainStatusOverlays(panel, cy) {
 		var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
 		badgeEl.style.left = (box.x1 + (box.w / 2)) + "px";
 		badgeEl.style.top = (box.y2 - 10) + "px";
-		badgeEl.style.transform = "translate(-50%, -50%)";
+		badgeEl.style.transform = "translate(-50%, -50%) scale(" + getQuestChainStatusOverlayScale(cyNode) + ")";
 	});
 }
 
@@ -1518,7 +1536,7 @@ function positionQuestChainChoiceOverlays(panel, cy) {
 		var pos = cyNode.renderedPosition();
 		nodeEl.style.left = pos.x + "px";
 		nodeEl.style.top = (pos.y + 26) + "px";
-		nodeEl.style.transform = "translate(-50%, -50%)";
+		nodeEl.style.transform = "translate(-50%, -50%) scale(" + getQuestChainChoiceOverlayScale(cyNode) + ")";
 	});
 }
 
