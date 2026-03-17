@@ -735,9 +735,9 @@ function ensureQuestChainUi() {
 			+ ".aqw-chain-status-badge.is-complete{background:rgba(72,120,54,0.94);color:#f6ffea;}"
 			+ ".aqw-chain-status-badge.is-missing{background:rgba(130,36,40,0.96);color:#fff2e8;}"
 			+ ".aqw-chain-choice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}"
-		+ ".aqw-chain-choice-node{position:absolute;display:flex;align-items:center;gap:6px;transform:translate(-50%, -50%);pointer-events:auto;}"
-		+ ".aqw-chain-choice-badge{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 7px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;border:1px solid rgba(90,34,34,0.22);}"
-		+ ".aqw-chain-choice-node select{min-width:180px;max-width:240px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.96);color:#58294b;font-size:0.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.08);}"
+			+ ".aqw-chain-choice-node{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translate(-50%, -50%);pointer-events:auto;}"
+			+ ".aqw-chain-choice-badge{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 7px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;border:1px solid rgba(90,34,34,0.22);}"
+			+ ".aqw-chain-choice-node select{min-width:180px;max-width:240px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.96);color:#58294b;font-size:0.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.08);}"
 		+ "@media (max-width: 980px){.aqw-chain-graph{min-height:460px;}}";
 	document.head.appendChild(style);
 }
@@ -1532,10 +1532,10 @@ function positionQuestChainChoiceOverlays(panel, cy) {
 		if (!cyNode || !cyNode.length) {
 			return;
 		}
-		var pos = cyNode.renderedPosition();
+		var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
 		var scale = getQuestChainChoiceOverlayScale(cyNode);
-		nodeEl.style.left = pos.x + "px";
-		nodeEl.style.top = (pos.y + (26 * scale)) + "px";
+		nodeEl.style.left = (box.x1 + (box.w / 2)) + "px";
+		nodeEl.style.top = (box.y2 + (28 * scale)) + "px";
 		nodeEl.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
 	});
 }
