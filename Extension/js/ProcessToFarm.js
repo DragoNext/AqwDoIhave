@@ -1195,6 +1195,60 @@ function buildQuestChainGraph(tree, selections) {
 	};
 }
 
+function computeQuestChainPresetPositions(graph) {
+	var childrenByNode = new Map();
+	(graph.edges || []).forEach(function(edge) {
+		if (!childrenByNode.has(edge.from)) {
+			childrenByNode.set(edge.from, []);
+		}
+		childrenByNode.get(edge.from).push(edge.to);
+	});
+
+	var detailById = graph.detailMap || new Map();
+	var nextLeafY = 0;
+	var positions = {};
+	var leafGap = 190;
+	var levelGap = 255;
+	var startX = 120;
+	var startY = 90;
+
+	function subtreeGap(nodeId) {
+		var detail = detailById.get(nodeId) || {};
+		if (detail.kind === "or") {
+			return 150;
+		}
+		if (detail.kind === "source" && detail.sourceType === "Quest") {
+			return 205;
+		}
+		if (detail.kind === "item") {
+			return 190;
+		}
+		return leafGap;
+	}
+
+	function place(nodeId, depth) {
+		var children = childrenByNode.get(nodeId) || [];
+		var x = startX + (depth * levelGap);
+		var y;
+		if (!children.length) {
+			y = startY + nextLeafY;
+			nextLeafY += subtreeGap(nodeId);
+		} else {
+			var childYs = children.map(function(childId) {
+				return place(childId, depth + 1);
+			});
+			y = (Math.min.apply(null, childYs) + Math.max.apply(null, childYs)) / 2;
+		}
+		positions[nodeId] = { x: x, y: y };
+		return y;
+	}
+
+	if (graph.rootId) {
+		place(graph.rootId, 0);
+	}
+	return positions;
+}
+
 function renderQuestChainDetails(panel, detail) {
 	var detailEl = panel.querySelector(".aqw-chain-details");
 	if (!detailEl) {
@@ -1462,11 +1516,12 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 		}
 		var selections = panel._orSelections || {};
 		panel._orSelections = selections;
-		var graph = buildQuestChainGraph(tree, selections);
-		graph.choices.forEach(function(choice) {
-			if (typeof selections[choice.id] === "undefined") {
-				selections[choice.id] = "0";
-			}
+			var graph = buildQuestChainGraph(tree, selections);
+			var presetPositions = computeQuestChainPresetPositions(graph);
+			graph.choices.forEach(function(choice) {
+				if (typeof selections[choice.id] === "undefined") {
+					selections[choice.id] = "0";
+				}
 		});
 		var graphEl = panel.querySelector(".aqw-chain-graph");
 		if (panel._cy) {
@@ -1485,7 +1540,8 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
 						href: getQuestChainNodeHref(detail),
 						detail: detail
-					}
+					},
+					position: presetPositions[node.id]
 				});
 			});
 		graph.edges.forEach(function(edge, index) {
@@ -1576,21 +1632,9 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				}
 			],
 				layout: {
-					name: "breadthfirst",
-					directed: true,
-					circle: false,
-					grid: false,
-					padding: 30,
-					spacingFactor: 0.82,
-					avoidOverlap: true,
-					roots: [graph.rootId || "item-1"],
-					transform: function(_node, position) {
-						return {
-							x: position.y,
-							y: position.x
-						};
-					},
-					fit: false
+					name: "preset",
+					fit: false,
+					padding: 20
 				},
 			minZoom: 0.25,
 			maxZoom: 2.2
