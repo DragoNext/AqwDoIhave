@@ -1036,14 +1036,15 @@ function buildQuestChainGraph(tree, selections) {
 		}, options || {}));
 	}
 
-	function walkItem(node, parentId, pathKey) {
+	function walkItem(node, parentId, pathKey, inheritedComplete) {
 		var itemLabel = wrapQuestChainLabel(node.name, 20);
 		if (node.qty && String(node.qty) !== "1") {
 			itemLabel += "\nNeed " + node.qty;
 		}
 		var requiredQty = Math.max(1, parseInt(node.qty, 10) || 1);
 		var ownedQty = typeof node.owned === "number" ? node.owned : null;
-		var isComplete = ownedQty !== null ? ownedQty >= requiredQty : false;
+		var ownComplete = ownedQty !== null ? ownedQty >= requiredQty : false;
+		var isComplete = !!inheritedComplete || ownComplete;
 		var itemId = addNode({
 			id: "item-" + (++idCounter),
 			label: itemLabel,
@@ -1064,6 +1065,7 @@ function buildQuestChainGraph(tree, selections) {
 			owned: node.owned,
 			requiredQty: requiredQty,
 			isComplete: isComplete,
+			ownComplete: ownComplete,
 			tags: node.tags || [],
 			cycle: !!node.cycle,
 			truncated: !!node.truncated,
@@ -1126,10 +1128,10 @@ function buildQuestChainGraph(tree, selections) {
 		}
 
 		var sourceResults = sourceIndexes.map(function(index) {
-			return walkSource(node.sources[index], sourceParentId, nextPath + "/source-" + index);
+			return walkSource(node.sources[index], sourceParentId, nextPath + "/source-" + index, isComplete);
 		});
 		if (node.sources.length > 1) {
-			var orComplete = sourceResults.some(function(result) { return !!result.complete; });
+			var orComplete = isComplete || sourceResults.some(function(result) { return !!result.complete; });
 			if (orDetail) {
 				orDetail.isComplete = orComplete;
 			}
@@ -1144,7 +1146,7 @@ function buildQuestChainGraph(tree, selections) {
 		};
 	}
 
-	function walkSource(source, parentId, pathKey) {
+	function walkSource(source, parentId, pathKey, inheritedComplete) {
 		var sourceLabel = source.sourceType ? source.sourceType + "\n" : "";
 		sourceLabel += wrapQuestChainLabel(source.name, 22);
 		if (source.sourceType === "Quest") {
@@ -1174,14 +1176,14 @@ function buildQuestChainGraph(tree, selections) {
 			sourceType: source.sourceType,
 			meta: source.meta || [],
 			direct: !(source.children || []).length,
-			isComplete: false
+			isComplete: !!inheritedComplete
 		});
 		var childResults = (source.children || []).map(function(child) {
-			return walkItem(child, sourceId, pathKey);
+			return walkItem(child, sourceId, pathKey, inheritedComplete);
 		});
-		var sourceComplete = childResults.length ? childResults.every(function(result) {
+		var sourceComplete = !!inheritedComplete || (childResults.length ? childResults.every(function(result) {
 			return !!result.complete;
-		}) : false;
+		}) : false);
 		var sourceDetail = detailMap.get(sourceId);
 		if (sourceDetail) {
 			sourceDetail.isComplete = sourceComplete;
@@ -1195,7 +1197,7 @@ function buildQuestChainGraph(tree, selections) {
 		};
 	}
 
-	var rootResult = walkItem(tree, "", "root");
+	var rootResult = walkItem(tree, "", "root", false);
 	var rootId = rootResult && rootResult.id;
 	var adjacency = new Map();
 	var depths = {};
