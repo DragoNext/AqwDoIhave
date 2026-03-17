@@ -1271,38 +1271,6 @@ function sizeQuestChainGraphToContent(cy, graphEl) {
 	graphEl.style.height = desiredHeight + "px";
 }
 
-function constrainQuestChainPan(cy, graphEl) {
-	if (!cy || !graphEl || !cy.elements || !cy.elements().length) {
-		return;
-	}
-	var bounds = cy.elements().renderedBoundingBox({ includeLabels: true, includeOverlays: false });
-	var width = graphEl.clientWidth || 0;
-	var height = graphEl.clientHeight || 0;
-	if (!width || !height) {
-		return;
-	}
-	var margin = 40;
-	var deltaX = 0;
-	var deltaY = 0;
-	if ((bounds.w || 0) + (margin * 2) <= width) {
-		deltaX = (width / 2) - ((bounds.x1 + bounds.x2) / 2);
-	} else if (bounds.x1 > margin) {
-		deltaX = margin - bounds.x1;
-	} else if (bounds.x2 < (width - margin)) {
-		deltaX = (width - margin) - bounds.x2;
-	}
-	if ((bounds.h || 0) + (margin * 2) <= height) {
-		deltaY = (height / 2) - ((bounds.y1 + bounds.y2) / 2);
-	} else if (bounds.y1 > margin) {
-		deltaY = margin - bounds.y1;
-	} else if (bounds.y2 < (height - margin)) {
-		deltaY = (height - margin) - bounds.y2;
-	}
-	if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
-		cy.panBy({ x: deltaX, y: deltaY });
-	}
-}
-
 function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange) {
 	var layer = panel.querySelector(".aqw-chain-choice-layer");
 	if (!layer) {
@@ -1381,7 +1349,6 @@ function scheduleQuestChainViewportUpdate(panel, cy, graphEl, resizeToContent) {
 			sizeQuestChainGraphToContent(cy, graphEl);
 			cy.resize();
 		}
-		constrainQuestChainPan(cy, graphEl);
 		positionQuestChainChoiceOverlays(panel, cy);
 	});
 }
@@ -1619,6 +1586,9 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
 			cy.on("pan zoom resize", function() {
 				scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
+			});
+			cy.on("drag position", "node", function() {
+				scheduleQuestChainViewportUpdate(panel, cy, graphEl, true);
 			});
 			cy.on("position free", "node[kind = 'or']", function() {
 				scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
