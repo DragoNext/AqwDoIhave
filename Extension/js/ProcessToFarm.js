@@ -1617,6 +1617,29 @@ function ensureQuestChainPanel(button, item_name) {
 	return panel;
 }
 
+function captureQuestChainViewport(cy) {
+	if (!cy) {
+		return null;
+	}
+	return {
+		zoom: cy.zoom(),
+		pan: Object.assign({}, cy.pan())
+	};
+}
+
+function restoreQuestChainViewport(cy, viewport) {
+	if (!cy || !viewport) {
+		return false;
+	}
+	if (typeof viewport.zoom === "number") {
+		cy.zoom(viewport.zoom);
+	}
+	if (viewport.pan) {
+		cy.pan(viewport.pan);
+	}
+	return true;
+}
+
 async function renderQuestChainInline(button, item_name, d, forceOpen) {
 	ensureQuestChainUi();
 	var panel = ensureQuestChainPanel(button, item_name);
@@ -1832,22 +1855,26 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			if (hintEl) {
 				hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
 			}
-			renderQuestChainStatusOverlays(panel, cy, graph.detailMap);
-			renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
-				panel._orSelections[choiceId] = value;
-				renderQuestChainInline(button, item_name, d, true);
-			});
+				renderQuestChainStatusOverlays(panel, cy, graph.detailMap);
+				renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
+					panel._savedViewport = captureQuestChainViewport(panel._cy);
+					panel._orSelections[choiceId] = value;
+					renderQuestChainInline(button, item_name, d, true);
+				});
 			var viewportFinalized = false;
 			function finalizeViewport() {
 				if (viewportFinalized) {
 					return;
 				}
-				viewportFinalized = true;
-				sizeQuestChainGraphToContent(cy, graphEl);
-				cy.resize();
-				fitQuestChainViewport(cy, graphEl);
-				scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
-			}
+					viewportFinalized = true;
+					sizeQuestChainGraphToContent(cy, graphEl);
+					cy.resize();
+					if (!restoreQuestChainViewport(cy, panel._savedViewport)) {
+						fitQuestChainViewport(cy, graphEl);
+					}
+					panel._savedViewport = null;
+					scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
+				}
 			cy.one("layoutstop", finalizeViewport);
 			requestAnimationFrame(finalizeViewport);
 			scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
