@@ -735,9 +735,8 @@ function ensureQuestChainUi() {
 			+ ".aqw-chain-status-badge.is-complete{background:rgba(72,120,54,0.94);color:#f6ffea;}"
 			+ ".aqw-chain-status-badge.is-missing{background:rgba(130,36,40,0.96);color:#fff2e8;}"
 			+ ".aqw-chain-choice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}"
-			+ ".aqw-chain-choice-node{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translate(-50%, -50%);pointer-events:auto;}"
-			+ ".aqw-chain-choice-badge{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 7px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;border:1px solid rgba(90,34,34,0.22);}"
-			+ ".aqw-chain-choice-node select{min-width:180px;max-width:240px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.96);color:#58294b;font-size:0.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.08);}"
+			+ ".aqw-chain-choice-node{position:absolute;display:flex;align-items:center;justify-content:center;transform:translate(-50%, -50%);pointer-events:auto;}"
+			+ ".aqw-chain-choice-node select{min-width:140px;max-width:190px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.96);color:#58294b;font-size:0.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.08);}"
 		+ "@media (max-width: 980px){.aqw-chain-graph{min-height:460px;}}";
 	document.head.appendChild(style);
 }
@@ -1437,17 +1436,16 @@ function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange
 		layer.innerHTML = "";
 		return;
 	}
-	layer.innerHTML = choices.map(function(choice, idx) {
-		var optionsHtml = choice.options.map(function(option) {
-			var selected = String(selections[choice.id] || "0") === option.value ? " selected" : "";
-			return "<option value='" + escapeHtml(option.value) + "'" + selected + ">" + escapeHtml(option.label) + "</option>";
+		layer.innerHTML = choices.map(function(choice, idx) {
+			var optionsHtml = choice.options.map(function(option) {
+				var selected = String(selections[choice.id] || "0") === option.value ? " selected" : "";
+				return "<option value='" + escapeHtml(option.value) + "'" + selected + ">" + escapeHtml(option.label) + "</option>";
+			}).join("");
+			return ""
+				+ "<div class='aqw-chain-choice-node' data-choice-id='" + escapeHtml(choice.id) + "' data-node-id='" + escapeHtml(choice.nodeId) + "'>"
+				+ "<select aria-label='" + escapeHtml(choice.label) + "'>" + optionsHtml + "</select>"
+				+ "</div>";
 		}).join("");
-		return ""
-			+ "<div class='aqw-chain-choice-node' data-choice-id='" + escapeHtml(choice.id) + "' data-node-id='" + escapeHtml(choice.nodeId) + "'>"
-			+ "<span class='aqw-chain-choice-badge'>OR</span>"
-			+ "<select aria-label='" + escapeHtml(choice.label) + "'>" + optionsHtml + "</select>"
-			+ "</div>";
-	}).join("");
 
 	Array.from(layer.querySelectorAll(".aqw-chain-choice-node")).forEach(function(nodeEl) {
 		var choiceId = nodeEl.getAttribute("data-choice-id");
