@@ -1468,7 +1468,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 		var cy = cytoscapeLib({
 			container: graphEl,
 			elements: elements,
-			wheelSensitivity: 0.45,
+				wheelSensitivity: 1.4,
 			boxSelectionEnabled: false,
 			autounselectify: true,
 			textureOnViewport: true,
