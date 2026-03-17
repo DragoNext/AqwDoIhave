@@ -359,7 +359,13 @@ def _parse_rewards(container: Tag) -> dict:
                         "random": True,
                     })
 
-    for label in ("Items:", "Item:"):
+    for label, extra in (
+        ("Items:", {}),
+        ("Item:", {}),
+        ("You may also choose one of:", {"choice": True}),
+        ("You may choose one of:", {"choice": True}),
+        ("Choose one of:", {"choice": True}),
+    ):
         items_header = _find_strong_section(container, label)
         if not items_header:
             continue
@@ -378,6 +384,7 @@ def _parse_rewards(container: Tag) -> dict:
                 "slug": link.get("href", ""),
                 "tags": item_tags,
                 "qty": qty,
+                **extra,
             })
 
     return rewards

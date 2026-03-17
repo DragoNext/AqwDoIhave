@@ -538,13 +538,24 @@ function parseQuestSectionItems(container, sectionName) {
 }
 
 function parseQuestSectionRewards(container) {
-	return parseQuestSectionItems(container, "Items").map(function(item) {
-		return {
-			name: item.name,
-			slug: item.slug,
-			qty: item.qty
-		};
+	var rewards = [];
+	[
+		{ label: "Items", choice: false },
+		{ label: "Item", choice: false },
+		{ label: "You may also choose one of", choice: true },
+		{ label: "You may choose one of", choice: true },
+		{ label: "Choose one of", choice: true }
+	].forEach(function(def) {
+		parseQuestSectionItems(container, def.label).forEach(function(item) {
+			rewards.push({
+				name: item.name,
+				slug: item.slug,
+				qty: item.qty,
+				choice: def.choice
+			});
+		});
 	});
+	return rewards;
 }
 
 function extractSectionLink(node, pickLast) {
