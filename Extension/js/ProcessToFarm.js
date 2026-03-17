@@ -1576,18 +1576,19 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				}
 			],
 				layout: {
-					name: "concentric",
-					padding: 42,
-					spacingFactor: 0.9,
-					minNodeSpacing: 22,
+					name: "breadthfirst",
+					directed: true,
+					circle: false,
+					grid: false,
+					padding: 30,
+					spacingFactor: 0.82,
 					avoidOverlap: true,
-					equidistant: false,
-					startAngle: -Math.PI / 2,
-					concentric: function(ele) {
-						return (graph.maxDepth || 0) - (ele.data("depth") || 0);
-					},
-					levelWidth: function() {
-						return 1;
+					roots: [graph.rootId || "item-1"],
+					transform: function(_node, position) {
+						return {
+							x: position.y,
+							y: position.x
+						};
 					},
 					fit: false
 				},
