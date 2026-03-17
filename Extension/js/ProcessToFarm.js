@@ -1643,6 +1643,32 @@ function restoreQuestChainViewport(cy, viewport) {
 	return true;
 }
 
+function preserveQuestChainFocusAnchor(panel, cy, graph) {
+	if (!panel || !cy || !graph || !panel._savedFocusAnchor) {
+		return false;
+	}
+	var focus = panel._savedFocusAnchor;
+	var choice = (graph.choices || []).find(function(entry) {
+		return entry.id === focus.choiceId;
+	});
+	if (!choice) {
+		panel._savedFocusAnchor = null;
+		return false;
+	}
+	var cyNode = cy.$id(choice.nodeId);
+	if (!cyNode || !cyNode.length) {
+		panel._savedFocusAnchor = null;
+		return false;
+	}
+	var current = cyNode.renderedPosition();
+	cy.panBy({
+		x: (focus.renderedX || 0) - current.x,
+		y: (focus.renderedY || 0) - current.y
+	});
+	panel._savedFocusAnchor = null;
+	return true;
+}
+
 async function renderQuestChainInline(button, item_name, d, forceOpen) {
 	ensureQuestChainUi();
 	var panel = ensureQuestChainPanel(button, item_name);
@@ -1861,6 +1887,18 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				renderQuestChainStatusOverlays(panel, cy, graph.detailMap);
 				renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
 					panel._savedViewport = captureQuestChainViewport(panel._cy);
+					var currentChoice = (graph.choices || []).find(function(entry) {
+						return entry.id === choiceId;
+					});
+					var choiceNode = currentChoice && panel._cy ? panel._cy.$id(currentChoice.nodeId) : null;
+					if (choiceNode && choiceNode.length) {
+						var pos = choiceNode.renderedPosition();
+						panel._savedFocusAnchor = {
+							choiceId: choiceId,
+							renderedX: pos.x,
+							renderedY: pos.y
+						};
+					}
 					panel._orSelections[choiceId] = value;
 					renderQuestChainInline(button, item_name, d, true);
 				});
@@ -1875,6 +1913,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 					if (!restoreQuestChainViewport(cy, panel._savedViewport)) {
 						fitQuestChainViewport(cy, graphEl);
 					}
+					preserveQuestChainFocusAnchor(panel, cy, graph);
 					panel._savedViewport = null;
 					scheduleQuestChainViewportUpdate(panel, cy, graphEl, false);
 				}
