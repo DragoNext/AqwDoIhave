@@ -728,9 +728,13 @@ function ensureQuestChainUi() {
 		+ ".aqw-chain-legend{display:flex;flex-wrap:wrap;gap:10px;}"
 		+ ".aqw-chain-legend span{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;color:#6b5560;}"
 		+ ".aqw-chain-dot{width:10px;height:10px;display:inline-block;border-radius:50%;}"
-		+ ".aqw-chain-graph-wrap{position:relative;}"
-		+ ".aqw-chain-graph{min-height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
-		+ ".aqw-chain-choice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}"
+			+ ".aqw-chain-graph-wrap{position:relative;}"
+			+ ".aqw-chain-graph{min-height:620px;border:1px solid rgba(87,40,69,0.14);background:rgba(255,255,255,0.10);}"
+			+ ".aqw-chain-status-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}"
+			+ ".aqw-chain-status-badge{position:absolute;display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:20px;padding:0 6px;transform:translate(-50%, -50%);font-size:0.72rem;font-weight:800;border-radius:3px;border:1px solid rgba(42,18,30,0.22);box-shadow:0 2px 6px rgba(0,0,0,0.12);}"
+			+ ".aqw-chain-status-badge.is-complete{background:rgba(72,120,54,0.94);color:#f6ffea;}"
+			+ ".aqw-chain-status-badge.is-missing{background:rgba(130,36,40,0.96);color:#fff2e8;}"
+			+ ".aqw-chain-choice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}"
 		+ ".aqw-chain-choice-node{position:absolute;display:flex;align-items:center;gap:6px;transform:translate(-50%, -50%);pointer-events:auto;}"
 		+ ".aqw-chain-choice-badge{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 7px;background:#7b2426;color:#fff4de;font-size:0.72rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;border:1px solid rgba(90,34,34,0.22);}"
 		+ ".aqw-chain-choice-node select{min-width:180px;max-width:240px;padding:4px 8px;border:1px solid rgba(87,40,69,0.18);background:rgba(255,255,255,0.96);color:#58294b;font-size:0.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,0.08);}"
@@ -1036,9 +1040,9 @@ function buildQuestChainGraph(tree, selections) {
 		if (node.qty && String(node.qty) !== "1") {
 			itemLabel += "\nNeed " + node.qty;
 		}
-		if (typeof node.owned === "number") {
-			itemLabel += "\nHave " + node.owned;
-		}
+		var requiredQty = Math.max(1, parseInt(node.qty, 10) || 1);
+		var ownedQty = typeof node.owned === "number" ? node.owned : null;
+		var isComplete = ownedQty !== null ? ownedQty >= requiredQty : false;
 		var itemId = addNode({
 			id: "item-" + (++idCounter),
 			label: itemLabel,
@@ -1057,6 +1061,8 @@ function buildQuestChainGraph(tree, selections) {
 			slug: node.slug,
 			qty: node.qty,
 			owned: node.owned,
+			requiredQty: requiredQty,
+			isComplete: isComplete,
 			tags: node.tags || [],
 			cycle: !!node.cycle,
 			truncated: !!node.truncated,
@@ -1415,6 +1421,50 @@ function renderQuestChainChoiceOverlays(panel, cy, choices, selections, onChange
 	positionQuestChainChoiceOverlays(panel, cy);
 }
 
+function renderQuestChainStatusOverlays(panel, cy, detailMap) {
+	var layer = panel.querySelector(".aqw-chain-status-layer");
+	if (!layer) {
+		return;
+	}
+	if (!cy || !detailMap) {
+		layer.innerHTML = "";
+		return;
+	}
+	var html = [];
+	cy.nodes().forEach(function(node) {
+		var detail = detailMap.get(node.id()) || {};
+		if (detail.kind !== "item" || typeof detail.owned !== "number") {
+			return;
+		}
+		var requiredQty = Math.max(1, parseInt(detail.requiredQty || detail.qty, 10) || 1);
+		var complete = !!detail.isComplete;
+		html.push(
+			"<div class='aqw-chain-status-badge " + (complete ? "is-complete" : "is-missing") + "' data-node-id='" + escapeHtml(node.id()) + "'>"
+			+ "Have " + escapeHtml(String(detail.owned)) + (requiredQty > 1 ? " / " + escapeHtml(String(requiredQty)) : "")
+			+ "</div>"
+		);
+	});
+	layer.innerHTML = html.join("");
+	positionQuestChainStatusOverlays(panel, cy);
+}
+
+function positionQuestChainStatusOverlays(panel, cy) {
+	var layer = panel.querySelector(".aqw-chain-status-layer");
+	if (!layer || !cy) {
+		return;
+	}
+	Array.from(layer.querySelectorAll(".aqw-chain-status-badge")).forEach(function(badgeEl) {
+		var nodeId = badgeEl.getAttribute("data-node-id");
+		var cyNode = cy.$id(nodeId);
+		if (!cyNode || !cyNode.length) {
+			return;
+		}
+		var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
+		badgeEl.style.left = (box.x1 + (box.w / 2)) + "px";
+		badgeEl.style.top = (box.y2 - 10) + "px";
+	});
+}
+
 function positionQuestChainChoiceOverlays(panel, cy) {
 	var layer = panel.querySelector(".aqw-chain-choice-layer");
 	if (!layer || !cy) {
@@ -1442,6 +1492,7 @@ function scheduleQuestChainChoiceOverlayPosition(panel, cy) {
 	panel._choiceOverlayFrame = requestAnimationFrame(function() {
 		panel._choiceOverlayFrame = 0;
 		positionQuestChainChoiceOverlays(panel, cy);
+		positionQuestChainStatusOverlays(panel, cy);
 	});
 }
 
@@ -1455,15 +1506,16 @@ function scheduleQuestChainViewportUpdate(panel, cy, graphEl, resizeToContent) {
 	if (panel._questChainViewportFrame) {
 		return;
 	}
-	panel._questChainViewportFrame = requestAnimationFrame(function() {
-		panel._questChainViewportFrame = 0;
-		if (panel._questChainNeedsResize) {
-			panel._questChainNeedsResize = false;
-			sizeQuestChainGraphToContent(cy, graphEl);
-			cy.resize();
-		}
-		positionQuestChainChoiceOverlays(panel, cy);
-	});
+		panel._questChainViewportFrame = requestAnimationFrame(function() {
+			panel._questChainViewportFrame = 0;
+			if (panel._questChainNeedsResize) {
+				panel._questChainNeedsResize = false;
+				sizeQuestChainGraphToContent(cy, graphEl);
+				cy.resize();
+			}
+			positionQuestChainChoiceOverlays(panel, cy);
+			positionQuestChainStatusOverlays(panel, cy);
+		});
 }
 
 function ensureQuestChainPanel(button, item_name) {
@@ -1482,14 +1534,14 @@ function ensureQuestChainPanel(button, item_name) {
 			+ "</div>"
 			+ "</div>"
 			+ "<div class='aqw-chain-body'>"
-			+ "<div class='aqw-chain-legend'>"
-			+ "<span><i class='aqw-chain-dot' style='background:#532743'></i>Target / required item</span>"
-			+ "<span><i class='aqw-chain-dot' style='background:#3e243d'></i>Quest step</span>"
-			+ "<span><i class='aqw-chain-dot' style='background:#2f2a47'></i>Merge shop</span>"
-			+ "</div>"
-			+ "<div class='aqw-chain-graph-wrap'><div class='aqw-chain-graph'></div><div class='aqw-chain-choice-layer'></div></div>"
-			+ "<div class='aqw-chain-hint'>Click an item, NPC, monster, quest, or shop node to open its wiki page in a new tab.</div>"
-			+ "</div>";
+				+ "<div class='aqw-chain-legend'>"
+				+ "<span><i class='aqw-chain-dot' style='background:#532743'></i>Target / required item</span>"
+				+ "<span><i class='aqw-chain-dot' style='background:#3e243d'></i>Quest step</span>"
+				+ "<span><i class='aqw-chain-dot' style='background:#2f2a47'></i>Merge shop</span>"
+				+ "</div>"
+				+ "<div class='aqw-chain-graph-wrap'><div class='aqw-chain-graph'></div><div class='aqw-chain-status-layer'></div><div class='aqw-chain-choice-layer'></div></div>"
+				+ "<div class='aqw-chain-hint'>Click an item, NPC, monster, quest, or shop node to open its wiki page in a new tab.</div>"
+				+ "</div>";
 		button.insertAdjacentElement("afterend", panel);
 		panel.querySelector("[data-action='hide']").addEventListener("click", function() {
 			panel.hidden = true;
@@ -1562,15 +1614,16 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			graph.nodes.forEach(function(node) {
 				var detail = graph.detailMap.get(node.id) || {};
 				elements.push({
-					data: {
-						id: node.id,
-						label: node.label,
-						kind: detail.kind || "step",
-						depth: graph.depths[node.id] || 0,
-						sourceType: detail.sourceType || "",
-						imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
-						href: getQuestChainNodeHref(detail),
-						detail: detail
+						data: {
+							id: node.id,
+							label: node.label,
+							kind: detail.kind || "step",
+							depth: graph.depths[node.id] || 0,
+							completeState: detail.kind === "item" ? (detail.isComplete ? "complete" : "missing") : "neutral",
+							sourceType: detail.sourceType || "",
+							imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
+							href: getQuestChainNodeHref(detail),
+							detail: detail
 					},
 					position: presetPositions[node.id]
 				});
@@ -1630,6 +1683,26 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						}
 					},
 					{
+						selector: "node[kind = 'item'][completeState = 'complete']",
+						style: {
+							"border-color": "#57b34f",
+							"border-width": 2,
+							"shadow-blur": 14,
+							"shadow-opacity": 0.34,
+							"shadow-color": "#57b34f"
+						}
+					},
+					{
+						selector: "node[kind = 'item'][completeState = 'missing']",
+						style: {
+							"border-color": "#b33a44",
+							"border-width": 2,
+							"shadow-blur": 14,
+							"shadow-opacity": 0.32,
+							"shadow-color": "#b33a44"
+						}
+					},
+					{
 						selector: "node[kind = 'source']",
 						style: {
 							"background-color": "rgba(69, 36, 59, 0.9)",
@@ -1683,6 +1756,7 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 			if (hintEl) {
 				hintEl.textContent = "Click a node to open its wiki page. Drag to move the graph, scroll to zoom, or use Fit Graph to see the full chain.";
 			}
+			renderQuestChainStatusOverlays(panel, cy, graph.detailMap);
 			renderQuestChainChoiceOverlays(panel, cy, graph.choices, panel._orSelections || {}, function(choiceId, value) {
 				panel._orSelections[choiceId] = value;
 				renderQuestChainInline(button, item_name, d, true);
