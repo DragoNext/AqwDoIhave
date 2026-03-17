@@ -1486,19 +1486,11 @@ function renderQuestChainStatusOverlays(panel, cy, detailMap) {
 	positionQuestChainStatusOverlays(panel, cy);
 }
 
-function getQuestChainOverlayScale(cy) {
-	if (!cy || typeof cy.zoom !== "function") {
-		return 1;
-	}
-	return Math.max(0.58, Math.min(1, cy.zoom()));
-}
-
 function positionQuestChainStatusOverlays(panel, cy) {
 	var layer = panel.querySelector(".aqw-chain-status-layer");
 	if (!layer || !cy) {
 		return;
 	}
-	var scale = getQuestChainOverlayScale(cy);
 	Array.from(layer.querySelectorAll(".aqw-chain-status-badge")).forEach(function(badgeEl) {
 		var nodeId = badgeEl.getAttribute("data-node-id");
 		var cyNode = cy.$id(nodeId);
@@ -1508,7 +1500,7 @@ function positionQuestChainStatusOverlays(panel, cy) {
 		var box = cyNode.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
 		badgeEl.style.left = (box.x1 + (box.w / 2)) + "px";
 		badgeEl.style.top = (box.y2 - 10) + "px";
-		badgeEl.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+		badgeEl.style.transform = "translate(-50%, -50%)";
 	});
 }
 
@@ -1517,7 +1509,6 @@ function positionQuestChainChoiceOverlays(panel, cy) {
 	if (!layer || !cy) {
 		return;
 	}
-	var scale = getQuestChainOverlayScale(cy);
 	Array.from(layer.querySelectorAll(".aqw-chain-choice-node")).forEach(function(nodeEl) {
 		var nodeId = nodeEl.getAttribute("data-node-id");
 		var cyNode = cy.$id(nodeId);
@@ -1527,7 +1518,7 @@ function positionQuestChainChoiceOverlays(panel, cy) {
 		var pos = cyNode.renderedPosition();
 		nodeEl.style.left = pos.x + "px";
 		nodeEl.style.top = (pos.y + 26) + "px";
-		nodeEl.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+		nodeEl.style.transform = "translate(-50%, -50%)";
 	});
 }
 
