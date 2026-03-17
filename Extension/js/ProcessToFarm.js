@@ -1026,6 +1026,7 @@ function buildQuestChainGraph(tree, selections) {
 		edges.push(Object.assign({
 			from: from,
 			to: to,
+			completeState: "missing",
 			arrows: "to",
 			color: {
 				color: "rgba(255, 230, 184, 0.32)",
@@ -1070,16 +1071,22 @@ function buildQuestChainGraph(tree, selections) {
 		});
 
 		if (parentId) {
-			addEdge(parentId, itemId);
+			addEdge(parentId, itemId, {
+				completeState: isComplete ? "complete" : "missing"
+			});
 		}
 		if (node.cycle || node.truncated || node.missing || !(node.sources || []).length) {
-			return itemId;
+			return {
+				id: itemId,
+				complete: isComplete
+			};
 		}
 
 		var itemKey = normalizeSlug(node.slug || normalize(node.name).replace(/\s+/g, "-")) || "item";
 		var nextPath = pathKey + "/" + itemKey;
 		var sourceIndexes = node.sources.map(function(_, index) { return index; });
 		var sourceParentId = itemId;
+		var orDetail = null;
 		if (node.sources.length > 1) {
 			var selectedIndex = parseInt(choiceMap[nextPath], 10);
 			if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= node.sources.length) {
@@ -1101,9 +1108,10 @@ function buildQuestChainGraph(tree, selections) {
 			}, {
 				kind: "or",
 				name: "OR Path Split",
-				meta: ["Choose one branch for this step."]
+				meta: ["Choose one branch for this step."],
+				isComplete: false
 			});
-			addEdge(itemId, sourceParentId, { length: 70 });
+			orDetail = detailMap.get(sourceParentId);
 			choices.push({
 				id: nextPath,
 				nodeId: sourceParentId,
@@ -1117,10 +1125,23 @@ function buildQuestChainGraph(tree, selections) {
 			});
 		}
 
-		sourceIndexes.forEach(function(index) {
-			walkSource(node.sources[index], sourceParentId, nextPath + "/source-" + index);
+		var sourceResults = sourceIndexes.map(function(index) {
+			return walkSource(node.sources[index], sourceParentId, nextPath + "/source-" + index);
 		});
-		return itemId;
+		if (node.sources.length > 1) {
+			var orComplete = sourceResults.some(function(result) { return !!result.complete; });
+			if (orDetail) {
+				orDetail.isComplete = orComplete;
+			}
+			addEdge(itemId, sourceParentId, {
+				length: 70,
+				completeState: orComplete ? "complete" : "missing"
+			});
+		}
+		return {
+			id: itemId,
+			complete: isComplete
+		};
 	}
 
 	function walkSource(source, parentId, pathKey) {
@@ -1152,15 +1173,30 @@ function buildQuestChainGraph(tree, selections) {
 			slug: source.slug,
 			sourceType: source.sourceType,
 			meta: source.meta || [],
-			direct: !(source.children || []).length
+			direct: !(source.children || []).length,
+			isComplete: false
 		});
-		addEdge(parentId, sourceId);
-		(source.children || []).forEach(function(child) {
-			walkItem(child, sourceId, pathKey);
+		var childResults = (source.children || []).map(function(child) {
+			return walkItem(child, sourceId, pathKey);
 		});
+		var sourceComplete = childResults.length ? childResults.every(function(result) {
+			return !!result.complete;
+		}) : false;
+		var sourceDetail = detailMap.get(sourceId);
+		if (sourceDetail) {
+			sourceDetail.isComplete = sourceComplete;
+		}
+		addEdge(parentId, sourceId, {
+			completeState: sourceComplete ? "complete" : "missing"
+		});
+		return {
+			id: sourceId,
+			complete: sourceComplete
+		};
 	}
 
-	var rootId = walkItem(tree, "", "root");
+	var rootResult = walkItem(tree, "", "root");
+	var rootId = rootResult && rootResult.id;
 	var adjacency = new Map();
 	var depths = {};
 	edges.forEach(function(edge) {
@@ -1615,28 +1651,29 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 				var detail = graph.detailMap.get(node.id) || {};
 				elements.push({
 						data: {
-							id: node.id,
-							label: node.label,
-							kind: detail.kind || "step",
-							depth: graph.depths[node.id] || 0,
-							completeState: detail.kind === "item" ? (detail.isComplete ? "complete" : "missing") : "neutral",
-							sourceType: detail.sourceType || "",
-							imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
-							href: getQuestChainNodeHref(detail),
-							detail: detail
+						id: node.id,
+						label: node.label,
+						kind: detail.kind || "step",
+						depth: graph.depths[node.id] || 0,
+						completeState: detail.isComplete ? "complete" : "missing",
+						sourceType: detail.sourceType || "",
+						imageCapable: detail.kind === "item" || (detail.kind === "source" && detail.sourceType === "Drop") ? "true" : "false",
+						href: getQuestChainNodeHref(detail),
+						detail: detail
 					},
 					position: presetPositions[node.id]
 				});
 			});
 		graph.edges.forEach(function(edge, index) {
-			elements.push({
-				data: {
-					id: "edge-" + index,
-					source: edge.from,
-					target: edge.to
-				}
-			});
-		});
+					elements.push({
+						data: {
+							id: "edge-" + index,
+							source: edge.from,
+							target: edge.to,
+							completeState: edge.completeState || "missing"
+						}
+					});
+				});
 
 		var cy = cytoscapeLib({
 			container: graphEl,
@@ -1683,22 +1720,25 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						}
 					},
 					{
-						selector: "node[kind = 'item'][completeState = 'complete']",
+						selector: "node[completeState = 'complete']",
 						style: {
-							"border-color": "#57b34f",
-							"border-width": 2,
-							"shadow-blur": 14,
-							"shadow-opacity": 0.34,
-							"shadow-color": "#57b34f"
+							"border-color": "#63d85d",
+							"border-width": 4,
+							"shadow-blur": 28,
+							"shadow-opacity": 0.72,
+							"shadow-color": "#63d85d",
+							"underlay-color": "#63d85d",
+							"underlay-opacity": 0.22,
+							"underlay-padding": 7
 						}
 					},
 					{
-						selector: "node[kind = 'item'][completeState = 'missing']",
+						selector: "node[completeState = 'missing']",
 						style: {
-							"border-color": "#b33a44",
-							"border-width": 2,
-							"shadow-blur": 14,
-							"shadow-opacity": 0.32,
+							"border-color": "#d24a59",
+							"border-width": 3,
+							"shadow-blur": 20,
+							"shadow-opacity": 0.55,
 							"shadow-color": "#b33a44"
 						}
 					},
@@ -1724,16 +1764,32 @@ async function renderQuestChainInline(button, item_name, d, forceOpen) {
 						"text-outline-width": 0
 					}
 				},
-				{
-					selector: "edge",
-					style: {
-						"width": 2,
-						"curve-style": "bezier",
-						"line-color": "rgba(104, 69, 88, 0.42)",
-						"target-arrow-shape": "triangle",
-						"target-arrow-color": "rgba(104, 69, 88, 0.42)"
+					{
+						selector: "edge",
+						style: {
+							"width": 2,
+							"curve-style": "bezier",
+							"line-color": "rgba(148, 80, 94, 0.45)",
+							"target-arrow-shape": "triangle",
+							"target-arrow-color": "rgba(148, 80, 94, 0.45)"
+						}
+					},
+					{
+						selector: "edge[completeState = 'complete']",
+						style: {
+							"width": 3,
+							"line-color": "rgba(99, 216, 93, 0.88)",
+							"target-arrow-color": "rgba(99, 216, 93, 0.88)"
+						}
+					},
+					{
+						selector: "edge[completeState = 'missing']",
+						style: {
+							"width": 2.4,
+							"line-color": "rgba(188, 84, 96, 0.72)",
+							"target-arrow-color": "rgba(188, 84, 96, 0.72)"
+						}
 					}
-				}
 			],
 				layout: {
 					name: "preset",
