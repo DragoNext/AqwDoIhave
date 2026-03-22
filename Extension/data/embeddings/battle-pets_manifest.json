@@ -1,0 +1,1 @@
+{"category": "battle-pets", "count": 31, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "battle-pets.f32", "metadata_file": "battle-pets_meta.json", "npy_file": "battle-pets.npy"}

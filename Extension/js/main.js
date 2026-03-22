@@ -413,13 +413,6 @@ if (window.location.href == "https://account.aq.com/AQW/Inventory") {
 	catch(err){var isLocation = false}
 	
 	
-
-
-	
-	// get stored data
-	// If WIP in options is enabled.
-	chrome.storage.local.get({wipmoreinfo: 1}, function(result){WIP_moreinfo = result.wipmoreinfo;})
-
 	// Get account data (Just not items) 
 	chrome.storage.local.get({aqwbuy: []}, function(result){Buy = result.aqwbuy;});
 	chrome.storage.local.get({aqwcategory: []}, function(result){Category = result.aqwcategory;});

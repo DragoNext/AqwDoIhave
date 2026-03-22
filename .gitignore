@@ -1,0 +1,42 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Local secrets / env
+.env
+*.env
+embedings_scraper/.env
+embedings_scraper/gemini_keys.txt
+
+# Local backups / scratch files
+*.bak
+Extension/data/WikiItems.json.bak
+PLAN.md
+UPDATE.md
+tab.png
+
+# Generated scraper assets and local working outputs
+embedings_scraper/images/
+embedings_scraper/cleaned_armors/
+embedings_scraper/cleaned_capes/
+embedings_scraper/cleaned_ground/
+embedings_scraper/cleaned_helmets/
+embedings_scraper/cleaned_pets/
+embedings_scraper/cleaned_weapons/
+embedings_scraper/embedding_input_cache/
+embedings_scraper/embeddings/
+
+# Keep the extension runtime embeddings committed
+!Extension/data/
+!Extension/data/embeddings/
+!Extension/data/embeddings/**

@@ -13,10 +13,93 @@ jQuery.noConflict();
     var controller = null;
     var timeout = null;
     var imageCache = new Map();
+    var previewSettings = {
+        hoverPreviewEnabled: true,
+        imageProxyMode: "codetabs",
+        customImageProxyUrl: ""
+    };
+
+    function loadPreviewSettings() {
+        if (typeof chrome === "undefined" || !chrome.storage || !chrome.storage.local) {
+            return;
+        }
+        chrome.storage.local.get({
+            hoverPreviewEnabled: 1,
+            imageProxyMode: "codetabs",
+            customImageProxyUrl: ""
+        }, function(result) {
+            previewSettings.hoverPreviewEnabled = result.hoverPreviewEnabled !== 0;
+            previewSettings.imageProxyMode = result.imageProxyMode || "codetabs";
+            previewSettings.customImageProxyUrl = String(result.customImageProxyUrl || "").trim();
+        });
+    }
+
+    function resolveProxyTemplate(url) {
+        var template = String(previewSettings.customImageProxyUrl || "").trim();
+        if (!template) {
+            return "";
+        }
+        if (template.includes("{url}")) {
+            return template.replace(/\{url\}/g, encodeURIComponent(url));
+        }
+        if (template.includes("{raw_url}")) {
+            return template.replace(/\{raw_url\}/g, url);
+        }
+        return template + encodeURIComponent(url);
+    }
+
+    function buildFetchCandidates(url) {
+        if (window.location.hostname === "aqwwiki.wikidot.com") {
+            return [url];
+        }
+
+        var codetabsUrl = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url);
+        if (previewSettings.imageProxyMode === "direct") {
+            return [url, codetabsUrl];
+        }
+        if (previewSettings.imageProxyMode === "custom") {
+            var customUrl = resolveProxyTemplate(url);
+            if (customUrl) {
+                return [customUrl, codetabsUrl];
+            }
+        }
+        return [codetabsUrl];
+    }
+
+    loadPreviewSettings();
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener(function(changes, areaName) {
+            if (areaName !== "local") {
+                return;
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, "hoverPreviewEnabled")) {
+                previewSettings.hoverPreviewEnabled = changes.hoverPreviewEnabled.newValue !== 0;
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, "imageProxyMode")) {
+                previewSettings.imageProxyMode = changes.imageProxyMode.newValue || "codetabs";
+            }
+            if (Object.prototype.hasOwnProperty.call(changes, "customImageProxyUrl")) {
+                previewSettings.customImageProxyUrl = String(changes.customImageProxyUrl.newValue || "").trim();
+            }
+        });
+    }
 
     $("body").on("mouseover", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a, #table-content a", function() {
         hovered(this.href);
     }).on("mouseout", "#page-content a, .card.m-2.m-lg-3 a, #inventoryRendered a, #site-changes-list a, #table-content a", function() {
+        unhovered();
+    });
+
+    $("body").on("mouseenter", ".item-card[data-slug]", function() {
+        if (this.closest && this.closest("#item-modal")) {
+            return;
+        }
+        var slug = (this.dataset && this.dataset.slug) || "";
+        if (!slug) {
+            return;
+        }
+        hovered("http://aqwwiki.wikidot.com/" + String(slug).replace(/^\/+/, ""));
+    }).on("mouseleave", ".item-card[data-slug]", function() {
         unhovered();
     });
 
@@ -33,6 +116,9 @@ jQuery.noConflict();
     });
 
     function hovered(link) {
+        if (!previewSettings.hoverPreviewEnabled) {
+            return;
+        }
         if (!mouseHover) {
             mouseHover = true;
             controller = new AbortController();
@@ -66,13 +152,17 @@ jQuery.noConflict();
     }
 
     async function _wikimgFetch(url, signal) {
-        var fetchUrl = url;
-        if (window.location.hostname !== "aqwwiki.wikidot.com") {
-            fetchUrl = "https://api.codetabs.com/v1/proxy?quest=" + url;
+        var doc = null;
+        var candidates = buildFetchCandidates(url);
+        for (var i = 0; i < candidates.length; i++) {
+            try {
+                doc = await fetchParse(candidates[i], signal);
+                break;
+            } catch (err) {
+                doc = null;
+            }
         }
-        try {
-            var doc = await fetchParse(fetchUrl, signal);
-        } catch {
+        if (!doc) {
             return;
         }
         const type = $(doc).find("#breadcrumbs > a:last").text();

@@ -1,0 +1,1 @@
+{"category": "maces", "count": 2450, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "maces.f32", "metadata_file": "maces_meta.json", "npy_file": "maces.npy"}

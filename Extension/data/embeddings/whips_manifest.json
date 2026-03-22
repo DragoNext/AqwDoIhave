@@ -1,0 +1,1 @@
+{"category": "whips", "count": 83, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "whips.f32", "metadata_file": "whips_meta.json", "npy_file": "whips.npy"}

@@ -1,0 +1,1 @@
+{"category": "guns", "count": 437, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "guns.f32", "metadata_file": "guns_meta.json", "npy_file": "guns.npy"}

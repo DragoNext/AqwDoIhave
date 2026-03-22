@@ -1,149 +1,841 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AqwDoIHave Extras { Options };</title>
+    <style>
+        :root {
+            --bg: #efdfc2;
+            --top: #441832;
+            --panel: #5b2c48;
+            --panel-soft: #653452;
+            --border: rgba(255, 231, 185, 0.12);
+            --border-strong: rgba(255, 231, 185, 0.2);
+            --text: #f2eadf;
+            --muted: #d9c7d3;
+            --accent: #6eb1f0;
+            --accent-soft: #f6d77a;
+            --shadow: 0 18px 40px rgba(18, 5, 15, 0.18);
+        }
 
-<html>
+        * {
+            box-sizing: border-box;
+        }
 
-<style>
-body {background-color:#eddfbc;margin: 0;text-align:center;font-family: "Lucida Console", "Courier New", monospace;}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, rgba(255, 247, 227, 0.35), transparent 36%), var(--bg);
+            color: #3b2230;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-.topinfo {background-color:#3b0b2e;color:#ffffff;width:100%;text-align:center;height:15%;}
+        a {
+            color: inherit;
+        }
 
-.topinfo a {
-  float: center;
-  color: #f2f2f2;
-  font-weight:800;
-  text-align: center;
-  padding: 14px 30px;
-  display:block;
-  text-decoration: none;
-  box-shadow: 0px 5px 15px #0f0f0f;
-  font-size: 32px;
-}
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--top);
+        }
 
-.button:hover {
-  background-color: #4CAF50; /* Green */
-  color: white;
-}
-.button {
-	width:20%;
-	vertical-align: middle;
-	align-self: center;
-	border:none;
-	float: center; 
-	color: #f2f2f2;
-	padding: 14px 30px;
-	text-align: center; 
-	text-decoration: none;
-	font-size: 20px;
-	offset: 10px 70px;
-	background-color:#3b0b2e;
-	padding: 1rem;
-	margin: 20px auto;
-	padding:10px;
-	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-}
-.button:active {
-		background-color:#000000;
-		
-		color: #a2f2f2;
-		box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-	}
-.block {
-	width:20%;
-	vertical-align: middle;
-	align-self: center;
-	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-	float: center; 
-	color: #f2f2f2;
-	padding: 14px 30px;
-	text-align: center; 
-	text-decoration: none;
-	font-size: 20px;
-	offset: 10px 70px;
-	background-color:#3b0b2e;
-	padding: 1rem;
-	 margin: 20px auto;
-	
-	padding:10px;
-}
+        .top-bar-left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
 
+        .brand-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-right: 4px;
+        }
 
-.bottom {
-    position:fixed;
-	left:0px;
-	font-weight:700;
-	color:white;
-	bottom:20px;
-	height:30px;
-	width:100%;
-	background-color:#3b0b2e;
-	box-shadow: 2px -4px 15px #0f0f0f;
-}
+        .view-link {
+            border: 1px solid transparent;
+            border-radius: 2px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 4px 2px;
+            text-decoration: none;
+            transition: 120ms ease;
+        }
 
-.bottom-text {
-    position:fixed;
-	left:0px;
-	bottom:0px;
-	height:30px;
-	width:100%;
-	
-	background-color:#3b0b2e;
-}
-#like {
-  margin:0 20px;
-  height: 22px;
-  width: 22px;
-  background-color: #eee;
-  vertical-align:middle;
-}
+        .view-link:hover {
+            color: #fff4de;
+        }
 
-#dark_mode {
-  margin:0 20px;
-  height: 22px;
-  width: 22px;
-  background-color: #eee;
-  vertical-align:middle;
-}
+        .page-wrap {
+            width: min(960px, calc(100vw - 40px));
+            margin: 32px auto 40px;
+        }
 
-#link {
-	background-color:#0d1117;
-	border: 1px solid #0d1117;
-	border-width:10px;
+        .hero-card,
+        .settings-card,
+        .action-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            box-shadow: var(--shadow);
+        }
 
-	border-radius:8px;
-	
-}
-</style>
+        .hero-card {
+            padding: 24px 26px;
+            margin-bottom: 18px;
+        }
 
+        .hero-eyebrow {
+            color: var(--accent-soft);
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
 
+        .hero-title {
+            margin-top: 8px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff2de;
+        }
 
-<head><title>AqwDoIhave { Options };</title></head>
+        .hero-copy {
+            margin-top: 10px;
+            max-width: 660px;
+            color: #eadcc8;
+            line-height: 1.6;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .settings-card,
+        .action-card {
+            padding: 20px 22px;
+        }
+
+        .stack-card {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-title {
+            color: #fff1da;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .card-copy {
+            margin-top: 8px;
+            color: #eadcc8;
+            line-height: 1.55;
+        }
+
+        .option-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .option-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .option-name {
+            color: #fff1da;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .option-desc {
+            color: #eadcc8;
+            line-height: 1.55;
+        }
+
+        .field-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-label {
+            color: #fff1da;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .field-note {
+            color: #d9c7d3;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .field-select,
+        .field-input {
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 231, 185, 0.16);
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f2eadf;
+            font-size: 0.95rem;
+        }
+
+        .field-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #d9c7d3 50%),
+                linear-gradient(135deg, #d9c7d3 50%, transparent 50%);
+            background-position:
+                calc(100% - 18px) calc(50% - 3px),
+                calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 34px;
+        }
+
+        .field-select option {
+            background: #512744;
+            color: #f2eadf;
+        }
+
+        .field-input::placeholder {
+            color: #cdb9c6;
+        }
+
+        .field-select:disabled,
+        .field-input:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .toggle {
+            position: relative;
+            flex: 0 0 auto;
+            width: 52px;
+            height: 30px;
+        }
+
+        .toggle input {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            border: 1px solid var(--border-strong);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            transition: 120ms ease;
+        }
+
+        .toggle-track::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #f3ebdf;
+            transition: 120ms ease;
+        }
+
+        .toggle input:checked + .toggle-track {
+            background: rgba(110, 177, 240, 0.26);
+            border-color: rgba(110, 177, 240, 0.45);
+        }
+
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(22px);
+            background: #ffffff;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 180px;
+            min-height: 42px;
+            padding: 0 16px;
+            border: 1px solid rgba(255, 231, 185, 0.16);
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f2eadf;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 120ms ease;
+        }
+
+        .action-btn:hover {
+            border-color: rgba(255, 231, 185, 0.28);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff4de;
+        }
+
+        .action-btn.primary {
+            background: rgba(110, 177, 240, 0.16);
+            border-color: rgba(110, 177, 240, 0.38);
+            color: #eef7ff;
+        }
+
+        .status {
+            min-height: 22px;
+            margin-top: 12px;
+            color: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 18px;
+            padding: 14px 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(91, 44, 72, 0.92);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .art-showcase {
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+            padding: 0 16px 4px;
+        }
+
+        .art-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: min(1154px, calc(100vw - 32px));
+        }
+
+        .art-stage {
+            position: relative;
+            width: 100%;
+            padding-top: clamp(52px, 7vw, 86px);
+        }
+
+        .art-image {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .art-badge {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            position: absolute;
+            top: 0;
+            left: 60.5%;
+            width: clamp(52px, 5.9vw, 68px);
+            height: clamp(52px, 5.9vw, 68px);
+            transform: translateX(-50%);
+            isolation: isolate;
+            filter: drop-shadow(0 10px 16px rgba(19, 6, 14, 0.35));
+        }
+
+        .art-badge::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 219, 87, 0.38);
+            -webkit-mask: url("images/scylla_q.png") center / contain no-repeat;
+            mask: url("images/scylla_q.png") center / contain no-repeat;
+            opacity: 0;
+            transition: opacity 120ms ease;
+            pointer-events: none;
+        }
+
+        .art-badge img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: filter 120ms ease, transform 120ms ease;
+        }
+
+        .art-badge:hover img {
+            filter: brightness(1.08) saturate(1.08);
+            transform: translateY(-1px);
+        }
+
+        .art-badge:hover::after {
+            opacity: 1;
+        }
+
+        .aqw-pop-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            background: rgba(8, 2, 8, 0.62);
+            z-index: 1000;
+        }
+
+        .aqw-pop-overlay[hidden] {
+            display: none !important;
+        }
+
+        .aqw-pop-window {
+            position: relative;
+            width: 100vw;
+            height: clamp(300px, 26vw, 357px);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+            overflow: visible;
+            background: transparent;
+        }
+
+        .aqw-pop-window::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url("images/scylla_textbox.png") center / 100% 100% no-repeat;
+            z-index: 0;
+        }
+
+        .aqw-pop-body {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            padding: 0;
+            background: transparent;
+            min-height: 0;
+            overflow: visible;
+        }
+
+        .aqw-pop-portrait {
+            position: absolute;
+            left: clamp(-378px, -24vw, -360px);
+            bottom: clamp(-90px, -7vw, -78px);
+            width: clamp(780px, 55.5vw, 1008px);
+            height: clamp(450px, 37.5vw, 642px);
+            background: transparent;
+            overflow: visible;
+        }
+
+        .aqw-pop-portrait img {
+            position: absolute;
+            left: 50%;
+            bottom: -18px;
+            transform: translateX(-50%);
+            width: clamp(858px, 58.2vw, 1110px);
+            max-width: none;
+            height: auto;
+            pointer-events: none;
+            filter: drop-shadow(0 14px 20px rgba(57, 20, 36, 0.2));
+        }
+
+        .aqw-pop-main {
+            position: absolute;
+            left: clamp(355px, 26.1vw, 433px);
+            right: clamp(36px, 4vw, 72px);
+            top: clamp(112px, 9.25vw, 152px);
+            padding: 0;
+            color: #24140f;
+        }
+
+        .aqw-pop-copy {
+            margin-top: 0;
+            max-width: min(68ch, 100%);
+            font-size: clamp(1rem, 1.18vw, 1.22rem);
+            line-height: 1.32;
+            color: #20110c;
+        }
+
+        .aqw-pop-tabs-right,
+        .aqw-pop-tabs-bottom {
+            position: absolute;
+            z-index: 2;
+            display: grid;
+            gap: 8px;
+        }
+
+        .aqw-pop-tabs-right {
+            right: clamp(84px, 7vw, 106px);
+            top: clamp(32px, 3vw, 72px);
+            width: clamp(172px, 14vw, 214px);
+        }
+
+        .aqw-pop-tabs-bottom {
+            left: calc(50% + 50px);
+            bottom: clamp(-14px, -1vw, -2px);
+            transform: translateX(-50%);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: clamp(340px, 28vw, 460px);
+            gap: 23px;
+        }
+
+        .aqw-pop-tab {
+            position: relative;
+            min-height: clamp(42px, 3.3vw, 54px);
+            border: 0;
+            padding: 0 26px 4px;
+            background: transparent;
+            color: #f7f2e7;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1rem, 1.1vw, 1.24rem);
+            font-weight: 800;
+            overflow: visible;
+            text-shadow:
+                -1px -1px 0 rgba(25, 9, 9, 0.8),
+                1px -1px 0 rgba(25, 9, 9, 0.8),
+                -1px 1px 0 rgba(25, 9, 9, 0.8),
+                1px 1px 0 rgba(25, 9, 9, 0.8),
+                2px 2px 0 rgba(25, 9, 9, 0.45);
+            cursor: pointer;
+            transition: filter 120ms ease;
+        }
+
+        .aqw-pop-tab::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url("images/tab.png") center / 100% 100% no-repeat;
+            transition: transform 120ms ease, filter 120ms ease;
+            transform-origin: center;
+            z-index: 0;
+        }
+
+        .aqw-pop-tab > span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .aqw-pop-tab:hover,
+        .aqw-pop-tab.is-active {
+            filter: none;
+        }
+
+        .aqw-pop-tab:hover::before,
+        .aqw-pop-tab.is-active::before {
+            filter: brightness(1.05);
+            transform: scale(1.04);
+        }
+
+        @media (max-width: 980px) {
+            .aqw-pop-body {
+                inset: 0;
+            }
+
+            .aqw-pop-window {
+                width: 100vw;
+                height: 340px;
+            }
+
+            .aqw-pop-portrait {
+                left: -384px;
+                bottom: -90px;
+                width: 714px;
+                height: 498px;
+            }
+
+            .aqw-pop-portrait img {
+                bottom: -14px;
+                width: 786px;
+            }
+
+            .aqw-pop-main {
+                left: 273px;
+                right: 28px;
+                top: 92px;
+            }
+
+            .aqw-pop-tabs-right {
+                right: 70px;
+                top: 22px;
+                width: 180px;
+            }
+
+            .aqw-pop-tabs-bottom {
+                width: 320px;
+                left: calc(50% + 40px);
+                bottom: -8px;
+                gap: 21px;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .top-bar,
+            .page-wrap {
+                width: auto;
+                margin-left: 16px;
+                margin-right: 16px;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .top-bar {
+                margin: 0;
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .hero-title {
+                font-size: 1.45rem;
+            }
+
+            .option-row {
+                gap: 12px;
+            }
+
+            .art-showcase {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .art-figure {
+                width: min(1154px, calc(100vw - 24px));
+            }
+
+            .aqw-pop-window {
+                width: 100vw;
+                height: clamp(332px, 50vw, 370px);
+            }
+
+            .aqw-pop-body {
+                inset: 0;
+            }
+
+            .aqw-pop-portrait {
+                left: -390px;
+                bottom: -92px;
+                width: 504px;
+                height: 378px;
+            }
+
+            .aqw-pop-portrait img {
+                bottom: -10px;
+                width: 552px;
+            }
+
+            .aqw-pop-main {
+                left: 186px;
+                right: 18px;
+                top: 102px;
+            }
+
+            .aqw-pop-copy {
+                font-size: 0.86rem;
+            }
+
+            .aqw-pop-tabs-right {
+                right: 34px;
+                top: 12px;
+                width: 132px;
+            }
+
+            .aqw-pop-tabs-bottom {
+                width: 246px;
+                left: calc(50% + 24px);
+                bottom: -6px;
+                gap: 18px;
+            }
+
+            .aqw-pop-tab {
+                min-height: 32px;
+                padding: 0 16px 3px;
+                font-size: 0.76rem;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .aqw-pop-window {
+                height: 356px;
+            }
+
+            .aqw-pop-main {
+                left: 198px;
+                right: 20px;
+                top: 120px;
+            }
+
+            .aqw-pop-copy {
+                font-size: 0.84rem;
+                line-height: 1.28;
+            }
+
+            .aqw-pop-tabs-right {
+                right: 28px;
+                top: 18px;
+            }
+
+            .aqw-pop-tabs-bottom {
+                left: calc(50% + 18px);
+            }
+        }
+    </style>
+</head>
 <body>
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span class="brand-label">AqwDoIHave Extras</span>
+            <a class="view-link" href="tofarm.html">{Back To Extras};</a>
+        </div>
+    </div>
 
-<div class="topinfo"><a>AqwDoIhave { Options }; </a></div>
+    <main class="page-wrap">
+        <section class="hero-card">
+            <div class="hero-eyebrow">Settings</div>
+            <div class="hero-title">AqwDoIHave Extras { Options };</div>
+            <div class="hero-copy">
+                Configure the extension behavior here. The existing account export and toggle options are preserved, just presented in the same visual language as the extras page.
+            </div>
+        </section>
 
-<div class="block">
-<a style="vertical-align:middle">Show More Info<input type="checkbox" id="like"></a>
-</div>
+        <section id="settings-section" class="settings-grid">
+            <div class="settings-card">
+                <div class="option-row">
+                    <div class="option-meta">
+                        <div class="option-name">AQWWiki Dark Mode</div>
+                        <div class="option-desc">Turns on the experimental dark theme for supported AQW Wiki pages.</div>
+                    </div>
+                    <label class="toggle" aria-label="AQWWiki Dark Mode">
+                        <input type="checkbox" id="dark_mode">
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+            </div>
 
-<div class="block">
-<a style="vertical-align:middle">{WIP} AQWWIKI Dark Mode<input type="checkbox" id="dark_mode"></a>
-</div>
+            <div class="settings-card">
+                <div class="option-row">
+                    <div class="option-meta">
+                        <div class="option-name">Hover Preview</div>
+                        <div class="option-desc">Enable the larger wiki-style image preview when hovering item cards and links.</div>
+                    </div>
+                    <label class="toggle" aria-label="Hover Preview Enabled">
+                        <input type="checkbox" id="hover_preview_enabled">
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
 
+        <section id="proxy-section" class="action-card stack-card" style="margin-top: 18px;">
+            <div>
+                <div class="card-title">Image Retrieval</div>
+                <div class="card-copy">Controls how hover preview fetches wiki pages to extract preview art.</div>
+            </div>
 
+            <label class="field-stack">
+                <span class="field-label">Proxy Mode</span>
+                <select id="image_proxy_mode" class="field-select">
+                    <option value="codetabs">Codetabs</option>
+                    <option value="custom">Custom Proxy</option>
+                    <option value="direct">Direct Wiki Fetch</option>
+                </select>
+                <span class="field-note">`Custom Proxy` requires a URL prefix or template like `https://proxy.example.com/?quest=` or `https://proxy.example.com/?url={url}`.</span>
+            </label>
 
+            <label class="field-stack">
+                <span class="field-label">Custom Proxy URL</span>
+                <input id="custom_proxy_url" class="field-input" type="url" placeholder="https://proxy.example.com/?quest=" spellcheck="false">
+            </label>
+        </section>
 
+        <section id="account-section" class="action-card" style="margin-top: 18px;">
+            <div class="card-title">Account Data</div>
+            <div class="card-copy">Export your stored account items as JSON. Settings above save automatically.</div>
+            <div class="actions-row">
+                <button class="action-btn" id="export" type="button">Export Account Items JSON</button>
+            </div>
+            <div id="status" class="status" aria-live="polite"></div>
+        </section>
 
-<button class="button" id="export">Export Account Items Json</button>
-<div id="status"></div>
+        <section class="art-showcase" aria-label="Scylla artwork">
+            <div class="art-figure">
+                <div class="art-stage">
+                    <button class="art-badge" type="button" aria-label="Open Scylla menu">
+                        <img src="images/scylla_q.png" alt="Scylla marker icon">
+                    </button>
+                    <img class="art-image" src="images/scylla.png" alt="Scylla artwork">
+                </div>
+            </div>
+        </section>
 
-<button class="button" id="save">Save</button>
+        <div class="footer">
+            Created by Drago. <a href="https://github.com/DragoNext/AqwDoIhave" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+    </main>
 
-<script src="js/option.js"></script>
+    <div id="aqw-pop-overlay" class="aqw-pop-overlay" hidden>
+        <div class="aqw-pop-window" role="dialog" aria-modal="true" aria-label="Scylla dialog">
+            <div class="aqw-pop-body">
+                <div class="aqw-pop-portrait">
+                    <img src="images/scylla.png" alt="Scylla portrait">
+                </div>
+                <div class="aqw-pop-main">
+                    <div id="aqw-pop-copy" class="aqw-pop-copy">
+                        Hmm, what do you need, mortal?<br>
+                        I'm not tech support, figure it out yourself...<br>
+                        Or are you SOOOO pathetic that you can't?<br>
+                        I mean, not everyone has as many tentacles as me.<br>
+                        He~ he~
+                    </div>
+                </div>
+                <div class="aqw-pop-tabs-right">
+                    <button class="aqw-pop-tab" type="button" data-pop-topic="sacrifice"><span>Sacrifice?</span></button>
+                </div>
+                <div class="aqw-pop-tabs-bottom">
+                    <button class="aqw-pop-tab" type="button" data-pop-topic="whoami"><span>Who I am?</span></button>
+                    <button class="aqw-pop-tab" type="button" data-pop-topic="drago"><span>Drago?</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="bottom"><div class="bottom-text">Created by Drago <a id="link" style="color:#4ca7fd;" href="https://github.com/DragoNext/AqwDoIhave">Github</a>
-<a id="link" style="color:#f0f0f0;background-color:#002f83;border-color:#002f83;" href="https://www.paypal.com/donate/?hosted_button_id=4K6AFGLC66YMG">PayPal</a>
-</div></div>
-
-
+    <script src="js/option.js"></script>
 </body>
 </html>

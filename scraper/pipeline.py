@@ -269,8 +269,8 @@ async def run_recent_scrape(config: ScraperConfig):
 
 async def _scrape_item(client: WikiClient, wiki_path: str, category: str,
                        name: str) -> ItemDetail | None:
-    html = await client.fetch_page(wiki_path)
-    return parse_item_page(html, wiki_path, category, name)
+    html, final_path = await client.fetch_page(wiki_path, track_redirect=True)
+    return parse_item_page(html, final_path, category, name)
 
 
 async def _crawl_index_pages(client: WikiClient, base_url: str, config: ScraperConfig) -> list[dict]:

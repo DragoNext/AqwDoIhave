@@ -289,17 +289,22 @@ def _parse_bonus_damage(notes_ul: Tag | None) -> list | None:
     return None
 
 
+def _is_skill_image(src: str) -> bool:
+    """Filter out class skill icons and other non-item images."""
+    return "classes-skills" in src or "Skill" in src
+
+
 def _extract_item_images(page_content: Tag) -> list[str]:
     images = []
     for tab in page_content.select("[id^='wiki-tab-0-']"):
         img = tab.select_one("img")
         if img and img.get("src"):
             src = img["src"]
-            if "image-tags" not in src:
+            if "image-tags" not in src and not _is_skill_image(src):
                 images.append(src)
     if not images:
         for img in page_content.find_all("img"):
             src = img.get("src", "")
-            if src and "image-tags" not in src and "wikidot" not in src:
+            if src and "image-tags" not in src and "wikidot" not in src and not _is_skill_image(src):
                 images.append(src)
     return images

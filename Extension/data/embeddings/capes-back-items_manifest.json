@@ -1,0 +1,1 @@
+{"category": "capes-back-items", "count": 8397, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "capes-back-items.f32", "metadata_file": "capes-back-items_meta.json", "npy_file": "capes-back-items.npy"}

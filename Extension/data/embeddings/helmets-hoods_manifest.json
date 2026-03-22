@@ -1,0 +1,1 @@
+{"category": "helmets-hoods", "count": 18818, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "helmets-hoods.f32", "metadata_file": "helmets-hoods_meta.json", "npy_file": "helmets-hoods.npy"}

@@ -1,0 +1,1 @@
+{"category": "wands", "count": 147, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "wands.f32", "metadata_file": "wands_meta.json", "npy_file": "wands.npy"}

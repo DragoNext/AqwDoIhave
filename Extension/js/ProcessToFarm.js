@@ -14,13 +14,15 @@ var in_bank_icon = chrome.runtime.getURL("images/in_bank.png");
 
 var ITEMS_PER_PAGE = 50;
 var GROUPS_PER_PAGE = 20;
+var COSMETIC_ITEMS_PER_PAGE = 48;
 var activeTab = "todrop";
 var tabState = {
 	todrop: { page: 0, items: [] },
 	inbank: { page: 0, items: [] },
 	tomerge: { page: 0, groups: [] },
 	toquest: { page: 0, groups: [] },
-	completed: { page: 0, sections: [] }
+	completed: { page: 0, sections: [] },
+	cosmetic: { page: 0, items: [], querySlug: "", queryName: "", queryCategory: "", queryLookup: null }
 };
 var searchTerm = "";
 var _accountItems = [];
@@ -49,6 +51,68 @@ var GRID_SIZE_CONFIG = {
 	medium: { item: "170px", group: "220px" },
 	large: { item: "210px", group: "270px" }
 };
+var EMBEDDING_CATEGORIES = [
+	"armors",
+	"helmets-hoods",
+	"capes-back-items",
+	"swords",
+	"daggers",
+	"maces",
+	"polearms",
+	"staffs",
+	"axes",
+	"guns",
+	"bows",
+	"gauntlets",
+	"wands",
+	"whips",
+	"handguns",
+	"rifles",
+	"pets",
+	"battle-pets",
+	"grounds"
+];
+var COSMETIC_SEARCH_CATEGORIES = EMBEDDING_CATEGORIES.filter(function(category) {
+	return category !== "grounds";
+});
+var EMBEDDING_CATEGORY_LABELS = {
+	"armors": "Armor",
+	"helmets-hoods": "Helmet",
+	"capes-back-items": "Cape",
+	"swords": "Sword",
+	"daggers": "Dagger",
+	"maces": "Mace",
+	"polearms": "Polearm",
+	"staffs": "Staff",
+	"axes": "Axe",
+	"guns": "Gun",
+	"bows": "Bow",
+	"gauntlets": "Gauntlet",
+	"wands": "Wand",
+	"whips": "Whip",
+	"handguns": "Handgun",
+	"rifles": "Rifle",
+	"pets": "Pet",
+	"battle-pets": "Battle Pet",
+	"grounds": "Ground"
+};
+var COSMETIC_TYPE_GROUPS = [
+	{
+		label: "Wearables",
+		categories: ["armors", "helmets-hoods", "capes-back-items"]
+	},
+	{
+		label: "Weapons",
+		categories: ["swords", "daggers", "maces", "polearms", "staffs", "axes", "guns", "bows", "gauntlets", "wands", "whips", "handguns", "rifles"]
+	},
+	{
+		label: "Companions",
+		categories: ["pets", "battle-pets"]
+	}
+];
+var _embeddingCategoryCache = new Map();
+var _cosmeticTypeFilterInitialized = false;
+var _cosmeticRenderToken = 0;
 
 function preloadImage(src) {
 	return new Promise(function(resolve) {
@@ -83,6 +147,15 @@ function fetchText(url) {
 			throw new Error("Failed to fetch " + url + ": " + resp.status);
 		}
 		return resp.text();
+	});
+}
+
+function fetchArrayBuffer(url) {
+	return fetch(url).then(function(resp) {
+		if (!resp.ok) {
+			throw new Error("Failed to fetch " + url + ": " + resp.status);
+		}
+		return resp.arrayBuffer();
 	});
 }
 
@@ -142,11 +215,39 @@ function getSlugLookup() {
 	return lookup;
 }
 
+function getItemLookupBySlug(slug) {
+	return getSlugLookup().get(normalizeSlug(slug).toLowerCase()) || null;
+}
+
 function normalizeSlug(slug) {
 	if (!slug) {
 		return "";
 	}
 	return slug.startsWith("/") ? slug : "/" + slug;
+}
+
+function trimSlug(slug) {
+	return normalizeSlug(slug).replace(/^\//, "");
+}
+
+function getItemCategory(item_details) {
+	if (!Array.isArray(item_details) || !item_details.length) {
+		return "";
+	}
+	var value = item_details[item_details.length - 1];
+	return typeof value === "string" ? value : "";
+}
+
+function getCategoryLabel(category) {
+	return EMBEDDING_CATEGORY_LABELS[category] || category || "Unknown";
+}
+
+function supportsCosmeticSearchCategory(category) {
+	return COSMETIC_SEARCH_CATEGORIES.indexOf(String(category || "")) !== -1;
+}
+
+function supportsSharedTypeFilterTab(tabName) {
+	return ["todrop", "inbank", "tomerge", "toquest", "cosmetic"].indexOf(String(tabName || "")) !== -1;
 }
 
 function normalize(name) {
@@ -186,6 +287,23 @@ function getAccountCountLookup() {
 
 function getOwnedAmount(name) {
 	return getAccountCountLookup().get(normalize(name)) || 0;
+}
+
+function getOwnershipBadge(name) {
+	var target = normalize(name);
+	var hasBank = false;
+	for (var i = 0; i < _accountItems.length; i++) {
+		if (_accountItems[i] !== target) {
+			continue;
+		}
+		if ((_accountWhere[i] || "") === "Inv") {
+			return "In Inv";
+		}
+		if ((_accountWhere[i] || "") === "Bank") {
+			hasBank = true;
+		}
+	}
+	return hasBank ? "In Bank" : "";
 }
 
 function ensureQuestChainAccountDataReady() {
@@ -256,6 +374,14 @@ function getInBankFilters() {
 	};
 }
 
+function getCosmeticOwnershipFilters() {
+	return {
+		unowned: document.getElementById("Filter_Cosmetic_Unowned").checked,
+		inInv: document.getElementById("Filter_Cosmetic_InInv").checked,
+		inBank: document.getElementById("Filter_Cosmetic_InBank").checked
+	};
+}
+
 function isRareTaggedEntity(entity) {
 	if (!entity) {
 		return false;
@@ -321,6 +447,17 @@ function passesInBankRarityFilter(tags, filters) {
 		return true;
 	}
 	return (wantsRare && set.has("rare")) || (wantsPseudoRare && set.has("pseudo_rare"));
+}
+
+function passesCosmeticOwnershipFilter(badge, filters) {
+	var value = String(badge || "");
+	if (value === "In Inv") {
+		return !!filters.inInv;
+	}
+	if (value === "In Bank") {
+		return !!filters.inBank;
+	}
+	return !!filters.unowned;
 }
 
 function updateStats(left, right) {
@@ -2154,7 +2291,20 @@ function ownershipIconHtml(badge) {
 	return "";
 }
 
-function buildCardImageWrap(wikiUrlValue, altText, tagHtml, stateHtml) {
+function buildCosmeticActionHtml(itemName, slug, category) {
+	var safeSlug = normalizeSlug(slug);
+	if (!safeSlug || !supportsCosmeticSearchCategory(category)) {
+		return "";
+	}
+	return ""
+		+ "<div class='card-action-stack'>"
+		+ "<button type='button' class='card-action-btn' data-cosmetic-search='true' data-cosmetic-item-name='" + escapeHtml(itemName) + "' data-cosmetic-slug='" + escapeHtml(safeSlug) + "' title='Find similar cosmetics'>"
+		+ "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 5c5.18 0 9.45 3.27 10.83 7-1.38 3.73-5.65 7-10.83 7S2.55 15.73 1.17 12C2.55 8.27 6.82 5 12 5zm0 2C8.24 7 5 9.2 3.37 12 5 14.8 8.24 17 12 17s7-2.2 8.63-5C19 9.2 15.76 7 12 7zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5z'/></svg>"
+		+ "</button>"
+		+ "</div>";
+}
+
+function buildCardImageWrap(wikiUrlValue, altText, tagHtml, stateHtml, actionHtml) {
 	return ""
 		+ "<div class='card-image-wrap'>"
 		+ (stateHtml || "")
@@ -2163,6 +2313,7 @@ function buildCardImageWrap(wikiUrlValue, altText, tagHtml, stateHtml) {
 		+ "<img class='card-img planner-card-image' src='" + EMPTY_IMAGE_SRC + "' data-image-state='loading' data-wiki-url='" + escapeHtml(wikiUrlValue) + "' alt='" + escapeHtml(altText) + "'>"
 		+ "</div>"
 		+ "<div class='card-tag-stack'>" + (tagHtml || "") + "</div>"
+		+ (actionHtml || "")
 		+ "</div>";
 }
 
@@ -2176,12 +2327,15 @@ function add_to_grid(container, item_name, item_details, badge) {
 	card.dataset.itemName = item_name;
 	card.dataset.slug = normalizeSlug(item_details[0]);
 	card.innerHTML = ""
-		+ buildCardImageWrap(wikiUrl(item_details[0]), item_name, tagOverlayHtml(tags), "")
+		+ buildCardImageWrap(wikiUrl(item_details[0]), item_name, tagOverlayHtml(tags), "", buildCosmeticActionHtml(item_name, item_details[0], getItemCategory(item_details)))
 		+ "<div class='card-body'>"
 		+ "<div class='card-name'>" + escapeHtml(item_name) + "</div>"
 		+ (sourceLabel ? "<div class='planner-chip-row' style='margin-top:8px;'>" + (sourceSlug ? "<a class='planner-chip source-chip' href='" + escapeHtml(wikiUrl(sourceSlug)) + "' target='_blank' rel='noreferrer'>" + escapeHtml(sourceLabel) + "</a>" : "<span class='planner-chip source-chip'>" + escapeHtml(sourceLabel) + "</span>") + "</div>" : "")
 		+ "</div>";
-	card.addEventListener("click", function() {
+	card.addEventListener("click", function(event) {
+		if (event.target.closest("[data-cosmetic-search]") || event.target.closest("a")) {
+			return;
+		}
 		openItemModal(item_name, item_details);
 	});
 	card.querySelectorAll("a").forEach(function(link) {
@@ -2200,11 +2354,14 @@ function add_simple_card(container, name, slug, tags, owned) {
 	card.dataset.itemName = name;
 	card.dataset.slug = normalizeSlug(slug);
 	card.innerHTML = ""
-		+ buildCardImageWrap(wikiUrl(slug), name, tagOverlayHtml(tags || []), ownershipIconHtml(badge))
+		+ buildCardImageWrap(wikiUrl(slug), name, tagOverlayHtml(tags || []), ownershipIconHtml(badge), buildCosmeticActionHtml(name, slug, itemData ? getItemCategory(itemData[1]) : ""))
 		+ "<div class='card-body'>"
 		+ "<div class='card-name'>" + escapeHtml(name) + "</div>"
 		+ "</div>";
-	card.addEventListener("click", function() {
+	card.addEventListener("click", function(event) {
+		if (event.target.closest("[data-cosmetic-search]") || event.target.closest("a")) {
+			return;
+		}
 		if (itemData) {
 			openItemModal(itemData[0], itemData[1]);
 		}
@@ -2341,6 +2498,7 @@ function buildSectionProgressHtml(completedCount, totalCount, accentClass) {
 
 function renderToDrop() {
 	var filters = getFilters();
+	var selectedCategories = getSelectedCosmeticCategories();
 	var found = [];
 
 	Object.entries(items_json || {}).forEach(function(entry) {
@@ -2359,6 +2517,9 @@ function renderToDrop() {
 			return;
 		}
 		if (isOwned(item_name)) {
+			return;
+		}
+		if (!passesSelectedTypeFilter(getItemCategory(item_details), selectedCategories)) {
 			return;
 		}
 		if (!passesTagFilter(getItemTags(item_details), filters)) {
@@ -2381,6 +2542,7 @@ function renderInBank() {
 	var filters = getFilters();
 	var rarityFilters = getInBankFilters();
 	var locationFilter = document.getElementById("location-filter").value;
+	var selectedCategories = getSelectedCosmeticCategories();
 	var found = [];
 
 	for (var i = 0; i < _accountItems.length; i++) {
@@ -2393,6 +2555,9 @@ function renderInBank() {
 		var details = result[1];
 		var where = _accountWhere[i] || "";
 		var tags = getItemTags(details, { includeRarity: true });
+		if (!passesSelectedTypeFilter(getItemCategory(details), selectedCategories)) {
+			continue;
+		}
 		if (!passesTagFilter(tags, filters)) {
 			continue;
 		}
@@ -2440,7 +2605,7 @@ function renderMergeGroup(wrap, shop) {
 		return ""
 			+ "<div class='item-card' data-item-name='" + escapeHtml(item.name) + "' data-slug='" + escapeHtml(normalizeSlug(item.slug)) + "'>"
 			+ "<span class='card-badge needed'>To Acquire</span>"
-			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "")
+			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "", buildCosmeticActionHtml(item.name, item.slug, item.category))
 			+ "<div class='card-body'>"
 			+ "<div class='card-name'>" + escapeHtml(item.name) + "</div>"
 			+ (ingredients ? "<div class='planner-chip-row' style='margin-top:8px;'>" + ingredients + "</div>" : "")
@@ -2451,7 +2616,7 @@ function renderMergeGroup(wrap, shop) {
 		return ""
 			+ "<div class='item-card' data-item-name='" + escapeHtml(item.name) + "' data-slug='" + escapeHtml(normalizeSlug(item.slug)) + "'>"
 			+ "<span class='card-badge owned'>Owned</span>"
-			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "")
+			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "", buildCosmeticActionHtml(item.name, item.slug, item.category))
 			+ "<div class='card-body'><div class='card-name'>" + escapeHtml(item.name) + "</div></div>"
 			+ "</div>";
 	}).join("");
@@ -2481,6 +2646,7 @@ function renderMergeGroup(wrap, shop) {
 
 function renderToMerge() {
 	var filters = getFilters();
+	var selectedCategories = getSelectedCosmeticCategories();
 	var shops = [];
 
 	Object.values(merge_shops_json || {}).forEach(function(shop) {
@@ -2504,6 +2670,10 @@ function renderToMerge() {
 				return;
 			}
 			var detailTags = lookup ? getItemTags(lookup[1]) : [];
+			var category = lookup ? getItemCategory(lookup[1]) : "";
+			if (!passesSelectedTypeFilter(category, selectedCategories)) {
+				return;
+			}
 			if (!passesTagFilter(detailTags, filters)) {
 				return;
 			}
@@ -2514,6 +2684,7 @@ function renderToMerge() {
 				name: item.name,
 				slug: item.slug,
 				tags: detailTags,
+				category: category,
 				ingredients: item.ingredients || []
 			};
 			if (isOwned(item.name)) {
@@ -2559,7 +2730,7 @@ function renderQuestGroup(wrap, group) {
 		return ""
 			+ "<div class='item-card' data-item-name='" + escapeHtml(item.name) + "' data-slug='" + escapeHtml(normalizeSlug(item.slug)) + "'>"
 			+ "<span class='card-badge needed'>To Acquire</span>"
-			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "")
+			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "", buildCosmeticActionHtml(item.name, item.slug, item.category))
 			+ "<div class='card-body'><div class='card-name'>" + escapeHtml(item.name) + "</div></div>"
 			+ "</div>";
 	}).join("");
@@ -2583,7 +2754,7 @@ function renderQuestGroup(wrap, group) {
 		return ""
 			+ "<div class='item-card' data-item-name='" + escapeHtml(item.name) + "' data-slug='" + escapeHtml(normalizeSlug(item.slug)) + "'>"
 			+ "<span class='card-badge owned'>Owned</span>"
-			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "")
+			+ buildCardImageWrap(wikiUrl(item.slug), item.name, tagOverlayHtml(item.tags), "", buildCosmeticActionHtml(item.name, item.slug, item.category))
 			+ "<div class='card-body'><div class='card-name'>" + escapeHtml(item.name) + "</div></div>"
 			+ "</div>";
 	}).join("");
@@ -2613,6 +2784,7 @@ function renderQuestGroup(wrap, group) {
 
 function renderToQuest() {
 	var filters = getFilters();
+	var selectedCategories = getSelectedCosmeticCategories();
 	var grouped = new Map();
 
 	Object.values(quests_json || {}).forEach(function(page) {
@@ -2634,13 +2806,18 @@ function renderToQuest() {
 					return;
 				}
 				var tags = lookup ? getItemTags(lookup[1]) : [];
+				var category = lookup ? getItemCategory(lookup[1]) : "";
+				if (!passesSelectedTypeFilter(category, selectedCategories)) {
+					return;
+				}
 				if (!passesTagFilter(tags, filters)) {
 					return;
 				}
 				validRewards.push({
 					name: reward.name,
 					slug: reward.slug,
-					tags: tags
+					tags: tags,
+					category: category
 				});
 			});
 
@@ -2874,7 +3051,434 @@ function renderCompleted() {
 	loadCardImages();
 }
 
+function ensureCosmeticTypeFilters() {
+	var panel = document.getElementById("cosmetic-type-panel");
+	if (!panel || _cosmeticTypeFilterInitialized) {
+		return;
+	}
+	panel.innerHTML = ""
+		+ "<div class='type-filter-dropdown-actions'>"
+		+ "<button type='button' class='type-filter-action-btn' data-cosmetic-action='query-type'>Only Query Type</button>"
+		+ "<button type='button' class='type-filter-action-btn' data-cosmetic-action='select-all'>Select All</button>"
+		+ "<button type='button' class='type-filter-action-btn' data-cosmetic-action='clear'>Clear</button>"
+		+ "</div>"
+		+ COSMETIC_TYPE_GROUPS.map(function(group) {
+			var categories = group.categories.filter(function(category) {
+				return COSMETIC_SEARCH_CATEGORIES.indexOf(category) !== -1;
+			});
+			if (!categories.length) {
+				return "";
+			}
+			return ""
+				+ "<div class='type-filter-section'>"
+				+ "<div class='type-filter-section-title'>" + escapeHtml(group.label) + "</div>"
+				+ "<div class='type-filter-options'>"
+				+ categories.map(function(category) {
+					return ""
+						+ "<label class='type-filter-chip'>"
+						+ "<input type='checkbox' data-cosmetic-type='" + escapeHtml(category) + "'>"
+						+ "<span>" + escapeHtml(getCategoryLabel(category)) + "</span>"
+						+ "</label>";
+				}).join("")
+				+ "</div>"
+				+ "</div>";
+		}).join("");
+	_cosmeticTypeFilterInitialized = true;
+	updateCosmeticTypeSummary();
+}
+
+function setCosmeticTypeDropdownOpen(isOpen) {
+	var button = document.getElementById("cosmetic-type-toggle");
+	var panel = document.getElementById("cosmetic-type-panel");
+	if (!button || !panel) {
+		return;
+	}
+	var open = !!isOpen;
+	button.setAttribute("aria-expanded", open ? "true" : "false");
+	panel.hidden = !open;
+}
+
+function getCosmeticTypeSummary(categories) {
+	var selected = (categories || []).filter(function(category) {
+		return COSMETIC_SEARCH_CATEGORIES.indexOf(category) !== -1;
+	});
+	if (!selected.length) {
+		return "No Types";
+	}
+	if (selected.length === COSMETIC_SEARCH_CATEGORIES.length) {
+		return "All Types";
+	}
+	if (selected.length === 1) {
+		return getCategoryLabel(selected[0]);
+	}
+	if (selected.length <= 3) {
+		return selected.map(getCategoryLabel).join(", ");
+	}
+	return getCategoryLabel(selected[0]) + " +" + (selected.length - 1);
+}
+
+function updateCosmeticTypeSummary() {
+	var summary = document.getElementById("cosmetic-type-summary");
+	if (!summary) {
+		return;
+	}
+	summary.textContent = getCosmeticTypeSummary(getSelectedCosmeticCategories());
+}
+
+function setCosmeticTypeSelection(categories) {
+	ensureCosmeticTypeFilters();
+	var allowed = new Set((categories || []).map(function(category) { return String(category); }));
+	document.querySelectorAll("[data-cosmetic-type]").forEach(function(input) {
+		input.checked = allowed.has(input.dataset.cosmeticType);
+	});
+	updateCosmeticTypeSummary();
+}
+
+function getSelectedCosmeticCategories() {
+	ensureCosmeticTypeFilters();
+	return Array.from(document.querySelectorAll("[data-cosmetic-type]:checked")).map(function(input) {
+		return input.dataset.cosmeticType;
+	});
+}
+
+function passesSelectedTypeFilter(category, selectedCategories) {
+	var selected = Array.isArray(selectedCategories) ? selectedCategories : getSelectedCosmeticCategories();
+	if (!selected.length) {
+		return false;
+	}
+	var normalizedCategory = String(category || "");
+	if (!normalizedCategory) {
+		return selected.length === COSMETIC_SEARCH_CATEGORIES.length;
+	}
+	return selected.indexOf(normalizedCategory) !== -1;
+}
+
+function handleCosmeticTypeAction(action) {
+	if (action === "select-all") {
+		setCosmeticTypeSelection(COSMETIC_SEARCH_CATEGORIES);
+		return true;
+	}
+	if (action === "clear") {
+		setCosmeticTypeSelection([]);
+		return true;
+	}
+	if (action === "query-type") {
+		if (tabState.cosmetic.queryCategory && supportsCosmeticSearchCategory(tabState.cosmetic.queryCategory)) {
+			setCosmeticTypeSelection([tabState.cosmetic.queryCategory]);
+			return true;
+		}
+	}
+	return false;
+}
+
+function getEmbeddingAssetUrl(path) {
+	return chrome.runtime.getURL("data/embeddings/" + path);
+}
+
+function loadEmbeddingCategory(category) {
+	if (_embeddingCategoryCache.has(category)) {
+		return _embeddingCategoryCache.get(category);
+	}
+
+	var promise = fetchJson(getEmbeddingAssetUrl(category + "_manifest.json")).then(function(manifest) {
+		return Promise.all([
+			Promise.resolve(manifest),
+			fetchJson(getEmbeddingAssetUrl(manifest.metadata_file)),
+			fetchArrayBuffer(getEmbeddingAssetUrl(manifest.vectors_file))
+		]);
+	}).then(function(parts) {
+		var manifest = parts[0];
+		var meta = parts[1];
+		var buffer = parts[2];
+		var vectors = new Float32Array(buffer);
+		if (vectors.length !== manifest.count * manifest.dimensions) {
+			throw new Error("Embedding size mismatch for " + category);
+		}
+		return {
+			category: category,
+			manifest: manifest,
+			meta: meta,
+			vectors: vectors
+		};
+	});
+
+	_embeddingCategoryCache.set(category, promise);
+	return promise;
+}
+
+function formatSimilarity(score) {
+	var pct = Math.max(0, Math.min(1, Number(score) || 0)) * 100;
+	return pct.toFixed(pct >= 99.95 ? 2 : 1) + "%";
+}
+
+function setCosmeticStatus(message, isError) {
+	var el = document.getElementById("cosmetic-status");
+	if (!el) {
+		return;
+	}
+	if (!message) {
+		el.hidden = true;
+		el.textContent = "";
+		el.style.color = "";
+		return;
+	}
+	el.hidden = false;
+	el.textContent = message;
+	el.style.color = isError ? "#ffd2cb" : "#eadcc8";
+}
+
+function dotProductRow(queryVector, vectors, rowIndex, dimensions) {
+	var start = rowIndex * dimensions;
+	var total = 0;
+	for (var i = 0; i < dimensions; i++) {
+		total += queryVector[i] * vectors[start + i];
+	}
+	return total;
+}
+
+function isCosmeticQueryMatch(result, querySlug, queryCategory) {
+	return trimSlug(result && result.slug) === trimSlug(querySlug)
+		&& String(result && result.category || "") === String(queryCategory || "");
+}
+
+function buildCosmeticResultCard(result, querySlug, queryCategory) {
+	var lookup = result.lookup;
+	var itemName = lookup ? lookup[0] : result.name;
+	var details = lookup ? lookup[1] : [normalizeSlug(result.slug)];
+	var tags = lookup ? getItemTags(details) : [];
+	var isQueryMatch = isCosmeticQueryMatch(result, querySlug, queryCategory);
+	var stateHtml = ownershipIconHtml(result.ownershipBadge || "");
+	var card = document.createElement("div");
+	card.className = "item-card" + (isQueryMatch ? " is-query-match" : "");
+	card.dataset.itemName = itemName;
+	card.dataset.slug = normalizeSlug(result.slug);
+	card.innerHTML = ""
+		+ buildCardImageWrap(wikiUrl(normalizeSlug(result.slug)), itemName, tagOverlayHtml(tags), stateHtml, buildCosmeticActionHtml(itemName, result.slug, result.category))
+		+ "<div class='card-body'>"
+		+ "<div class='card-name'>" + escapeHtml(itemName) + "</div>"
+		+ "<div class='card-body-meta'>"
+		+ "<span class='similarity-chip'><strong>" + escapeHtml(formatSimilarity(result.similarity)) + "</strong> match</span>"
+		+ "<span class='planner-chip type-chip'>" + escapeHtml(getCategoryLabel(result.category)) + "</span>"
+		+ "</div>"
+		+ "</div>";
+	return card;
+}
+
+function updateCosmeticPagination() {
+	var state = tabState.cosmetic;
+	var container = document.getElementById("cosmetic-pagination");
+	if (!state.queryLookup || !(state.items || []).length) {
+		container.innerHTML = "";
+		return;
+	}
+	var totalPages = Math.max(1, Math.ceil((state.items || []).length / COSMETIC_ITEMS_PER_PAGE));
+	var current = state.page + 1;
+	container.innerHTML = ""
+		+ "<button type='button' data-page-tab='cosmetic' data-page-dir='prev' " + (current <= 1 ? "disabled" : "") + ">Prev</button>"
+		+ "<span class='page-info'>Page " + current + " / " + totalPages + " (" + (state.items || []).length + " matches)</span>"
+		+ "<button type='button' data-page-tab='cosmetic' data-page-dir='next' " + (current >= totalPages ? "disabled" : "") + ">Next</button>";
+}
+
+function buildCosmeticEmptyTipHtml() {
+	return ""
+		+ "<div class='cosmetic-empty'>"
+		+ "<div class='cosmetic-empty-icon'>"
+		+ "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 5c5.18 0 9.45 3.27 10.83 7-1.38 3.73-5.65 7-10.83 7S2.55 15.73 1.17 12C2.55 8.27 6.82 5 12 5zm0 2C8.24 7 5 9.2 3.37 12 5 14.8 8.24 17 12 17s7-2.2 8.63-5C19 9.2 15.76 7 12 7zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5z'/></svg>"
+		+ "</div>"
+		+ "<div class='cosmetic-empty-title'>How To Use Cosmetic Search</div>"
+		+ "<div class='cosmetic-empty-copy'>On the other tabs, click the eye icon on any supported cosmetic item to open similar results here.</div>"
+		+ "</div>";
+}
+
+function renderCosmeticResultPage() {
+	var state = tabState.cosmetic;
+	var grid = document.getElementById("cosmetic-grid");
+	var shell = document.querySelector("#tab-cosmetic .cosmetic-shell");
+	grid.innerHTML = "";
+
+	if (!state.queryLookup) {
+		if (shell) {
+			shell.classList.add("is-empty");
+		}
+		grid.innerHTML = buildCosmeticEmptyTipHtml();
+		updateCosmeticPagination();
+		return;
+	}
+
+	if (!(state.items || []).length) {
+		if (shell) {
+			shell.classList.add("is-empty");
+		}
+		grid.innerHTML = "<div class='cosmetic-empty'>No similar cosmetics matched the current filters.</div>";
+		updateCosmeticPagination();
+		return;
+	}
+
+	if (shell) {
+		shell.classList.remove("is-empty");
+	}
+
+	var start = state.page * COSMETIC_ITEMS_PER_PAGE;
+	var end = Math.min(start + COSMETIC_ITEMS_PER_PAGE, state.items.length);
+	for (var i = start; i < end; i++) {
+		grid.appendChild(buildCosmeticResultCard(
+			state.items[i],
+			state.querySlug,
+			state.queryCategory
+		));
+	}
+	updateCosmeticPagination();
+	loadCardImages();
+}
+
+function buildCosmeticSearchParts(meta, lookup) {
+	var parts = [meta.name || "", meta.slug || "", getCategoryLabel(meta.category), meta.description || ""];
+	if (lookup) {
+		var details = lookup[1];
+		parts.push(readDetail(details, "Description") || "");
+		parts.push(JSON.stringify(readDetail(details, "Location") || []));
+	}
+	return parts;
+}
+
+async function renderCosmeticSearch() {
+	var state = tabState.cosmetic;
+	if (!state.queryLookup || !state.querySlug || !state.queryCategory) {
+		setCosmeticStatus("", false);
+		state.items = [];
+		renderCosmeticResultPage();
+		updateStats("Loaded Account Items: " + _accountItems.length, "Visible Results: 0");
+		return;
+	}
+
+	var selectedCategories = getSelectedCosmeticCategories();
+	if (!selectedCategories.length) {
+		state.items = [];
+		setCosmeticStatus("Type filters are empty. Enable one or more item types to search.", true);
+		renderCosmeticResultPage();
+		updateStats("Loaded Account Items: " + _accountItems.length, "Visible Results: 0");
+		return;
+	}
+
+	var renderToken = ++_cosmeticRenderToken;
+	var querySlug = trimSlug(state.querySlug);
+	var queryCategory = state.queryCategory;
+	var queryData;
+
+	try {
+		setCosmeticStatus("Loading embedding data for " + selectedCategories.map(getCategoryLabel).join(", ") + "...", false);
+		queryData = await loadEmbeddingCategory(queryCategory);
+		if (renderToken !== _cosmeticRenderToken) {
+			return;
+		}
+	} catch (err) {
+		state.items = [];
+		setCosmeticStatus("Unable to load embeddings for " + getCategoryLabel(queryCategory) + ".", true);
+		renderCosmeticResultPage();
+		return;
+	}
+
+	var queryIndex = queryData.meta.findIndex(function(entry) {
+		return trimSlug(entry.slug) === querySlug;
+	});
+	if (queryIndex === -1) {
+		state.items = [];
+		setCosmeticStatus("The selected item was not found in the " + getCategoryLabel(queryCategory) + " embedding index.", true);
+		renderCosmeticResultPage();
+		return;
+	}
+
+	var dimensions = queryData.manifest.dimensions;
+	var queryVector = queryData.vectors.subarray(
+		queryIndex * dimensions,
+		(queryIndex + 1) * dimensions
+	);
+	var filters = getFilters();
+	var ownershipFilters = getCosmeticOwnershipFilters();
+	var results = [];
+
+	for (var c = 0; c < selectedCategories.length; c++) {
+		var category = selectedCategories[c];
+		var categoryData;
+		try {
+			categoryData = await loadEmbeddingCategory(category);
+		} catch (err) {
+			if (renderToken !== _cosmeticRenderToken) {
+				return;
+			}
+			continue;
+		}
+		if (renderToken !== _cosmeticRenderToken) {
+			return;
+		}
+
+		for (var row = 0; row < categoryData.meta.length; row++) {
+			var meta = categoryData.meta[row];
+			var lookup = getItemLookupBySlug(meta.slug);
+			var details = lookup ? lookup[1] : null;
+			var ownershipBadge = getOwnershipBadge(lookup ? lookup[0] : meta.name);
+			var isQueryMatch = trimSlug(meta.slug) === querySlug && category === queryCategory;
+			if (details && !passesTagFilter(getItemTags(details), filters)) {
+				continue;
+			}
+			if (!isQueryMatch && !passesCosmeticOwnershipFilter(ownershipBadge, ownershipFilters)) {
+				continue;
+			}
+			if (!matchSearch(buildCosmeticSearchParts(meta, lookup))) {
+				continue;
+			}
+			results.push({
+				slug: trimSlug(meta.slug),
+				name: meta.name,
+				category: category,
+				similarity: dotProductRow(queryVector, categoryData.vectors, row, categoryData.manifest.dimensions),
+				lookup: lookup,
+				ownershipBadge: ownershipBadge
+			});
+		}
+	}
+
+	results.sort(function(a, b) {
+		if (b.similarity !== a.similarity) {
+			return b.similarity - a.similarity;
+		}
+		return String(a.name || "").localeCompare(String(b.name || ""));
+	});
+
+	state.items = results;
+	if (state.page * COSMETIC_ITEMS_PER_PAGE >= state.items.length) {
+		state.page = 0;
+	}
+	setCosmeticStatus("", false);
+	renderCosmeticResultPage();
+	updateStats("Loaded Account Items: " + _accountItems.length, "Visible Results: " + results.length);
+}
+
+function openCosmeticSearchForItem(itemName, slug) {
+	var lookup = getItemLookupBySlug(slug) || getNormalizedLookup().get(normalize(itemName));
+	if (!lookup) {
+		return;
+	}
+	var details = lookup[1];
+	var category = getItemCategory(details);
+	if (!supportsCosmeticSearchCategory(category)) {
+		return;
+	}
+
+	tabState.cosmetic.page = 0;
+	tabState.cosmetic.querySlug = trimSlug(details[0]);
+	tabState.cosmetic.queryName = lookup[0];
+	tabState.cosmetic.queryCategory = category;
+	tabState.cosmetic.queryLookup = lookup;
+	setCosmeticTypeSelection([category]);
+	switchTab("cosmetic");
+}
+
 function switchTab(tabName) {
+	if (tabName !== "cosmetic") {
+		_cosmeticRenderToken += 1;
+		setCosmeticTypeDropdownOpen(false);
+	}
 	activeTab = tabName;
 	document.querySelectorAll(".tab-link").forEach(function(link) {
 		link.classList.toggle("active", link.dataset.tab === tabName);
@@ -2885,6 +3489,12 @@ function switchTab(tabName) {
 	document.getElementById("location-filter").hidden = tabName !== "inbank";
 	document.querySelectorAll(".inbank-only-filter").forEach(function(el) {
 		el.hidden = tabName !== "inbank";
+	});
+	document.getElementById("cosmetic-type-group").hidden = !supportsSharedTypeFilterTab(tabName);
+	document.getElementById("context-filter-separator").hidden = !(tabName === "inbank" || supportsSharedTypeFilterTab(tabName));
+	document.getElementById("cosmetic-ownership-separator").hidden = tabName !== "cosmetic";
+	document.querySelectorAll(".cosmetic-only-filter").forEach(function(el) {
+		el.hidden = tabName !== "cosmetic";
 	});
 	renderActiveTab(false);
 }
@@ -2903,6 +3513,8 @@ function renderActiveTab(force) {
 		renderToQuest();
 	} else if (activeTab === "completed") {
 		renderCompleted();
+	} else if (activeTab === "cosmetic") {
+		renderCosmeticSearch();
 	}
 }
 
@@ -2911,11 +3523,13 @@ function invalidateAllTabs() {
 	tabState.inbank.page = 0;
 	tabState.tomerge.page = 0;
 	tabState.toquest.page = 0;
+	tabState.cosmetic.page = 0;
 	tabState.todrop.items = [];
 	tabState.inbank.items = [];
 	tabState.tomerge.groups = [];
 	tabState.toquest.groups = [];
 	tabState.completed.sections = [];
+	tabState.cosmetic.items = [];
 	renderActiveTab(true);
 }
 
@@ -3400,6 +4014,14 @@ if (window.location.href.includes("tofarm.html")) {
 			_accountType = result.aqwtype || [];
 			_accountCountLookup = null;
 			applyGridSize(result.tofarmGridSize || "medium");
+			ensureCosmeticTypeFilters();
+			setCosmeticTypeSelection(COSMETIC_SEARCH_CATEGORIES);
+			document.getElementById("cosmetic-type-group").hidden = !supportsSharedTypeFilterTab(activeTab);
+			document.getElementById("context-filter-separator").hidden = !(activeTab === "inbank" || supportsSharedTypeFilterTab(activeTab));
+			document.getElementById("cosmetic-ownership-separator").hidden = activeTab !== "cosmetic";
+			document.querySelectorAll(".cosmetic-only-filter").forEach(function(el) {
+				el.hidden = activeTab !== "cosmetic";
+			});
 
 			renderToDrop();
 
@@ -3412,6 +4034,44 @@ if (window.location.href.includes("tofarm.html")) {
 
 			["Filter_AcItem", "Filter_LegendItem", "Filter_NormalItem", "Filter_SeasonalItem", "Filter_RareItem", "Filter_PseudoRareItem"].forEach(function(id) {
 				document.getElementById(id).addEventListener("change", invalidateAllTabs);
+			});
+			["Filter_Cosmetic_Unowned", "Filter_Cosmetic_InInv", "Filter_Cosmetic_InBank"].forEach(function(id) {
+				document.getElementById(id).addEventListener("change", function() {
+					tabState.cosmetic.page = 0;
+					if (activeTab === "cosmetic") {
+						renderCosmeticSearch();
+					}
+				});
+			});
+			document.getElementById("cosmetic-type-group").addEventListener("change", function(event) {
+				if (event.target && event.target.matches("[data-cosmetic-type]")) {
+					updateCosmeticTypeSummary();
+					invalidateAllTabs();
+				}
+			});
+			document.getElementById("cosmetic-type-group").addEventListener("click", function(event) {
+				var button = event.target.closest("[data-cosmetic-action]");
+				if (!button) {
+					return;
+				}
+				if (handleCosmeticTypeAction(button.dataset.cosmeticAction)) {
+					invalidateAllTabs();
+				}
+			});
+			document.getElementById("cosmetic-type-toggle").addEventListener("click", function() {
+				var isOpen = this.getAttribute("aria-expanded") === "true";
+				setCosmeticTypeDropdownOpen(!isOpen);
+			});
+			document.addEventListener("click", function(event) {
+				var group = document.getElementById("cosmetic-type-group");
+				if (group && !group.contains(event.target)) {
+					setCosmeticTypeDropdownOpen(false);
+				}
+			});
+			document.addEventListener("keydown", function(event) {
+				if (event.key === "Escape") {
+					setCosmeticTypeDropdownOpen(false);
+				}
 			});
 
 			document.getElementById("location-filter").addEventListener("change", function() {
@@ -3435,6 +4095,17 @@ if (window.location.href.includes("tofarm.html")) {
 			});
 
 			document.body.addEventListener("click", function(event) {
+				var cosmeticBtn = event.target.closest("[data-cosmetic-search]");
+				if (cosmeticBtn) {
+					event.preventDefault();
+					event.stopPropagation();
+					openCosmeticSearchForItem(
+						cosmeticBtn.dataset.cosmeticItemName || "",
+						cosmeticBtn.dataset.cosmeticSlug || ""
+					);
+					return;
+				}
+
 				var pageBtn = event.target.closest("[data-page-tab]");
 				if (pageBtn) {
 					var state = tabState[pageBtn.dataset.pageTab];

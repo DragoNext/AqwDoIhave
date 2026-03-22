@@ -1,0 +1,1 @@
+{"category": "staffs", "count": 1666, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "staffs.f32", "metadata_file": "staffs_meta.json", "npy_file": "staffs.npy"}

@@ -1,0 +1,1 @@
+{"category": "daggers", "count": 5769, "dimensions": 3072, "dtype": "float32", "endianness": "little", "layout": "row-major", "normalized": true, "vectors_file": "daggers.f32", "metadata_file": "daggers_meta.json", "npy_file": "daggers.npy"}

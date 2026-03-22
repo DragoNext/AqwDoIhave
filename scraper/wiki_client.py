@@ -49,9 +49,9 @@ class WikiClient:
             return
         logger.warning("Could not find wikidot_token7, recent-changes AJAX may fail")
 
-    async def fetch_page(self, path: str) -> str:
+    async def fetch_page(self, path: str, track_redirect: bool = False) -> str | tuple[str, str]:
         url = f"{self.base_url}{path}"
-        return await self._fetch_with_retry(url)
+        return await self._fetch_with_retry(url, track_redirect=track_redirect)
 
     async def fetch_ajax(self, module_name: str, params: dict) -> dict:
         if not self._wikidot_token:
@@ -65,7 +65,8 @@ class WikiClient:
         return await self._fetch_with_retry(url, method="POST", data=body, as_json=True)
 
     async def _fetch_with_retry(self, url: str, method: str = "GET",
-                                data: dict | None = None, as_json: bool = False):
+                                data: dict | None = None, as_json: bool = False,
+                                track_redirect: bool = False):
         last_exc = None
         for attempt in range(self.max_retries):
             async with self._semaphore:
@@ -90,6 +91,10 @@ class WikiClient:
                                     status=resp.status, message=f"Server error {resp.status}",
                                 )
                             result = await (resp.json(content_type=None) if as_json else resp.text())
+                            if track_redirect:
+                                final_path = resp.url.path
+                                await asyncio.sleep(self.delay)
+                                return result, final_path
                     await asyncio.sleep(self.delay)
                     return result
                 except (aiohttp.ClientResponseError) as e:

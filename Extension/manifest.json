@@ -15,10 +15,16 @@
 	"permissions": [
 		"storage",
 		"contextMenus",
-		"tabs"
+		"tabs",
+		"permissions"
 	],
 	"host_permissions": [
 		"https://api.codetabs.com/*"
+	],
+	"optional_host_permissions": [
+		"http://aqwwiki.wikidot.com/*",
+		"http://*/*",
+		"https://*/*"
 	],
 	"web_accessible_resources": [
 		{
@@ -34,7 +40,8 @@
 				"data/collection_chests.json", "tofarm.html", "images/WICF_button.png",
 				"images/found_items_banner.svg", "images/tab.png",
 				"themes/progressbar.css",
-				"data/merge_shops.json", "data/quests.json", "data/locations.json"
+				"data/merge_shops.json", "data/quests.json", "data/locations.json",
+				"data/embeddings/*.json", "data/embeddings/*.f32", "data/embeddings/*.npy"
 			],
 			"matches": ["<all_urls>"]
 		}

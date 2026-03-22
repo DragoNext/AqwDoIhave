@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AqwDoIHave Planner</title>
+    <title>AqwDoIHave Extras</title>
     <style>
         :root {
             --bg: #efdfc2;
@@ -84,8 +84,35 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
+            align-items: center;
             color: #d9c7d3;
             font-size: 0.9rem;
+        }
+
+        .settings-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255, 231, 185, 0.14);
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #eadcc8;
+            text-decoration: none;
+            transition: 120ms ease;
+        }
+
+        .settings-link:hover {
+            border-color: rgba(255, 231, 185, 0.24);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff4de;
+        }
+
+        .settings-link svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
         }
 
         .filter-bar {
@@ -120,7 +147,8 @@
         }
 
         .filter-pill[hidden],
-        .inbank-only-filter[hidden] {
+        .inbank-only-filter[hidden],
+        .cosmetic-only-filter[hidden] {
             display: none !important;
         }
 
@@ -168,6 +196,146 @@
             display: block;
         }
 
+        .type-filter-group {
+            position: relative;
+        }
+
+        .type-filter-group[hidden] {
+            display: none !important;
+        }
+
+        .type-filter-dropdown-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 231, 185, 0.16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f3ebdf;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 120ms ease;
+        }
+
+        .type-filter-dropdown-btn:hover,
+        .type-filter-dropdown-btn[aria-expanded="true"] {
+            border-color: rgba(255, 231, 185, 0.26);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .type-filter-dropdown-btn strong {
+            color: #f6d77a;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .type-filter-dropdown-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            opacity: 0.9;
+        }
+
+        .type-filter-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            z-index: 20;
+            min-width: min(700px, calc(100vw - 48px));
+            max-width: min(860px, calc(100vw - 48px));
+            padding: 16px;
+            border: 1px solid rgba(255, 231, 185, 0.12);
+            border-radius: 10px;
+            background: #512744;
+            box-shadow: 0 18px 38px rgba(10, 2, 9, 0.38);
+        }
+
+        .type-filter-dropdown-panel[hidden] {
+            display: none !important;
+        }
+
+        .type-filter-dropdown-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .type-filter-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border: 1px solid rgba(255, 231, 185, 0.14);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f3ebdf;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 120ms ease;
+        }
+
+        .type-filter-action-btn:hover {
+            border-color: rgba(255, 231, 185, 0.26);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .type-filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .type-filter-section + .type-filter-section {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 231, 185, 0.1);
+        }
+
+        .type-filter-section-title {
+            color: #f6d77a;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .type-filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .type-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border: 1px solid rgba(255, 231, 185, 0.14);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f3ebdf;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 120ms ease;
+        }
+
+        .type-filter-chip:hover {
+            border-color: rgba(255, 231, 185, 0.26);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .type-filter-chip input {
+            accent-color: #e1b554;
+        }
+
         .item-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(var(--item-grid-min), 1fr));
@@ -185,6 +353,7 @@
         }
 
         .item-card {
+            position: relative;
             overflow: hidden;
             cursor: pointer;
             transition: 140ms ease;
@@ -193,6 +362,29 @@
         .item-card:hover {
             transform: translateY(-2px);
             border-color: rgba(255, 231, 185, 0.22);
+        }
+
+        .item-card.is-query-match {
+            border-color: #f1d36b;
+            outline: 3px solid #f1d36b;
+            outline-offset: -3px;
+            box-shadow: inset 0 0 0 2px rgba(241, 211, 107, 0.72), 0 0 28px rgba(241, 211, 107, 0.3);
+        }
+
+        .item-card.is-query-match .card-body {
+            background: linear-gradient(180deg, rgba(113, 58, 56, 0.14), transparent 42%);
+        }
+
+        .item-card.is-query-match .card-image-gallery {
+            box-shadow: inset 0 0 0 2px rgba(241, 211, 107, 0.78);
+        }
+
+        .item-card.is-query-match::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(255, 241, 181, 0.55);
+            pointer-events: none;
         }
 
         .card-img {
@@ -247,6 +439,154 @@
             background: rgba(24, 14, 24, 0.88);
             border: 1px solid rgba(255, 231, 185, 0.18);
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+        }
+
+        .card-action-stack {
+            position: absolute;
+            left: 18px;
+            bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .card-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            box-sizing: border-box;
+            padding: 2px;
+            border: 1px solid rgba(255, 231, 185, 0.18);
+            border-radius: 0;
+            background: rgba(24, 14, 24, 0.88);
+            color: #f4ecd6;
+            cursor: pointer;
+            box-shadow: none;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+            transition: 120ms ease;
+        }
+
+        .card-action-btn:hover {
+            transform: none;
+            border-color: rgba(255, 231, 185, 0.28);
+            background: rgba(42, 22, 34, 0.92);
+            color: #fff7e3;
+        }
+
+        .card-action-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .similarity-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 231, 185, 0.12);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f3ebdf;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .similarity-chip strong {
+            color: #f6d77a;
+        }
+
+        .cosmetic-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .cosmetic-shell.is-empty {
+            min-height: 420px;
+            justify-content: center;
+        }
+
+        .cosmetic-shell.is-empty #cosmetic-grid {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .cosmetic-status {
+            background: #5a2e49;
+            border: 1px solid rgba(255, 231, 185, 0.08);
+            border-radius: 3px;
+            color: #f2eadf;
+            padding: 16px 18px;
+            color: #eadcc8;
+            line-height: 1.5;
+        }
+
+        .cosmetic-status[hidden] {
+            display: none !important;
+        }
+
+        .cosmetic-empty {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 30px 32px;
+            border: 1px solid rgba(255, 231, 185, 0.18);
+            border-radius: 10px;
+            color: #eadcc8;
+            background: linear-gradient(180deg, rgba(92, 44, 71, 0.92), rgba(70, 31, 55, 0.96));
+            box-shadow: 0 18px 40px rgba(17, 6, 15, 0.22);
+            text-align: center;
+        }
+
+        .cosmetic-empty-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 231, 185, 0.2);
+            background: rgba(24, 14, 24, 0.55);
+            color: #f6d77a;
+        }
+
+        .cosmetic-empty-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .cosmetic-empty-title {
+            color: #fff1da;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .cosmetic-empty-copy {
+            margin-top: 10px;
+            color: #eadcc8;
+            line-height: 1.6;
+        }
+
+        .card-body-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .planner-chip.type-chip {
+            background: rgba(225, 181, 84, 0.14);
+            border-color: rgba(225, 181, 84, 0.18);
+            color: #ffe9a9;
         }
 
         .card-tag-icon {
@@ -972,22 +1312,27 @@
                 padding-left: 16px;
                 padding-right: 16px;
             }
+
         }
     </style>
 </head>
 <body>
     <div class="top-bar">
         <div class="top-bar-left">
-            <span class="brand-label">AqwDoIHave</span>
+            <span class="brand-label">AqwDoIHave Extras</span>
             <a href="#" class="tab-link active" data-tab="todrop">{To Drop};</a>
             <a href="#" class="tab-link" data-tab="tomerge">{To Merge};</a>
             <a href="#" class="tab-link" data-tab="toquest">{To Quest};</a>
             <a href="#" class="tab-link" data-tab="inbank">{In Bank};</a>
             <a href="#" class="tab-link" data-tab="completed">{Completed};</a>
+            <a href="#" class="tab-link" data-tab="cosmetic">{Cosmetic Search};</a>
         </div>
         <div class="top-stats">
             <span id="stats-left">Loaded Account Items: 0</span>
             <span id="stats-right">Visible Results: 0</span>
+            <a class="settings-link" href="options.html" title="Open settings" aria-label="Open settings">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.22-1.12.53-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.82 14.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.51.41 1.05.72 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.22 1.12-.53 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+            </a>
         </div>
     </div>
 
@@ -1023,7 +1368,30 @@
                 <img src="https://aqwwiki.wdfiles.com/local--files/image-tags/pseudolarge.png" alt="Pseudo Rare">
                 <span>Pseudo Rare</span>
             </label>
-            <span class="separator"></span>
+            <span id="context-filter-separator" class="separator"></span>
+            <div id="cosmetic-type-group" class="type-filter-group" hidden>
+                <button id="cosmetic-type-toggle" class="type-filter-dropdown-btn" type="button" aria-expanded="false" aria-controls="cosmetic-type-panel">
+                    <strong>Types</strong>
+                    <span id="cosmetic-type-summary">Armor</span>
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.22 5.97a.75.75 0 0 1 1.06 0L8 9.69l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.03a.75.75 0 0 1 0-1.06Z"/></svg>
+                </button>
+                <div id="cosmetic-type-panel" class="type-filter-dropdown-panel" hidden></div>
+            </div>
+            <span id="cosmetic-ownership-separator" class="separator" hidden></span>
+            <label class="filter-pill cosmetic-only-filter" hidden>
+                <input id="Filter_Cosmetic_Unowned" type="checkbox" checked>
+                <span>Unowned</span>
+            </label>
+            <label class="filter-pill cosmetic-only-filter" hidden>
+                <input id="Filter_Cosmetic_InInv" type="checkbox" checked>
+                <img src="images/in_inventory.png" alt="In Inventory">
+                <span>In Inv</span>
+            </label>
+            <label class="filter-pill cosmetic-only-filter" hidden>
+                <input id="Filter_Cosmetic_InBank" type="checkbox" checked>
+                <img src="images/in_bank.png" alt="In Bank">
+                <span>In Bank</span>
+            </label>
             <select id="location-filter" class="location-filter" hidden>
                 <option value="all">All</option>
                 <option value="Inv">Inventory</option>
@@ -1062,6 +1430,14 @@
 
     <div id="tab-completed" class="tab-content">
         <div id="completed-wrap"></div>
+    </div>
+
+    <div id="tab-cosmetic" class="tab-content">
+        <div class="cosmetic-shell">
+            <div id="cosmetic-status" class="cosmetic-status" hidden></div>
+            <div id="cosmetic-grid" class="item-grid"></div>
+            <div id="cosmetic-pagination" class="pagination-controls"></div>
+        </div>
     </div>
 
     <div class="hidden-compat">
