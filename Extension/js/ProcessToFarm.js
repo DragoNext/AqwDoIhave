@@ -3393,16 +3393,12 @@ async function renderCosmeticSearch() {
 		queryIndex * dimensions,
 		(queryIndex + 1) * dimensions
 	);
-	var searchCategories = selectedCategories.slice();
-	if (searchCategories.indexOf(queryCategory) === -1) {
-		searchCategories.unshift(queryCategory);
-	}
 	var filters = getFilters();
 	var ownershipFilters = getCosmeticOwnershipFilters();
 	var results = [];
 
-	for (var c = 0; c < searchCategories.length; c++) {
-		var category = searchCategories[c];
+	for (var c = 0; c < selectedCategories.length; c++) {
+		var category = selectedCategories[c];
 		var categoryData;
 		try {
 			categoryData = await loadEmbeddingCategory(category);
@@ -3448,6 +3444,23 @@ async function renderCosmeticSearch() {
 		}
 		return String(a.name || "").localeCompare(String(b.name || ""));
 	});
+	var queryResultIndex = results.findIndex(function(entry) {
+		return entry.slug === querySlug && entry.category === queryCategory;
+	});
+	if (queryResultIndex > 0) {
+		results.unshift(results.splice(queryResultIndex, 1)[0]);
+	} else if (queryResultIndex === -1) {
+		var queryLookup = getItemLookupBySlug(querySlug);
+		var queryMeta = queryData.meta[queryIndex];
+		results.unshift({
+			slug: querySlug,
+			name: queryMeta.name,
+			category: queryCategory,
+			similarity: dotProductRow(queryVector, queryData.vectors, queryIndex, dimensions),
+			lookup: queryLookup,
+			ownershipBadge: getOwnershipBadge(queryLookup ? queryLookup[0] : queryMeta.name)
+		});
+	}
 
 	state.items = results;
 	if (state.page * COSMETIC_ITEMS_PER_PAGE >= state.items.length) {
