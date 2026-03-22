@@ -1507,7 +1507,7 @@ async function applyQuestChainNodeImages(cy) {
 				"background-image": imageSrc,
 				"background-fit": "contain",
 				"background-repeat": "no-repeat",
-				"background-width": "82%",
+				"background-width": "auto",
 				"background-height": "70%",
 				"background-position-y": "24%"
 			});
@@ -3393,12 +3393,16 @@ async function renderCosmeticSearch() {
 		queryIndex * dimensions,
 		(queryIndex + 1) * dimensions
 	);
+	var searchCategories = selectedCategories.slice();
+	if (searchCategories.indexOf(queryCategory) === -1) {
+		searchCategories.unshift(queryCategory);
+	}
 	var filters = getFilters();
 	var ownershipFilters = getCosmeticOwnershipFilters();
 	var results = [];
 
-	for (var c = 0; c < selectedCategories.length; c++) {
-		var category = selectedCategories[c];
+	for (var c = 0; c < searchCategories.length; c++) {
+		var category = searchCategories[c];
 		var categoryData;
 		try {
 			categoryData = await loadEmbeddingCategory(category);
@@ -3418,13 +3422,13 @@ async function renderCosmeticSearch() {
 			var details = lookup ? lookup[1] : null;
 			var ownershipBadge = getOwnershipBadge(lookup ? lookup[0] : meta.name);
 			var isQueryMatch = trimSlug(meta.slug) === querySlug && category === queryCategory;
-			if (details && !passesTagFilter(getItemTags(details), filters)) {
+			if (!isQueryMatch && details && !passesTagFilter(getItemTags(details), filters)) {
 				continue;
 			}
 			if (!isQueryMatch && !passesCosmeticOwnershipFilter(ownershipBadge, ownershipFilters)) {
 				continue;
 			}
-			if (!matchSearch(buildCosmeticSearchParts(meta, lookup))) {
+			if (!isQueryMatch && !matchSearch(buildCosmeticSearchParts(meta, lookup))) {
 				continue;
 			}
 			results.push({
