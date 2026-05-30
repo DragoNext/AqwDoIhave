@@ -1,4 +1,4 @@
-// ProcessAccountItems.js - FINAL (Scrape from DOM table)
+// ProcessAccountItems.js - API METHOD (FAST!)
 
 var json_data;
 var _UndArray_0;
@@ -39,88 +39,85 @@ function translateUnidentified(itemname) {
 }
 
 // ============================================================
-// WAIT FOR TABLE TO BE POPULATED
+// FETCH INVENTORY VIA API (FAST - 1 REQUEST)
 // ============================================================
-async function waitForTableData() {
-    console.log("⏳ [AQW] Waiting for inventory table to populate...");
+async function fetchInventoryData() {
+    console.log("========== [AQW] FETCHING INVENTORY (API) ==========");
     
-    for (let i = 0; i < 60; i++) {
-        // Cari baris data di tabel inventory
-        const rows = document.querySelectorAll('#dataGridContainer .dx-data-row');
+    let allItems = [];
+    let skip = 0;
+    const take = 300;
+    let totalCount = 0;
+    
+    try {
+        // First request to get total count and first batch
+        const firstResponse = await fetch(
+            `https://account.aq.com/myapi/inventory/InventoryData?skip=0&take=${take}&requireTotalCount=true&sort=[{"selector":"Added","desc":true}]&_=${Date.now()}`,
+            {
+                headers: {
+                    "accept": "application/json, text/javascript, */*; q=0.01",
+                    "x-requested-with": "XMLHttpRequest"
+                },
+                credentials: "include"
+            }
+        );
         
-        if (rows.length > 0) {
-            // Pastikan baris pertama punya data (bukan placeholder)
-            const firstRowCells = rows[0].querySelectorAll('td');
-            if (firstRowCells.length >= 1 && firstRowCells[0].innerText.trim() !== "") {
-                console.log(`✅ [AQW] Found ${rows.length} inventory rows`);
-                return rows;
+        const firstData = await firstResponse.json();
+        totalCount = firstData.totalCount;
+        allItems.push(...firstData.data);
+        console.log(`✅ Page 1: ${firstData.data.length} items (total: ${totalCount})`);
+        
+        // Calculate remaining pages
+        const remainingPages = Math.ceil((totalCount - take) / take);
+        
+        // Fetch remaining pages in parallel (faster!)
+        const promises = [];
+        for (let page = 1; page <= remainingPages; page++) {
+            const newSkip = page * take;
+            promises.push(
+                fetch(
+                    `https://account.aq.com/myapi/inventory/InventoryData?skip=${newSkip}&take=${take}&requireTotalCount=true&sort=[{"selector":"Added","desc":true}]&_=${Date.now() + page}`,
+                    {
+                        headers: {
+                            "accept": "application/json, text/javascript, */*; q=0.01",
+                            "x-requested-with": "XMLHttpRequest"
+                        },
+                        credentials: "include"
+                    }
+                ).then(r => r.json())
+            );
+        }
+        
+        const otherPages = await Promise.all(promises);
+        for (const pageData of otherPages) {
+            if (pageData.data && pageData.data.length > 0) {
+                allItems.push(...pageData.data);
+                console.log(`✅ Page ${Math.floor(allItems.length / take) + 1}: ${pageData.data.length} items`);
             }
         }
         
-        await new Promise(r => setTimeout(r, 500));
+        console.log(`🎉 TOTAL: ${allItems.length} items fetched via API`);
+        
+        // Convert API response to our format
+        const formattedItems = allItems.map(item => ({
+            ItemName: item.Name || "",
+            Quantity: item.Count || 1,
+            Type: item.Type || "",
+            Location: item.Bank === 1 ? "Bank" : "Inv",
+            Currency: item.AC === 1 ? "AC" : "Gold",
+            Category: item.Member === 1 ? "Member" : "Free"
+        }));
+        
+        return formattedItems;
+        
+    } catch(e) {
+        console.error("❌ API Error:", e);
+        throw e;
     }
-    
-    throw new Error("❌ [AQW] Inventory table not found or empty");
 }
 
 // ============================================================
-// SCRAPE INVENTORY FROM DOM TABLE
-// ============================================================
-async function fetchInventoryData() {
-    console.log("========== [AQW] FETCHING INVENTORY ==========");
-    
-    // Wait for table to be populated
-    const rows = await waitForTableData();
-    
-    const items = [];
-    
-    // Map column indices based on table headers
-    // From HTML: Inventory Item, Quantity, Type, Bank, AC, Member, Date Added
-    let colIndex = {
-        name: 0,
-        quantity: 1,
-        type: 2,
-        bank: 3,    // checkbox
-        ac: 4,      // checkbox
-        member: 5,  // checkbox
-        date: 6
-    };
-    
-    for (let row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 7) continue;
-        
-        const name = cells[colIndex.name]?.innerText?.trim() || "";
-        const quantity = parseInt(cells[colIndex.quantity]?.innerText?.trim()) || 1;
-        const type = cells[colIndex.type]?.innerText?.trim() || "";
-        
-        // Check checkbox status (Bank, AC, Member)
-        const bankCheckbox = cells[colIndex.bank]?.querySelector('.dx-checkbox-checked');
-        const acCheckbox = cells[colIndex.ac]?.querySelector('.dx-checkbox-checked');
-        const memberCheckbox = cells[colIndex.member]?.querySelector('.dx-checkbox-checked');
-        
-        const itemWhere = bankCheckbox ? "Bank" : "Inv";
-        const itemCurrency = acCheckbox ? "AC" : "Gold";
-        const itemCategory = memberCheckbox ? "Member" : "Free";
-        
-        if (!name) continue;
-        
-        items.push({
-            ItemName: name,
-            Quantity: quantity,
-            Type: type,
-            Location: itemWhere,
-            Currency: itemCurrency,
-            Category: itemCategory
-        });
-    }
-    
-    console.log(`✅ [AQW] Scraped ${items.length} items from DOM`);
-    return items;
-}
-
-// ============================================================
-// PROCESS ITEMS
+// PROCESS ITEMS (Sama seperti sebelumnya)
 // ============================================================
 function ProcessAccountItems(itemsArray) {
     if (!itemsArray || !itemsArray.length) {
@@ -138,7 +135,6 @@ function ProcessAccountItems(itemsArray) {
     
     for (var i = 0; i < itemsArray.length; i++) {
         var item = itemsArray[i];
-        
         var rawName = item.ItemName || "";
         var itemType = item.Type || "";
         var itemWhere = item.Location || "Inv";
@@ -152,7 +148,6 @@ function ProcessAccountItems(itemsArray) {
         
         if (!rawName) continue;
         
-        // Handle stackable items with " x " in name
         if (isStackable && rawName.includes(" x ")) {
             var parts = rawName.split(" x ");
             quantity = parseInt(parts[parts.length - 1]) || 1;
